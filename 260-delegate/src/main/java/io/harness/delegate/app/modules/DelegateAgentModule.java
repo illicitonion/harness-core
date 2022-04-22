@@ -10,7 +10,7 @@ package io.harness.delegate.app.modules;
 import static io.harness.configuration.DeployMode.DEPLOY_MODE;
 import static io.harness.configuration.DeployMode.isOnPrem;
 import static io.harness.delegate.service.DelegateAgentServiceImpl.getDelegateId;
-import static io.harness.grpc.utils.DelegateGrpcConfigExtractor.extractAuthority;
+import static io.harness.grpc.utils.DelegateGrpcConfigExtractor.extractAndPrepareAuthority;
 import static io.harness.grpc.utils.DelegateGrpcConfigExtractor.extractTarget;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -52,7 +52,8 @@ public class DelegateAgentModule extends AbstractModule {
     install(new MetricRegistryModule(new MetricRegistry()));
 
     install(new DelegateManagerClientModule(configuration.getManagerUrl(), configuration.getVerificationServiceUrl(),
-        configuration.getCvNextGenUrl(), configuration.getAccountId(), configuration.getDelegateToken()));
+        configuration.getCvNextGenUrl(), configuration.getAccountId(), configuration.getDelegateToken(),
+        configuration.getClientCertificateFilePath(), configuration.getClientCertificateKeyFilePath()));
 
     install(new LogStreamingModule(configuration.getLogStreamingServiceBaseUrl()));
     install(new DelegateGrpcClientModule(configuration));
@@ -86,7 +87,8 @@ public class DelegateAgentModule extends AbstractModule {
                 .accountSecret(configuration.getDelegateToken())
                 .queueFilePath(configuration.getQueueFilePath())
                 .publishTarget(extractTarget(managerHostAndPort))
-                .publishAuthority(extractAuthority(managerHostAndPort, "events"))
+                .publishAuthority(extractAndPrepareAuthority(
+                    managerHostAndPort, "events", configuration.isMtls()))
                 .build();
         install(new DelegateTailerModule(tailerConfig));
       } else {

@@ -292,6 +292,8 @@ import io.harness.encryptors.clients.HashicorpVaultEncryptor;
 import io.harness.encryptors.clients.LocalEncryptor;
 import io.harness.exception.DelegateServiceDriverExceptionHandler;
 import io.harness.exception.ExplanationException;
+import io.harness.exception.KeyManagerBuilderException;
+import io.harness.exception.TrustManagerBuilderException;
 import io.harness.exception.exceptionmanager.ExceptionModule;
 import io.harness.exception.exceptionmanager.exceptionhandler.ExceptionHandler;
 import io.harness.gcp.client.GcpClient;
@@ -332,6 +334,8 @@ import io.harness.secrets.SecretsDelegateCacheHelperService;
 import io.harness.secrets.SecretsDelegateCacheHelperServiceImpl;
 import io.harness.secrets.SecretsDelegateCacheService;
 import io.harness.secrets.SecretsDelegateCacheServiceImpl;
+import io.harness.security.X509KeyManagerBuilder;
+import io.harness.security.X509TrustManagerBuilder;
 import io.harness.security.encryption.DelegateDecryptionService;
 import io.harness.security.encryption.SecretDecryptionService;
 import io.harness.service.ScmServiceClient;
@@ -661,6 +665,8 @@ import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.MapBinder;
 import com.google.inject.name.Named;
 import com.google.inject.name.Names;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
 import java.io.IOException;
 import java.time.Clock;
 import java.util.concurrent.ExecutorService;
@@ -669,8 +675,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.asynchttpclient.AsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClient;
 import org.asynchttpclient.DefaultAsyncHttpClientConfig;
@@ -875,6 +885,28 @@ public class DelegateModule extends AbstractModule {
                                                 .build());
   }
 
+  @Provides
+  @Singleton
+  public DefaultAsyncHttpClient defaultAsyncHttpClient()
+      throws TrustManagerBuilderException, KeyManagerBuilderException, SSLException {
+    TrustManager trustManager = new X509TrustManagerBuilder().trustAllCertificates().build();
+    SslContextBuilder sslContextBuilder = SslContextBuilder.forClient().trustManager(trustManager);
+
+    if (StringUtils.isNotEmpty(this.configuration.getClientCertificateFilePath())
+        && StringUtils.isNotEmpty(this.configuration.getClientCertificateKeyFilePath())) {
+      KeyManager keyManager = new X509KeyManagerBuilder()
+                                  .withClientCertificateFromFile(this.configuration.getClientCertificateFilePath(),
+                                      this.configuration.getClientCertificateKeyFilePath())
+                                  .build();
+      sslContextBuilder.keyManager(keyManager);
+    }
+
+    SslContext sslContext = sslContextBuilder.build();
+
+    return new DefaultAsyncHttpClient(
+        new DefaultAsyncHttpClientConfig.Builder().setUseProxyProperties(true).setSslContext(sslContext).build());
+  }
+
   @Override
   protected void configure() {
     bindDelegateTasks();
@@ -907,12 +939,8 @@ public class DelegateModule extends AbstractModule {
     bind(BambooBuildService.class).to(BambooBuildServiceImpl.class);
     bind(DockerBuildService.class).to(DockerBuildServiceImpl.class);
     bind(BambooService.class).to(BambooServiceImpl.class);
+    // DefaultAsyncHttpClient is being bound using a separate function (as this function can't throw)
     bind(AsyncHttpClient.class).to(DefaultAsyncHttpClient.class);
-    bind(DefaultAsyncHttpClient.class)
-        .toInstance(new DefaultAsyncHttpClient(new DefaultAsyncHttpClientConfig.Builder()
-                                                   .setUseProxyProperties(true)
-                                                   .setUseInsecureTrustManager(true)
-                                                   .build()));
     bind(AwsClusterService.class).to(AwsClusterServiceImpl.class);
     bind(EcsContainerService.class).to(EcsContainerServiceImpl.class);
     bind(GkeClusterService.class).to(GkeClusterServiceImpl.class);
