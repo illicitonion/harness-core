@@ -12,6 +12,9 @@ import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.data.structure.UUIDGenerator.generateUuid;
 import static io.harness.exception.WingsException.USER;
+import static io.harness.metrics.impl.DelegateMetricsServiceImpl.SECRETS_CACHE_HITS;
+import static io.harness.metrics.impl.DelegateMetricsServiceImpl.SECRETS_CACHE_INSERTS;
+import static io.harness.metrics.impl.DelegateMetricsServiceImpl.SECRETS_CACHE_LOOKUPS;
 import static io.harness.reflection.ReflectionUtils.getFieldByName;
 import static io.harness.security.SimpleEncryption.CHARSET;
 
@@ -31,6 +34,7 @@ import io.harness.encryption.SecretRefData;
 import io.harness.exception.FunctorException;
 import io.harness.exception.InvalidRequestException;
 import io.harness.expression.ExpressionFunctor;
+import io.harness.metrics.intfc.DelegateMetricsService;
 import io.harness.ng.core.BaseNGAccess;
 import io.harness.secretmanagerclient.services.api.SecretManagerClientService;
 import io.harness.security.SimpleEncryption;
@@ -41,6 +45,7 @@ import io.harness.utils.IdentifierRefHelper;
 
 import software.wings.service.intfc.security.SecretManager;
 
+import com.google.inject.Inject;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -49,6 +54,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import javax.cache.Cache;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 @OwnedBy(CDP)
@@ -69,6 +75,8 @@ public class NgSecretManagerFunctor implements ExpressionFunctor, NgSecretManage
   @Builder.Default private Map<String, String> evaluatedDelegateSecrets = new HashMap<>();
   @Builder.Default private Map<String, EncryptionConfig> encryptionConfigs = new HashMap<>();
   @Builder.Default private Map<String, SecretDetail> secretDetails = new HashMap<>();
+
+  @Inject private DelegateMetricsService delegateMetricsService;
 
   @Override
   public Object obtain(String secretIdentifier, int token) {
@@ -120,9 +128,11 @@ public class NgSecretManagerFunctor implements ExpressionFunctor, NgSecretManage
 
     List<EncryptedDataDetail> encryptedDataDetails = null;
     if (secretsCache != null) {
-      // Cache hit.
+      delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_LOOKUPS);
       EncryptedDataDetails cachedValue = secretsCache.get(String.valueOf(keyHash));
       if (cachedValue != null) {
+        // Cache hit.
+        delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_HITS);
         encryptedDataDetails = cachedValue.getEncryptedDataDetailList();
       }
     }
@@ -139,6 +149,7 @@ public class NgSecretManagerFunctor implements ExpressionFunctor, NgSecretManage
       EncryptedDataDetails objectToCache =
           EncryptedDataDetails.builder().encryptedDataDetailList(encryptedDataDetails).build();
       secretsCache.put(String.valueOf(keyHash), objectToCache);
+      delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_INSERTS);
     }
 
     List<EncryptedDataDetail> localEncryptedDetails =
@@ -218,7 +229,7 @@ public class NgSecretManagerFunctor implements ExpressionFunctor, NgSecretManage
 }
 
 @Builder
-@lombok.EqualsAndHashCode
+@EqualsAndHashCode
 class SecretsCacheKey {
   String accountIdentifier;
   String orgIdentifier;

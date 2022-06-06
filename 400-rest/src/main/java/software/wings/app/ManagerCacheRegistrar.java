@@ -9,6 +9,7 @@ package software.wings.app;
 
 import static io.harness.annotations.dev.HarnessTeam.PL;
 
+import static javax.cache.expiry.Duration.THIRTY_MINUTES;
 import static javax.cache.expiry.Duration.TWENTY_MINUTES;
 
 import io.harness.annotations.dev.OwnedBy;
@@ -126,7 +127,7 @@ public class ManagerCacheRegistrar extends AbstractModule {
   public Cache<String, EncryptedDataDetails> getSecretTokenCache(
       HarnessCacheManager harnessCacheManager, VersionInfoManager versionInfoManager) {
     return harnessCacheManager.getCache(SECRET_CACHE, String.class, EncryptedDataDetails.class,
-        CreatedExpiryPolicy.factoryOf(TWENTY_MINUTES), versionInfoManager.getVersionInfo().getBuildNo());
+        CreatedExpiryPolicy.factoryOf(THIRTY_MINUTES), versionInfoManager.getVersionInfo().getBuildNo());
   }
 
   @Override
