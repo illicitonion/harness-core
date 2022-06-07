@@ -116,7 +116,15 @@ io.harness.plancreator.strategy.StrategyConfig
 io.harness.plancreator.strategy.HarnessForConfig
 io.harness.steps.customstage.CustomStageSpecParams
 io.harness.ng.core.envGroup.EnvironmentGroupOutcome
+<<<<<<< HEAD
 io.harness.plancreator.steps.resourceconstraint.QueueStepNode
 io.harness.steps.resourcerestraint.beans.QueueHoldingScope
 io.harness.plancreator.steps.resourceconstraint.QueueStepInfo
 io.harness.steps.policy.PolicyStepSpecParameters
+=======
+io.harness.steps.policy.PolicyStepSpecParameters
+io.harness.cdng.pipeline.stepinfo.JenkinsBuildStepInfo
+io.harness.steps.jenkins.jenkinsstep.JenkinsBuildOutcome
+io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepNode
+io.harness.steps.jenkins.jenkinsstep.JenkinsBuildSpecParameters
+>>>>>>> 35e75fd1f21 ([CDS-38023]: UT fixes)

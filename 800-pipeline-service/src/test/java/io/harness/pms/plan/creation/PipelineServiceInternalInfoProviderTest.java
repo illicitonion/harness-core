@@ -10,6 +10,7 @@ package io.harness.pms.plan.creation;
 import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
 import static io.harness.rule.OwnerRule.NAMAN;
 
+import static org.assertj.core.api.Assertions.as;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyList;
 import static org.mockito.Mockito.doNothing;
@@ -60,6 +61,8 @@ import io.harness.steps.approval.step.servicenow.ServiceNowApprovalStepVariableC
 import io.harness.steps.customstage.CustomStageFilterCreator;
 import io.harness.steps.customstage.CustomStagePlanCreator;
 import io.harness.steps.customstage.CustomStageVariableCreator;
+import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepVariableCreator;
+import io.harness.steps.jenkins.jenkinsstep.JenkinsCreateStepPlanCreator;
 import io.harness.steps.jira.JiraStepVariableCreator;
 import io.harness.steps.jira.JiraUpdateStepVariableCreator;
 import io.harness.steps.jira.create.JiraCreateStepPlanCreator;
@@ -127,7 +130,11 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
     assertThat(planCreatorClasses.contains(ServiceNowUpdateStepPlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(StrategyConfigPlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(CustomStagePlanCreator.class)).isTrue();
+<<<<<<< HEAD
     assertThat(planCreatorClasses.contains(QueueStepPlanCreator.class)).isTrue();
+=======
+    assertThat(planCreatorClasses.contains(JenkinsCreateStepPlanCreator.class)).isTrue();
+>>>>>>> 35e75fd1f21 ([CDS-38023]: UT fixes)
   }
 
   @Test
@@ -178,7 +185,11 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
     assertThat(variableCreatorClasses.contains(ServiceNowCreateStepVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(ServiceNowUpdateStepVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(CustomStageVariableCreator.class)).isTrue();
+<<<<<<< HEAD
     assertThat(variableCreatorClasses.contains(QueueStepVariableCreator.class)).isTrue();
+=======
+    assertThat(variableCreatorClasses.contains(JenkinsBuildStepVariableCreator.class)).isTrue();
+>>>>>>> 35e75fd1f21 ([CDS-38023]: UT fixes)
   }
 
   @Test

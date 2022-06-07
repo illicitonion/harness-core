@@ -405,3 +405,7 @@ io.harness.cdng.azure.webapp.AzureWebAppSwapSlotStepParameters
 io.harness.cdng.azure.webapp.AzureWebAppTrafficShiftStepInfo
 io.harness.cdng.azure.webapp.AzureWebAppTrafficShiftStepNode
 io.harness.cdng.azure.webapp.AzureWebAppTrafficShiftStepParameters
+io.harness.cdng.pipeline.stepinfo.JenkinsBuildStepInfo
+io.harness.steps.jenkins.jenkinsstep.JenkinsBuildOutcome
+io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepNode
+io.harness.steps.jenkins.jenkinsstep.JenkinsBuildSpecParameters
