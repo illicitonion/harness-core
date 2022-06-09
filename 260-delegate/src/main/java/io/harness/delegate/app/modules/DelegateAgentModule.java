@@ -11,6 +11,7 @@ import static io.harness.configuration.DeployMode.DEPLOY_MODE;
 import static io.harness.configuration.DeployMode.isOnPrem;
 import static io.harness.delegate.service.DelegateAgentServiceImpl.getDelegateId;
 import static io.harness.grpc.utils.DelegateGrpcConfigExtractor.extractTarget;
+import static io.harness.grpc.utils.DelegateGrpcConfigExtractor.extractAndPrepareAuthority;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -88,7 +89,7 @@ public class DelegateAgentModule extends AbstractModule {
                 .queueFilePath(configuration.getQueueFilePath())
                 .publishTarget(extractTarget(managerHostAndPort))
                 .publishAuthority(extractAndPrepareAuthority(
-                    managerHostAndPort, "events", configuration.isMtls()))
+                    managerHostAndPort, "events", configuration.isGrpcAuthorityModificationDisabled()))
                 .clientCertificateFilePath(configuration.getClientCertificateFilePath())
                 .clientCertificateKeyFilePath(configuration.getClientCertificateKeyFilePath())
                 .trustAllCertificates(configuration.isTrustAllCertificates())
