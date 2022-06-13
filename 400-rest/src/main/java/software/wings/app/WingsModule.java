@@ -130,6 +130,7 @@ import io.harness.exception.ExplanationException;
 import io.harness.exception.InvalidArgumentsException;
 import io.harness.ff.FeatureFlagModule;
 import io.harness.file.FileServiceModule;
+import io.harness.filestoreclient.module.FileStoreClientCgModule;
 import io.harness.git.GitClientV2;
 import io.harness.git.GitClientV2Impl;
 import io.harness.govern.ProviderMethodInterceptor;
@@ -212,6 +213,7 @@ import io.harness.secrets.setupusage.builders.SecretManagerSetupUsageBuilder;
 import io.harness.secrets.setupusage.builders.ServiceVariableSetupUsageBuilder;
 import io.harness.secrets.setupusage.builders.SettingAttributeSetupUsageBuilder;
 import io.harness.secrets.setupusage.builders.TriggerSetupUsageBuilder;
+import io.harness.security.ServiceTokenGenerator;
 import io.harness.security.encryption.SecretDecryptionService;
 import io.harness.seeddata.SampleDataProviderService;
 import io.harness.seeddata.SampleDataProviderServiceImpl;
@@ -1463,6 +1465,10 @@ public class WingsModule extends AbstractModule implements ServersModule {
 
     install(new ProjectClientModule(configuration.getNgManagerServiceHttpClientConfig(),
         configuration.getPortal().getJwtNextGenManagerSecret(), MANAGER.getServiceId()));
+
+    // FileStore Client
+    install(new FileStoreClientCgModule(
+        configuration.getNgManagerServiceHttpClientConfig().getBaseUrl(), configuration.getDmsSecret(), ServiceTokenGenerator.newInstance()));
   }
 
   private void registerOutboxEventHandlers() {

@@ -9,6 +9,8 @@ package io.harness.managerclient;
 
 import io.harness.annotations.dev.HarnessModule;
 import io.harness.annotations.dev.TargetModule;
+import io.harness.filestoreclient.remote.FileStoreNgClientFactory;
+import io.harness.filestoreclient.remote.FileStoreNgClient;
 import io.harness.security.TokenGenerator;
 import io.harness.verificationclient.CVNextGenServiceClient;
 import io.harness.verificationclient.CVNextGenServiceClientFactory;
@@ -41,5 +43,6 @@ public class DelegateManagerClientModule extends AbstractModule {
     bind(VerificationServiceClient.class)
         .toProvider(new VerificationServiceClientFactory(verificationServiceBaseUrl, tokenGenerator));
     bind(CVNextGenServiceClient.class).toProvider(new CVNextGenServiceClientFactory(cvNextGenUrl, tokenGenerator));
+    bind(FileStoreNgClient.class).toProvider(new FileStoreNgClientFactory(managerBaseUrl, tokenGenerator));
   }
 }
