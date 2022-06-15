@@ -521,8 +521,7 @@ public class AzureAsyncTaskHelperTest extends CategoryTest {
   @Category(UnitTests.class)
   public void testListHosts() {
     // Given
-    when(
-        azureManagementClient.listHosts(any(), eq("subscriptionId"), eq("resourceGroup"), eq(AzureOSType.LINUX), any()))
+    when(azureComputeClient.listHosts(any(), eq("subscriptionId"), eq("resourceGroup"), eq(AzureOSType.LINUX), any()))
         .thenReturn(Collections.singletonList(VirtualMachineData.builder().hostName("vm-hostname").build()));
 
     // When
