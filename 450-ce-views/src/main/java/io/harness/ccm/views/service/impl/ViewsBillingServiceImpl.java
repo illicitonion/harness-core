@@ -238,7 +238,8 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
     Optional<QLCEViewFilterWrapper> viewMetadataFilter = getViewMetadataFilter(filters);
 
     // In case of AWS Account filter, we might get multiple values for QLCEViewFilter if user is filtering on AWS
-    // Account name First value is the original filter string, the others are awsAccountIds
+    // Account name
+    // First value is the original filter string, the others are awsAccountIds
     List<QLCEViewFilter> idFilters =
         awsAccountFieldHelper.addAccountIdsByAwsAccountNameFilter(getIdFilters(filters), queryParams.getAccountId());
 
