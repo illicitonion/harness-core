@@ -554,7 +554,9 @@ public class ViewsQueryBuilder {
         case COMMON:
           query.addAliasedColumn(
               new CustomSql(String.format(distinct, viewFieldInput.getFieldId())), viewFieldInput.getFieldId());
-          if (AWS_ACCOUNT_FIELD.equals(viewFieldInput.getFieldName())) {
+          if (AWS_ACCOUNT_FIELD.equals(viewFieldInput.getFieldName()) && filter.getValues().length != 1) {
+            // Skipping the first string for InCondition that client is passing in the search filter
+            // Considering only the AWS account Ids
             query.addCondition(ComboCondition.or(new InCondition(new CustomSql(viewFieldInput.getFieldId()),
                                                      Arrays.stream(filter.getValues()).skip(1).toArray(Object[] ::new)),
                 new CustomCondition(String.format(searchFilter, viewFieldInput.getFieldId(), searchString))));
