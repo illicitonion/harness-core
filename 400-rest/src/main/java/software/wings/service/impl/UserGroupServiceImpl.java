@@ -9,6 +9,7 @@ package software.wings.service.impl;
 
 import static io.harness.annotations.dev.HarnessTeam.PL;
 import static io.harness.beans.PageRequest.PageRequestBuilder.aPageRequest;
+import static io.harness.data.structure.CollectionUtils.emptyIfNull;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.exception.WingsException.USER;
@@ -18,6 +19,7 @@ import static io.harness.validation.Validator.notNullCheck;
 import static io.harness.validation.Validator.unEqualCheck;
 
 import static software.wings.beans.security.UserGroup.DEFAULT_ACCOUNT_ADMIN_USER_GROUP_NAME;
+import static software.wings.beans.security.UserGroupSearchTermType.APPLICATION_NAME;
 import static software.wings.scheduler.LdapGroupSyncJob.add;
 import static software.wings.security.PermissionAttribute.Action.EXECUTE;
 import static software.wings.security.PermissionAttribute.Action.EXECUTE_PIPELINE;
@@ -51,6 +53,7 @@ import io.harness.beans.FeatureName;
 import io.harness.beans.PageRequest;
 import io.harness.beans.PageRequest.PageRequestBuilder;
 import io.harness.beans.PageResponse;
+import io.harness.beans.SearchFilter;
 import io.harness.beans.SearchFilter.Operator;
 import io.harness.ccm.config.CCMSettingService;
 import io.harness.data.structure.EmptyPredicate;
@@ -68,18 +71,15 @@ import io.harness.persistence.HPersistence;
 import io.harness.persistence.UuidAware;
 import io.harness.scheduler.PersistentScheduler;
 
-import software.wings.beans.Account;
-import software.wings.beans.EntityType;
+import software.wings.beans.*;
 import software.wings.beans.Event.Type;
-import software.wings.beans.User;
 import software.wings.beans.User.UserKeys;
-import software.wings.beans.UserGroupEntityReference;
-import software.wings.beans.UserInvite;
 import software.wings.beans.notification.NotificationSettings;
 import software.wings.beans.security.AccountPermissions;
 import software.wings.beans.security.AppPermission;
 import software.wings.beans.security.UserGroup;
 import software.wings.beans.security.UserGroup.UserGroupKeys;
+import software.wings.beans.security.UserGroupSearchTermType;
 import software.wings.beans.sso.SSOSettings;
 import software.wings.beans.sso.SSOType;
 import software.wings.dl.WingsPersistence;
@@ -241,11 +241,15 @@ public class UserGroupServiceImpl implements UserGroupService {
   }
 
   @Override
-  public PageResponse<UserGroup> list(String accountId, PageRequest<UserGroup> req, boolean loadUsers) {
+  public PageResponse<UserGroup> list(String accountId, PageRequest<UserGroup> req, boolean loadUsers,
+      UserGroupSearchTermType searchTermType, String searchTerm) {
     notNullCheck(UserGroupKeys.accountId, accountId, USER);
     Account account = accountService.get(accountId);
     notNullCheck("account", account, USER);
     req.addFilter(UserGroupKeys.accountId, Operator.EQ, accountId);
+    if (APPLICATION_NAME.equals(searchTermType)) {
+      populateAppIdFilter(accountId, req, searchTerm);
+    }
     PageResponse<UserGroup> res = wingsPersistence.query(UserGroup.class, req);
     // Using a custom comparator since our mongo apis don't support alphabetical sorting with case insensitivity.
     // Currently, it only supports ASC and DSC.
@@ -259,6 +263,40 @@ public class UserGroupServiceImpl implements UserGroupService {
     }
 
     return res;
+  }
+
+  private void populateAppIdFilter(String accountId, PageRequest<UserGroup> req, String searchTerm) {
+    if (isEmpty(searchTerm)) {
+      return;
+    }
+    SearchFilter applicationSearchFilter = SearchFilter.builder()
+                                               .fieldName(Application.ApplicationKeys.uuid)
+                                               .op(Operator.EQ)
+                                               .fieldValues(new Object[] {accountId})
+                                               .fieldName(Application.ApplicationKeys.name)
+                                               .op(Operator.CONTAINS)
+                                               .fieldValues(new Object[] {searchTerm})
+                                               .build();
+    PageRequest<Application> applicationPageRequest = aPageRequest().addFilter(applicationSearchFilter).build();
+    PageResponse<Application> applicationList = appService.list(applicationPageRequest);
+    if (applicationList == null && applicationList.isEmpty()) {
+      return;
+    }
+    List<String> applicationIds = applicationList.stream().map(Base::getUuid).collect(Collectors.toList());
+    SearchFilter searchFilterForAllApplication = SearchFilter.builder()
+                                                     .fieldName(UserGroupKeys.appFilterType)
+                                                     .op(Operator.EQ)
+                                                     .fieldValues(new Object[] {AppFilter.FilterType.ALL})
+                                                     .build();
+    SearchFilter searchFilterForSpecifiedIdsApplication = SearchFilter.builder()
+                                                              .fieldName(UserGroupKeys.appFilterType)
+                                                              .op(Operator.EQ)
+                                                              .fieldValues(new Object[] {AppFilter.FilterType.SELECTED})
+                                                              .fieldName(UserGroupKeys.appIds)
+                                                              .op(Operator.IN)
+                                                              .fieldValues(applicationIds.toArray())
+                                                              .build();
+    req.addFilter("", Operator.OR, searchFilterForAllApplication, searchFilterForSpecifiedIdsApplication);
   }
 
   private void loadUsersForUserGroups(List<UserGroup> userGroups, Account account) {
@@ -853,7 +891,7 @@ public class UserGroupServiceImpl implements UserGroupService {
                                          .withLimit(Long.toString(getCountOfUserGroups(accountId)))
                                          .addFilter(UserGroupKeys.accountId, Operator.EQ, accountId)
                                          .addFilter(UserGroupKeys.memberIds, Operator.HAS, user.getUuid());
-    return list(accountId, pageRequest.build(), loadUsers).getResponse();
+    return list(accountId, pageRequest.build(), loadUsers, null, null).getResponse();
   }
 
   @Override
@@ -861,7 +899,7 @@ public class UserGroupServiceImpl implements UserGroupService {
     PageRequestBuilder pageRequest = aPageRequest()
                                          .withLimit(Long.toString(getCountOfUserGroups(accountId)))
                                          .addFilter(UserGroupKeys.accountId, Operator.EQ, accountId);
-    return list(accountId, pageRequest.build(), true).getResponse();
+    return list(accountId, pageRequest.build(), true, null, null).getResponse();
   }
 
   @Override
@@ -1156,7 +1194,7 @@ public class UserGroupServiceImpl implements UserGroupService {
                                              .addFilter(UserGroupKeys.isSsoLinked, Operator.EQ, true)
                                              .addFilter(UserGroupKeys.linkedSsoId, Operator.EQ, ssoId)
                                              .build();
-    PageResponse<UserGroup> pageResponse = list(accountId, pageRequest, true);
+    PageResponse<UserGroup> pageResponse = list(accountId, pageRequest, true, null, null);
     return pageResponse.getResponse();
   }
 
@@ -1176,7 +1214,7 @@ public class UserGroupServiceImpl implements UserGroupService {
             .addFilter(UserGroupKeys.isDefault, Operator.EQ, true)
             .build();
 
-    return list(accountId, pageRequest, true).getResponse().get(0);
+    return list(accountId, pageRequest, true, null, null).getResponse().get(0);
   }
 
   @Override
@@ -1215,7 +1253,7 @@ public class UserGroupServiceImpl implements UserGroupService {
     }
     PageRequestBuilder pageRequest =
         aPageRequest().withLimit(Integer.toString(userIds.length)).addFilter(UserGroup.ID_KEY2, Operator.IN, userIds);
-    return list(userInvite.getAccountId(), pageRequest.build(), true).getResponse();
+    return list(userInvite.getAccountId(), pageRequest.build(), true, null, null).getResponse();
   }
 
   /**
