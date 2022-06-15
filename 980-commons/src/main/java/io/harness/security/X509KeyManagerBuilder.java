@@ -11,11 +11,12 @@ import static io.harness.annotations.dev.HarnessTeam.PL;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.exception.KeyManagerBuilderException;
+import io.harness.filesystem.DefaultFileReader;
+import io.harness.filesystem.FileReader;
 
+import com.google.common.annotations.VisibleForTesting;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.StandardOpenOption;
 import java.security.KeyFactory;
 import java.security.KeyStore;
@@ -24,7 +25,6 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
-import java.util.Collection;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.X509KeyManager;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -43,20 +43,33 @@ import org.apache.commons.lang3.RandomStringUtils;
  */
 @OwnedBy(PL)
 public class X509KeyManagerBuilder {
-  public static final String KEY_MANAGER_ALGORITHM_SUNX509 = "SunX509";
-  public static final String KEY_ALGORITHM_RSA = "RSA";
-  public static final String KEY_STORE_TYPE_JAVA = "jks";
+  public static final String CLIENT_CERTIFICATE_KEY_ENTRY_NAME_FORMAT = "client-cert-%d";
+
+  private static final String KEY_MANAGER_ALGORITHM_SUNX509 = "SunX509";
+  private static final String KEY_ALGORITHM_RSA = "RSA";
+  private static final String KEY_STORE_TYPE_JAVA = "jks";
   private static final String CERTIFICATE_TYPE_X509 = "X.509";
   private static final String PEM_PRIVATE_KEY_START = "-----BEGIN PRIVATE KEY-----";
   private static final String PEM_PRIVATE_KEY_END = "-----END PRIVATE KEY-----";
-  private static final String CLIENT_CERTIFICATE_KEY_ENTRY_NAME = "client";
   private static final int KEY_STORE_PASSWORD_LENGTH = 12;
+
+  // Injected only for testing, otherwise default implementation is used
+  private final FileReader fileReader;
 
   private final char[] keyStorePassword;
   private final KeyStore keystore;
 
+  private int clientCertCount;
+
   public X509KeyManagerBuilder() throws KeyManagerBuilderException {
+    this(new DefaultFileReader());
+  }
+
+  @VisibleForTesting
+  public X509KeyManagerBuilder(FileReader fileReader) throws KeyManagerBuilderException {
+    this.fileReader = fileReader;
     this.keyStorePassword = RandomStringUtils.randomAlphanumeric(KEY_STORE_PASSWORD_LENGTH).toCharArray();
+    this.clientCertCount = 0;
 
     try {
       this.keystore = KeyStore.getInstance(KEY_STORE_TYPE_JAVA);
@@ -80,7 +93,9 @@ public class X509KeyManagerBuilder {
     Certificate[] certificates = this.loadCertificatesFromPem(certPath);
 
     try {
-      this.keystore.setKeyEntry(CLIENT_CERTIFICATE_KEY_ENTRY_NAME, privateKey, keyStorePassword, certificates);
+      this.keystore.setKeyEntry(String.format(CLIENT_CERTIFICATE_KEY_ENTRY_NAME_FORMAT, this.clientCertCount),
+          privateKey, keyStorePassword, certificates);
+      this.clientCertCount++;
     } catch (Exception ex) {
       throw new KeyManagerBuilderException(
           String.format("Failed to generate keystore from certificate: %s", ex.getMessage()), ex);
@@ -102,8 +117,8 @@ public class X509KeyManagerBuilder {
   }
 
   private Certificate[] loadCertificatesFromPem(String filePath) throws KeyManagerBuilderException {
-    try (InputStream certificateChainAsInputStream =
-             Files.newInputStream(Paths.get(filePath), StandardOpenOption.READ)) {
+    try (
+        InputStream certificateChainAsInputStream = this.fileReader.newInputStream(filePath, StandardOpenOption.READ)) {
       CertificateFactory certificateFactory = CertificateFactory.getInstance(CERTIFICATE_TYPE_X509);
       return certificateFactory.generateCertificates(certificateChainAsInputStream).toArray(new Certificate[0]);
     } catch (Exception ex) {
@@ -120,14 +135,17 @@ public class X509KeyManagerBuilder {
       throws KeyManagerBuilderException {
     String fileContent = null;
     try {
-      byte[] rawFileContent = Files.readAllBytes(Paths.get(filePath));
-      fileContent = new String(rawFileContent, Charset.defaultCharset());
+      fileContent = this.fileReader.getFileContent(filePath, StandardCharsets.UTF_8);
     } catch (Exception ex) {
       throw new KeyManagerBuilderException(
           String.format("Failed to read file '%s': %s", filePath, ex.getMessage()), ex);
     }
 
-    // prepare string - some sanitation to avoid to many complications.
+    if (fileContent == null) {
+      throw new KeyManagerBuilderException(String.format("Received NULL content for file '%s'.", filePath));
+    }
+
+    // prepare string - some sanitation to avoid too many complications.
     fileContent = fileContent.trim().replace("\n", "").replace("\r", "");
 
     // ensure file is in PEM format and has only one key
@@ -142,6 +160,9 @@ public class X509KeyManagerBuilder {
 
     // remove start and end tag
     String base64DerEncodedPrivateKey = fileContent.replace(PEM_PRIVATE_KEY_START, "").replace(PEM_PRIVATE_KEY_END, "");
+
+    // remove any remaining spaces (base64 is expected to be a continuous string, safe to remove spaces)
+    base64DerEncodedPrivateKey = base64DerEncodedPrivateKey.replace(" ", "");
 
     try {
       // decode to raw DER encoded key
