@@ -13,6 +13,7 @@ import io.harness.context.MdcGlobalContextData;
 import io.harness.delegate.task.artifacts.request.ArtifactTaskParameters;
 import io.harness.delegate.task.artifacts.response.ArtifactTaskExecutionResponse;
 import io.harness.delegate.task.artifacts.response.ArtifactTaskResponse;
+import io.harness.delegate.task.jenkins.JenkinsBuildTaskNGResponse;
 import io.harness.eraro.ErrorCode;
 import io.harness.exception.exceptionmanager.exceptionhandler.ExceptionMetadataKeys;
 import io.harness.exception.runtime.JenkinsServerRuntimeException;
@@ -70,9 +71,17 @@ public class JenkinsArtifactTaskHelper {
 
         case JENKINS_BUILD:
           saveLogs(executionLogCallback, "Trigger the Jenkins Builds");
-          artifactTaskResponse =
-              getSuccessTaskResponse(jenkinsArtifactTaskHandler.triggerBuild(attributes, executionLogCallback));
+          JenkinsBuildTaskNGResponse jenkinsBuildTaskNGResponse =
+              jenkinsArtifactTaskHandler.triggerBuild(attributes, executionLogCallback);
+          artifactTaskResponse = getSuccessTaskResponse(
+              jenkinsArtifactTaskHandler.pollTask(attributes, jenkinsBuildTaskNGResponse, executionLogCallback));
           saveLogs(executionLogCallback, "Trigger the Jenkins Builds " + registryUrl);
+          break;
+        case JENKINS_POLL_TASK:
+          saveLogs(executionLogCallback, "Get the Jenkins poll task");
+          artifactTaskResponse =
+              getSuccessTaskResponse(jenkinsArtifactTaskHandler.pollTask(attributes, null, executionLogCallback));
+          saveLogs(executionLogCallback, "Get the Jenkins poll task " + registryUrl);
           break;
         default:
           saveLogs(executionLogCallback,

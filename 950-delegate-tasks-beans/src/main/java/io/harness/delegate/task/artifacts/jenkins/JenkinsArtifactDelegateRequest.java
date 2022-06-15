@@ -21,18 +21,23 @@ import io.harness.expression.ExpressionEvaluator;
 import io.harness.security.encryption.EncryptedDataDetail;
 
 import software.wings.helpers.ext.jenkins.JobDetails;
+import software.wings.sm.states.FilePathAssertionEntry;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
 @Value
+@Data
 @Builder
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @OwnedBy(HarnessTeam.PIPELINE)
 public class JenkinsArtifactDelegateRequest implements ArtifactSourceDelegateRequest {
@@ -55,6 +60,15 @@ public class JenkinsArtifactDelegateRequest implements ArtifactSourceDelegateReq
   private long timeout;
   private long startTs;
   List<String> delegateSelectors;
+  private String queuedBuildUrl;
+  private boolean injectEnvVars;
+  private String unitName;
+  private Map<String, String> metadata;
+  private String buildNumber;
+  private String buildDisplayName;
+  private String buildFullDisplayName;
+  private String description;
+  private List<FilePathAssertionEntry> filePathAssertionMap;
 
   public Set<String> getDelegateSelectors() {
     Set<String> combinedDelegateSelectors = new HashSet<>();

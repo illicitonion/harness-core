@@ -38,6 +38,7 @@ import io.harness.exception.InvalidCredentialsException;
 import io.harness.exception.InvalidRequestException;
 import io.harness.exception.UnauthorizedException;
 import io.harness.exception.WingsException;
+import io.harness.serializer.JsonUtils;
 
 import software.wings.common.BuildDetailsComparator;
 import software.wings.helpers.ext.jenkins.BuildDetails;
@@ -53,6 +54,7 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.TimeLimiter;
 import com.google.inject.Inject;
+import com.jayway.jsonpath.DocumentContext;
 import com.offbytwo.jenkins.model.Artifact;
 import com.offbytwo.jenkins.model.Build;
 import com.offbytwo.jenkins.model.BuildResult;
@@ -70,6 +72,7 @@ import java.net.URISyntaxException;
 import java.net.URLDecoder;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -81,6 +84,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpResponseException;
@@ -634,6 +638,62 @@ public class JenkinsRegistryUtils {
 
     log.info("Retrieving build with URL {}", build.getUrl());
     return build;
+  }
+
+  public Map<String, String> getEnvVars(String buildUrl, JenkinsInternalConfig jenkinsInternalConfig) {
+    if (isBlank(buildUrl)) {
+      return new HashMap<>();
+    }
+
+    log.info("Retrieving environment variables for job {}", buildUrl);
+    try {
+      return HTimeLimiter.callInterruptible21(timeLimiter, Duration.ofSeconds(30), () -> {
+        while (true) {
+          String path = buildUrl;
+          if (path.charAt(path.length() - 1) != '/') {
+            path += '/';
+          }
+          path += "injectedEnvVars/api/json";
+
+          String jsonString;
+          try {
+            CustomJenkinsHttpClient jenkinsHttpClient = JenkinsClient.getJenkinsHttpClient(jenkinsInternalConfig);
+            jsonString = jenkinsHttpClient.get(path);
+          } catch (HttpResponseException e) {
+            if (e.getStatusCode() == 500 || ExceptionUtils.getMessage(e).contains(SERVER_ERROR)) {
+              log.warn(
+                  format("Error occurred while retrieving environment variables for job %s. Retrying", buildUrl), e);
+              sleep(ofSeconds(1L));
+              continue;
+            } else {
+              throw new InvalidRequestException("Failed to collect environment variables from Jenkins: " + path
+                      + ".\nThis might be because 'Capture environment variables' is enabled in Jenkins step but EnvInject plugin is not installed in the Jenkins instance.",
+                  USER);
+            }
+          }
+
+          DocumentContext documentContext = JsonUtils.parseJson(jsonString);
+          Map<String, String> envVars = documentContext.read("$['envMap']");
+          if (isEmpty(envVars)) {
+            envVars = new HashMap<>();
+          } else {
+            // NOTE: Removing environment variables where keys contain '.'. Storing and retrieving these keys is
+            // throwing error with MongoDB and might also cause problems with expression evaluation as '.' is used as a
+            // separator there.
+            envVars = envVars.entrySet()
+                          .stream()
+                          .filter(entry -> !entry.getKey().contains("."))
+                          .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+          }
+
+          log.info("Retrieving environment variables for job {} success", buildUrl);
+          return envVars;
+        }
+      });
+    } catch (Exception e) {
+      throw new ArtifactServerException(
+          "Failure in fetching environment variables for job: " + ExceptionUtils.getMessage(e), e, USER);
+    }
   }
 
   /**
