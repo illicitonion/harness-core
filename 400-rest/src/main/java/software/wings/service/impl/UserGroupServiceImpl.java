@@ -69,6 +69,7 @@ import io.harness.mongo.MongoPersistence;
 import io.harness.persistence.HIterator;
 import io.harness.persistence.HPersistence;
 import io.harness.persistence.UuidAware;
+import io.harness.rest.RestResponse;
 import io.harness.scheduler.PersistentScheduler;
 
 import software.wings.beans.*;
@@ -247,8 +248,12 @@ public class UserGroupServiceImpl implements UserGroupService {
     Account account = accountService.get(accountId);
     notNullCheck("account", account, USER);
     req.addFilter(UserGroupKeys.accountId, Operator.EQ, accountId);
-    if (APPLICATION_NAME.equals(searchTermType)) {
-      populateAppIdFilter(accountId, req, searchTerm);
+    if (APPLICATION_NAME.equals(searchTermType) && isNotEmpty(searchTerm)) {
+      Set<String> applicationIdsMatchingSearchTerm = getApplicationsMatchingTheSearchTerm(accountId, searchTerm);
+      if (isEmpty(applicationIdsMatchingSearchTerm)) {
+        return new PageResponse<>();
+      }
+      populateAppIdFilter(req, applicationIdsMatchingSearchTerm);
     }
     PageResponse<UserGroup> res = wingsPersistence.query(UserGroup.class, req);
     // Using a custom comparator since our mongo apis don't support alphabetical sorting with case insensitivity.
@@ -265,10 +270,7 @@ public class UserGroupServiceImpl implements UserGroupService {
     return res;
   }
 
-  private void populateAppIdFilter(String accountId, PageRequest<UserGroup> req, String searchTerm) {
-    if (isEmpty(searchTerm)) {
-      return;
-    }
+  private Set<String> getApplicationsMatchingTheSearchTerm(String accountId, String searchTerm) {
     SearchFilter applicationSearchFilter = SearchFilter.builder()
                                                .fieldName(Application.ApplicationKeys.uuid)
                                                .op(Operator.EQ)
@@ -280,9 +282,12 @@ public class UserGroupServiceImpl implements UserGroupService {
     PageRequest<Application> applicationPageRequest = aPageRequest().addFilter(applicationSearchFilter).build();
     PageResponse<Application> applicationList = appService.list(applicationPageRequest);
     if (applicationList == null && applicationList.isEmpty()) {
-      return;
+      return Collections.emptySet();
     }
-    List<String> applicationIds = applicationList.stream().map(Base::getUuid).collect(Collectors.toList());
+    return applicationList.stream().map(Base::getUuid).collect(Collectors.toSet());
+  }
+
+  private void populateAppIdFilter(PageRequest<UserGroup> req, Set<String> applicationIds) {
     SearchFilter searchFilterForAllApplication = SearchFilter.builder()
                                                      .fieldName(UserGroupKeys.appFilterType)
                                                      .op(Operator.EQ)
