@@ -16,7 +16,6 @@ import lombok.Data;
 @Data
 @Builder
 public class KubernetesNamespaceEventWatchDTO {
-  KubernetesConfig kubernetesConfig;
   LogCallback executionLogCallback;
   String eventInfoFormat;
   String eventErrorFormat;

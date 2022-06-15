@@ -9,6 +9,8 @@ package io.harness.k8s.steadystate.statuschecker;
 
 import io.harness.k8s.model.KubernetesRolloutStatusDTO;
 
+import io.kubernetes.client.openapi.ApiClient;
+
 public interface AbstractSteadyStateChecker {
-  boolean rolloutStatus(KubernetesRolloutStatusDTO kubernetesRolloutStatusDTO) throws Exception;
+  boolean rolloutStatus(KubernetesRolloutStatusDTO kubernetesRolloutStatusDTO, ApiClient apiClient) throws Exception;
 }
