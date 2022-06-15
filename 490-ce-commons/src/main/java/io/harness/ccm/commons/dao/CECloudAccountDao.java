@@ -75,7 +75,7 @@ public class CECloudAccountDao {
         .field(CECloudAccountKeys.accountId)
         .equal(harnessAccountId)
         .field(CECloudAccountKeys.accountName)
-        .contains(filterAccountName)
+        .containsIgnoreCase(filterAccountName)
         .asList();
   }
 }
