@@ -631,9 +631,9 @@ public class LicenseServiceImpl implements LicenseService {
     if (ngLicenseDecision.isNgAccountActive()
         || (licenseInfo != null && licenseInfo.getAccountStatus().equals(AccountStatus.ACTIVE))
         || (ceLicenseInfo != null && ceLicenseInfo.getExpiryTime() > System.currentTimeMillis())) {
-      account.setAtLeastOneModuleLicenseActive(true);
+      accountService.updateAccountActivelyUsed(account.getUuid(), true);
     } else {
-      account.setAtLeastOneModuleLicenseActive(false);
+      accountService.updateAccountActivelyUsed(account.getUuid(), false);
     }
   }
 }
