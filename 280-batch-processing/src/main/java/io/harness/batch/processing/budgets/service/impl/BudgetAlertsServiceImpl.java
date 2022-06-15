@@ -98,6 +98,7 @@ public class BudgetAlertsServiceImpl {
   }
 
   private void checkAndSendAlerts(Budget budget) {
+    log.info("Checking and sending alert for budgetId={}", budget.getUuid());
     checkNotNull(budget.getAlertThresholds());
     checkNotNull(budget.getAccountId());
 
@@ -122,6 +123,7 @@ public class BudgetAlertsServiceImpl {
 
   private void checkAlertThresholdsAndSendAlerts(Budget budget, AlertThreshold[] alertThresholds,
       List<String> emailAddresses, double cost) {
+    log.info("Checking alert threshold for budgetId={}", budget.getUuid());
     for (AlertThreshold alertThreshold : alertThresholds) {
       List<String> userGroupIds =
           Arrays.asList(Optional.ofNullable(alertThreshold.getUserGroupIds()).orElse(new String[0]));
@@ -149,10 +151,10 @@ public class BudgetAlertsServiceImpl {
                                   .time(System.currentTimeMillis())
                                   .build();
 
-      if (BudgetUtils.isAlertSentInCurrentPeriod(
-              budgetTimescaleQueryHelper.getLastAlertTimestamp(data, budget.getAccountId()), budget.getStartTime())) {
-        break;
-      }
+//      if (BudgetUtils.isAlertSentInCurrentPeriod(
+//              budgetTimescaleQueryHelper.getLastAlertTimestamp(data, budget.getAccountId()), budget.getStartTime())) {
+//        break;
+//      }
       String costType = ACTUAL_COST_BUDGET;
       try {
         if (alertThreshold.getBasedOn() == FORECASTED_COST) {
@@ -180,10 +182,12 @@ public class BudgetAlertsServiceImpl {
   }
 
   private void sendBudgetAlertViaSlack(Budget budget, AlertThreshold alertThreshold, List<String> slackWebhooks) {
+    log.info("Sending budget alert via slack for budget={}", budget.getUuid());
     if ((isEmpty(slackWebhooks) || !budget.isNotifyOnSlack()) && alertThreshold.getSlackWebhooks() == null) {
       return;
     }
     slackWebhooks.forEach(webhook -> {
+      log.info("Preparing message for webhook={}", webhook);
       SlackNotificationConfiguration slackConfig = new SlackNotificationSetting("#ccm-test", webhook);
       String slackMessageTemplate =
           "The cost associated with *${BUDGET_NAME}* has reached a limit of ${THRESHOLD_PERCENTAGE}%.";
