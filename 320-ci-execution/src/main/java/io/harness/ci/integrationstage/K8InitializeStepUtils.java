@@ -622,7 +622,10 @@ public class K8InitializeStepUtils {
     if (stepElement.getStepSpecType() instanceof PluginCompatibleStep) {
       map.put(stepElement.getIdentifier(), new ArrayList<>());
       PluginCompatibleStep step = (PluginCompatibleStep) stepElement.getStepSpecType();
-      String connectorRef = PluginSettingUtils.getConnectorRef(step);
+      String defaultInternalImageConnector =
+          ciExecutionConfigService.getCiExecutionServiceConfig().getDefaultInternalImageConnector();
+
+      String connectorRef = PluginSettingUtils.getConnectorRef(step, defaultInternalImageConnector);
       Map<EnvVariableEnum, String> envToSecretMap =
           PluginSettingUtils.getConnectorSecretEnvMap(step.getNonYamlInfo().getStepInfoType());
       map.get(stepElement.getIdentifier())

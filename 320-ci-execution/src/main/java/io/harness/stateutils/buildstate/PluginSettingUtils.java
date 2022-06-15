@@ -14,6 +14,7 @@ import static io.harness.beans.serializer.RunTimeInputHandler.resolveJsonNodeMap
 import static io.harness.beans.serializer.RunTimeInputHandler.resolveListParameter;
 import static io.harness.beans.serializer.RunTimeInputHandler.resolveMapParameter;
 import static io.harness.beans.serializer.RunTimeInputHandler.resolveStringParameter;
+import static io.harness.beans.steps.CIStepInfoType.SECURITY;
 import static io.harness.common.CIExecutionConstants.AWS_ROLE_ARN;
 import static io.harness.common.CIExecutionConstants.PLUGIN_ACCESS_KEY;
 import static io.harness.common.CIExecutionConstants.PLUGIN_ARTIFACT_FILE_VALUE;
@@ -49,6 +50,7 @@ import io.harness.beans.steps.stepinfo.UploadToS3StepInfo;
 import io.harness.beans.sweepingoutputs.StageInfraDetails.Type;
 import io.harness.beans.yaml.extended.ArchiveFormat;
 import io.harness.ci.serializer.SerializerUtils;
+import io.harness.delegate.beans.ci.pod.ConnectorDetails;
 import io.harness.delegate.beans.ci.pod.EnvVariableEnum;
 import io.harness.exception.InvalidArgumentsException;
 
@@ -125,8 +127,13 @@ public class PluginSettingUtils {
     }
   }
 
-  public String getConnectorRef(PluginCompatibleStep stepInfo) {
-    String stepType = stepInfo.getNonYamlInfo().getStepInfoType().getDisplayName();
+  public String getConnectorRef(PluginCompatibleStep stepInfo, String defaultInternalImageConnector) {
+    CIStepInfoType stepInfoType = stepInfo.getNonYamlInfo().getStepInfoType();
+    String stepType = stepInfoType.getDisplayName();
+    if (stepInfoType == SECURITY) {
+      return "account.harnessImage";
+    }
+
     return RunTimeInputHandler.resolveStringParameter(
         "connectorRef", stepType, stepInfo.getIdentifier(), stepInfo.getConnectorRef(), true);
   }

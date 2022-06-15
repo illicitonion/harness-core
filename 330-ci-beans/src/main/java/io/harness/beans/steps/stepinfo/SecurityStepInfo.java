@@ -62,7 +62,7 @@ import org.springframework.data.annotation.TypeAlias;
 @TypeAlias("securityStepInfo")
 @OwnedBy(STO)
 @RecasterAlias("io.harness.beans.steps.stepinfo.SecurityStepInfo")
-public class SecurityStepInfo implements PluginCompatibleStep, WithConnectorRef {
+public class SecurityStepInfo implements PluginCompatibleStep {
   @JsonProperty(YamlNode.UUID_FIELD_NAME)
   @Getter(onMethod_ = { @ApiModelProperty(hidden = true) })
   @ApiModelProperty(hidden = true)
@@ -88,7 +88,9 @@ public class SecurityStepInfo implements PluginCompatibleStep, WithConnectorRef 
   @YamlSchemaTypes(value = {string})
   private ParameterField<Map<String, JsonNode>> settings;
 
-  @NotNull @ApiModelProperty(dataType = STRING_CLASSPATH) private ParameterField<String> connectorRef;
+  @VariableExpression(skipVariableExpression = true)
+  @ApiModelProperty(dataType = STRING_CLASSPATH, hidden = true)
+  private ParameterField<String> connectorRef;
   private ContainerResource resources;
 
   @YamlSchemaTypes(value = {runtime})
@@ -114,12 +116,12 @@ public class SecurityStepInfo implements PluginCompatibleStep, WithConnectorRef 
   }
 
   @Builder
-  @ConstructorProperties({"identifier", "name", "retry", "settings", "connectorRef", "resources", "outputVariables",
-      "runAsUser", "privileged", "imagePullPolicy"})
+  @ConstructorProperties({"identifier", "name", "retry", "settings", "resources", "outputVariables", "runAsUser",
+      "privileged", "imagePullPolicy"})
   public SecurityStepInfo(String identifier, String name, Integer retry, ParameterField<Map<String, JsonNode>> settings,
-      ParameterField<String> connectorRef, ContainerResource resources,
-      ParameterField<List<OutputNGVariable>> outputVariables, ParameterField<Integer> runAsUser,
-      ParameterField<Boolean> privileged, ParameterField<ImagePullPolicy> imagePullPolicy) {
+      ContainerResource resources, ParameterField<List<OutputNGVariable>> outputVariables,
+      ParameterField<Integer> runAsUser, ParameterField<Boolean> privileged,
+      ParameterField<ImagePullPolicy> imagePullPolicy) {
     this.identifier = identifier;
     this.name = name;
     this.retry = Optional.ofNullable(retry).orElse(DEFAULT_RETRY);
@@ -156,12 +158,5 @@ public class SecurityStepInfo implements PluginCompatibleStep, WithConnectorRef 
             .collect(Collectors.toSet())
             .stream()
             .collect(Collectors.toList()));
-  }
-
-  @Override
-  public Map<String, ParameterField<String>> extractConnectorRefs() {
-    Map<String, ParameterField<String>> connectorRefMap = new HashMap<>();
-    connectorRefMap.put(YAMLFieldNameConstants.CONNECTOR_REF, connectorRef);
-    return connectorRefMap;
   }
 }

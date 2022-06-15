@@ -44,9 +44,10 @@ public class VmPluginCompatibleStepSerializer {
         PluginSettingUtils.getPluginCompatibleEnvVariables(pluginCompatibleStep, identifier, timeout, Type.VM);
     String image = CIStepInfoUtils.getPluginCustomStepImage(
         pluginCompatibleStep, ciExecutionConfigService, Type.VM, AmbianceUtils.getAccountId(ambiance));
-
-    String connectorRef = PluginSettingUtils.getConnectorRef(pluginCompatibleStep);
     NGAccess ngAccess = AmbianceUtils.getNgAccess(ambiance);
+    String defaultInternalImageConnector =
+        ciExecutionConfigService.getCiExecutionServiceConfig().getDefaultInternalImageConnector();
+    String connectorRef = PluginSettingUtils.getConnectorRef(pluginCompatibleStep, defaultInternalImageConnector);
     Map<EnvVariableEnum, String> connectorSecretEnvMap =
         PluginSettingUtils.getConnectorSecretEnvMap(pluginCompatibleStep.getNonYamlInfo().getStepInfoType());
     ConnectorDetails connectorDetails = connectorUtils.getConnectorDetails(ngAccess, connectorRef);
