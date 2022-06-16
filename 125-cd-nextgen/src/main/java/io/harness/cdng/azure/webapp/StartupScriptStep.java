@@ -47,14 +47,12 @@ import io.harness.pms.yaml.ParameterField;
 import io.harness.utils.IdentifierRefHelper;
 
 import com.google.inject.Inject;
-import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
 @OwnedBy(CDP)
-@Singleton
 @Slf4j
 public class StartupScriptStep implements SyncExecutable<StartupScriptParameters> {
   public static final StepType STEP_TYPE = StepType.newBuilder()

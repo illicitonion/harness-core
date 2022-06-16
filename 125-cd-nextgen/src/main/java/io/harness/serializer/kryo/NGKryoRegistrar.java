@@ -173,7 +173,7 @@ public class NGKryoRegistrar implements KryoRegistrar {
     kryo.register(CloudformationRollbackStepInfo.class, 12584);
     kryo.register(ConfigFileStepParameters.class, 12585);
     kryo.register(CommandStepInfo.class, 12600);
-    kryo.register(StartupScriptParameters.class, 126001);
+    kryo.register(StartupScriptParameters.class, 12601);
     kryo.register(ApplicationSettingsParameters.class, 12602);
     kryo.register(ConnectionStringsParameters.class, 12603);
   }
