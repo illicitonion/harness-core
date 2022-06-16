@@ -21,6 +21,7 @@ import static java.lang.String.format;
 
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.delegate.beans.connector.awsconnector.AwsCredentialType;
 import io.harness.delegate.beans.logstreaming.CommandUnitsProgress;
 import io.harness.delegate.beans.logstreaming.ILogStreamingTaskClient;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaDeployResult;
@@ -80,6 +81,7 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
   private long timeoutInMillis;
   private String previousDeployTimeStamp;
   private boolean firstDeployment;
+  private String serverlessAwsLambdaCredentialType;
 
   @Override
   protected ServerlessCommandResponse executeTaskInternal(ServerlessCommandRequest serverlessCommandRequest,
@@ -107,6 +109,8 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
     timeoutInMillis = serverlessDeployRequest.getTimeoutIntervalInMin() * 60000;
     serverlessAwsLambdaInfraConfig =
         (ServerlessAwsLambdaInfraConfig) serverlessDeployRequest.getServerlessInfraConfig();
+    serverlessAwsLambdaCredentialType =
+        serverlessInfraConfigHelper.getServerlessAwsLambdaCredentialType(serverlessAwsLambdaInfraConfig);
     LogCallback setupDirectoryLogCallback = serverlessTaskHelperBase.getLogCallback(
         iLogStreamingTaskClient, ServerlessCommandUnitConstants.setupDirectory.toString(), true, commandUnitsProgress);
     try {
@@ -133,7 +137,12 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
     LogCallback configureCredsLogCallback = serverlessTaskHelperBase.getLogCallback(
         iLogStreamingTaskClient, ServerlessCommandUnitConstants.configureCred.toString(), true, commandUnitsProgress);
     try {
-      configureCredential(serverlessDeployRequest, configureCredsLogCallback, serverlessDelegateTaskParams);
+      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+        configureCredential(serverlessDeployRequest, configureCredsLogCallback, serverlessDelegateTaskParams);
+      } else {
+        configureCredsLogCallback.saveExecutionLog(
+            format("skipping configure credentials command..%n%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
+      }
     } catch (Exception ex) {
       configureCredsLogCallback.saveExecutionLog(
           color(format("%n configure credential failed."), LogColor.Red, LogWeight.Bold), LogLevel.ERROR,
