@@ -80,7 +80,7 @@ fi
 if [ ! -d $JRE_DIR -o ! -e $JRE_BINARY ]; then
   echo "Downloading JRE packages..."
   JVM_TAR_FILENAME=$(basename "$JVM_URL")
-  curl $MANAGER_PROXY_CURL -#kLO $JVM_URL
+  curl $MANAGER_PROXY_CURL -#LO $JVM_URL
   echo "Extracting JRE packages..."
   rm -rf $JRE_DIR
   tar xzf $JVM_TAR_FILENAME
@@ -92,13 +92,13 @@ export DEPLOY_MODE=${deployMode}
 if [[ $DEPLOY_MODE != "KUBERNETES" ]]; then
   echo "Checking Delegate latest version..."
   DELEGATE_STORAGE_URL=${delegateStorageUrl}
-  REMOTE_DELEGATE_LATEST=$(curl $MANAGER_PROXY_CURL -ks $DELEGATE_STORAGE_URL/${delegateCheckLocation})
+  REMOTE_DELEGATE_LATEST=$(curl $MANAGER_PROXY_CURL -s $DELEGATE_STORAGE_URL/${delegateCheckLocation})
   REMOTE_DELEGATE_URL=$DELEGATE_STORAGE_URL/$(echo $REMOTE_DELEGATE_LATEST | cut -d " " -f2)
   REMOTE_DELEGATE_VERSION=$(echo $REMOTE_DELEGATE_LATEST | cut -d " " -f1)
 
   if [ ! -e delegate.jar ]; then
     echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
-    curl $MANAGER_PROXY_CURL -#k $REMOTE_DELEGATE_URL -o delegate.jar
+    curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
   else
     DELEGATE_CURRENT_VERSION=$(jar_app_version delegate.jar)
     if [[ $REMOTE_DELEGATE_VERSION != $DELEGATE_CURRENT_VERSION ]]; then
@@ -106,7 +106,7 @@ if [[ $DEPLOY_MODE != "KUBERNETES" ]]; then
       echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
       mkdir -p backup.$DELEGATE_CURRENT_VERSION
       cp delegate.jar backup.$DELEGATE_CURRENT_VERSION
-      curl $MANAGER_PROXY_CURL -#k $REMOTE_DELEGATE_URL -o delegate.jar
+      curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
     fi
   fi
 fi
@@ -266,7 +266,7 @@ if [[ ! -z $INSTRUMENTATION ]]; then
 fi
 
 if [ ! -e alpn-boot-8.1.13.v20181017.jar -a -n "$ALPN_BOOT_JAR_URL" ]; then
-  curl $MANAGER_PROXY_CURL -ks $ALPN_BOOT_JAR_URL -o alpn-boot-8.1.13.v20181017.jar
+  curl $MANAGER_PROXY_CURL -s $ALPN_BOOT_JAR_URL -o alpn-boot-8.1.13.v20181017.jar
   ALPN_CMD="-Xbootclasspath/p:alpn-boot-8.1.13.v20181017.jar"
 else
   ALPN_CMD=""

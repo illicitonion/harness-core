@@ -105,7 +105,7 @@ if [[ "$OSTYPE" == linux* ]]; then
   fi
 fi
 
-ACCOUNT_STATUS=$(curl $MANAGER_PROXY_CURL -ks ${managerHostAndPort}/api/account/${accountId}/status | cut -d ":" -f 3 | cut -d "," -f 1 | cut -d "\"" -f 2)
+ACCOUNT_STATUS=$(curl $MANAGER_PROXY_CURL -s ${managerHostAndPort}/api/account/${accountId}/status | cut -d ":" -f 3 | cut -d "," -f 1 | cut -d "\"" -f 2)
 if [[ $ACCOUNT_STATUS == "DELETED" ]]; then
   rm README.txt delegate.sh proxy.config start.sh stop.sh
   touch __deleted__
@@ -115,7 +115,7 @@ fi
 if [ ! -d $JRE_DIR -o ! -e $JRE_BINARY ]; then
   echo "Downloading JRE packages..."
   JVM_TAR_FILENAME=$(basename "$JVM_URL")
-  curl $MANAGER_PROXY_CURL -#kLO $JVM_URL
+  curl $MANAGER_PROXY_CURL -#LO $JVM_URL
   echo "Extracting JRE packages..."
 rm -rf $JRE_DIR
 tar xzf $JVM_TAR_FILENAME
@@ -131,7 +131,7 @@ export DEPLOY_MODE=${deployMode}
 
 echo "Checking Watcher latest version..."
 WATCHER_STORAGE_URL=${watcherStorageUrl}
-REMOTE_WATCHER_LATEST=$(curl $MANAGER_PROXY_CURL -ks $WATCHER_STORAGE_URL/${watcherCheckLocation})
+REMOTE_WATCHER_LATEST=$(curl $MANAGER_PROXY_CURL -s $WATCHER_STORAGE_URL/${watcherCheckLocation})
 if [[ $DEPLOY_MODE != "KUBERNETES" ]]; then
 REMOTE_WATCHER_URL=$WATCHER_STORAGE_URL/$(echo $REMOTE_WATCHER_LATEST | cut -d " " -f2)
 <#if useCdn == "true">
@@ -143,7 +143,7 @@ REMOTE_WATCHER_VERSION=$(echo $REMOTE_WATCHER_LATEST | cut -d " " -f1)
 
 if [ ! -e watcher.jar ]; then
   echo "Downloading Watcher $REMOTE_WATCHER_VERSION ..."
-  curl $MANAGER_PROXY_CURL -#k $REMOTE_WATCHER_URL -o watcher.jar
+  curl $MANAGER_PROXY_CURL $REMOTE_WATCHER_URL -o watcher.jar
 else
   WATCHER_CURRENT_VERSION=$(jar_app_version watcher.jar)
   if [[ $REMOTE_WATCHER_VERSION != $WATCHER_CURRENT_VERSION ]]; then
@@ -151,20 +151,20 @@ else
     echo "Downloading Watcher $REMOTE_WATCHER_VERSION ..."
     mkdir -p watcherBackup.$WATCHER_CURRENT_VERSION
     cp watcher.jar watcherBackup.$WATCHER_CURRENT_VERSION
-    curl $MANAGER_PROXY_CURL -#k $REMOTE_WATCHER_URL -o watcher.jar
+    curl $MANAGER_PROXY_CURL $REMOTE_WATCHER_URL -o watcher.jar
   fi
 fi
 
 if [[ $DEPLOY_MODE != "KUBERNETES" ]]; then
 echo "Checking Delegate latest version..."
 DELEGATE_STORAGE_URL=${delegateStorageUrl}
-  REMOTE_DELEGATE_LATEST=$(curl $MANAGER_PROXY_CURL -ks $DELEGATE_STORAGE_URL/${delegateCheckLocation})
+  REMOTE_DELEGATE_LATEST=$(curl $MANAGER_PROXY_CURL -s $DELEGATE_STORAGE_URL/${delegateCheckLocation})
   REMOTE_DELEGATE_URL=$DELEGATE_STORAGE_URL/$(echo $REMOTE_DELEGATE_LATEST | cut -d " " -f2)
   REMOTE_DELEGATE_VERSION=$(echo $REMOTE_DELEGATE_LATEST | cut -d " " -f1)
 
   if [ ! -e delegate.jar ]; then
     echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
-    curl $MANAGER_PROXY_CURL -#k $REMOTE_DELEGATE_URL -o delegate.jar
+    curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
   else
     DELEGATE_CURRENT_VERSION=$(jar_app_version delegate.jar)
     if [[ $REMOTE_DELEGATE_VERSION != $DELEGATE_CURRENT_VERSION ]]; then
@@ -172,7 +172,7 @@ DELEGATE_STORAGE_URL=${delegateStorageUrl}
       echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
       mkdir -p backup.$DELEGATE_CURRENT_VERSION
       cp delegate.jar backup.$DELEGATE_CURRENT_VERSION
-      curl $MANAGER_PROXY_CURL -#k $REMOTE_DELEGATE_URL -o delegate.jar
+      curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
     fi
   fi
 fi
