@@ -10,6 +10,7 @@ package io.harness.template.services;
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.beans.IdentifierRef;
 import io.harness.data.structure.EmptyPredicate;
 import io.harness.exception.InvalidRequestException;
 import io.harness.git.model.ChangeType;
@@ -25,10 +26,13 @@ import io.harness.template.mappers.NGTemplateDtoMapper;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.Stack;
+
+import io.harness.utils.IdentifierRefHelper;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -147,8 +151,9 @@ public class TemplateRefreshServiceImpl implements TemplateRefreshService {
 
       TemplateInfo templateInfo = top.getTemplateInfo();
       if (!visitedTemplateSet.contains(templateInfo)) {
+        IdentifierRef templateIdentifierRef = IdentifierRefHelper.getIdentifierRef( templateInfo.getTemplateIdentifier(), accountId, orgId, projectId);
         refreshAndUpdateTemplate(
-            accountId, orgId, projectId, templateInfo.getTemplateIdentifier(), templateInfo.getVersionLabel());
+                templateIdentifierRef.getAccountIdentifier(), templateIdentifierRef.getOrgIdentifier(), templateIdentifierRef.getProjectIdentifier(), templateInfo.getTemplateIdentifier(), templateInfo.getVersionLabel());
         visitedTemplateSet.add(templateInfo);
       }
     }
