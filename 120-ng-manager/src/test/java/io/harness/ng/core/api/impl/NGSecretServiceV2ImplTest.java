@@ -245,7 +245,7 @@ public class NGSecretServiceV2ImplTest extends CategoryTest {
     assertThat(secretPage).isNotNull();
     assertThat(secretPage.toList()).isEmpty();
     verify(secretRepository, times(1)).findAllWithScopeAndIdentifierOnly(criteria);
-    verify(accessControlClient, times(1)).checkForAccess((new ArrayList<>(Arrays.asList(p1, p2))));
+    verify(accessControlClient, times(1)).checkForAccess(new ArrayList<>(Arrays.asList(p1, p2)));
     verify(secretRepository, times(1))
         .findAll(
             finalCriteria, PageUtils.getPageRequest(0, 100, Collections.singletonList(SecretKeys.createdAt + ",desc")));
