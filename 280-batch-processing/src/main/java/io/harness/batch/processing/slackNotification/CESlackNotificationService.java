@@ -7,8 +7,6 @@
 
 package io.harness.batch.processing.slackNotification;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import software.wings.beans.SlackMessage;
 import software.wings.beans.notification.SlackNotificationConfiguration;
 import software.wings.beans.notification.SlackNotificationSetting;
@@ -19,13 +17,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import software.wings.service.intfc.SlackMessageSender;
 
-@Service
 @Singleton
 @Slf4j
 public class CESlackNotificationService {
-  @Autowired private SlackMessageSender slackMessageSender;
+  private final SlackMessageSender slackMessageSender;
 
   public static final String SLACK_WEBHOOK_URL_PREFIX = "https://hooks.slack.com/services/";
+
+  public CESlackNotificationService(SlackMessageSender slackMessageSender) {
+    this.slackMessageSender = slackMessageSender;
+  }
 
   public void sendMessage(SlackNotificationConfiguration slackConfig, String slackChannel, String senderName,
       String message, String accountId) {
