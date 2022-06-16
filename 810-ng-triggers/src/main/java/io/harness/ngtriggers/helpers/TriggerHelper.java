@@ -7,60 +7,33 @@
 
 package io.harness.ngtriggers.helpers;
 
+import io.harness.annotations.dev.OwnedBy;
+import io.harness.ngtriggers.beans.entity.NGTriggerEntity;
+import io.harness.ngtriggers.beans.entity.metadata.WebhookRegistrationStatus;
+import io.harness.ngtriggers.beans.entity.metadata.status.WebhookAutoRegistrationStatus;
+import io.harness.pms.contracts.triggers.ParsedPayload;
+import io.harness.pms.contracts.triggers.SourceType;
+import io.harness.pms.contracts.triggers.TriggerPayload;
+import io.harness.product.ci.scm.proto.PullRequest;
+import io.harness.product.ci.scm.proto.User;
+import lombok.experimental.UtilityClass;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
-import static io.harness.ngtriggers.Constants.ARTIFACT_BUILD_EXPR;
-import static io.harness.ngtriggers.Constants.ARTIFACT_EXPR;
-import static io.harness.ngtriggers.Constants.ARTIFACT_TYPE;
-import static io.harness.ngtriggers.Constants.BASE_COMMIT_SHA;
-import static io.harness.ngtriggers.Constants.BRANCH;
-import static io.harness.ngtriggers.Constants.COMMIT_SHA;
-import static io.harness.ngtriggers.Constants.CUSTOM_TYPE;
-import static io.harness.ngtriggers.Constants.EVENT;
-import static io.harness.ngtriggers.Constants.GIT_USER;
-import static io.harness.ngtriggers.Constants.HEADER;
-import static io.harness.ngtriggers.Constants.MANIFEST_EXPR;
-import static io.harness.ngtriggers.Constants.MANIFEST_TYPE;
-import static io.harness.ngtriggers.Constants.MANIFEST_VERSION_EXPR;
-import static io.harness.ngtriggers.Constants.PR;
-import static io.harness.ngtriggers.Constants.PR_NUMBER;
-import static io.harness.ngtriggers.Constants.PR_TITLE;
-import static io.harness.ngtriggers.Constants.PUSH;
-import static io.harness.ngtriggers.Constants.REPO_URL;
-import static io.harness.ngtriggers.Constants.SCHEDULED_TYPE;
-import static io.harness.ngtriggers.Constants.SOURCE_BRANCH;
-import static io.harness.ngtriggers.Constants.SOURCE_TYPE;
-import static io.harness.ngtriggers.Constants.TAG;
-import static io.harness.ngtriggers.Constants.TARGET_BRANCH;
-import static io.harness.ngtriggers.Constants.TYPE;
-import static io.harness.ngtriggers.Constants.WEBHOOK_TYPE;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.AWS_CODECOMMIT;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.BITBUCKET;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.CUSTOM;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.GITHUB;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.GITLAB;
+import static io.harness.ngtriggers.Constants.*;
+import static io.harness.ngtriggers.beans.source.WebhookTriggerType.*;
 import static io.harness.pms.contracts.triggers.SourceType.AWS_CODECOMMIT_REPO;
 import static io.harness.pms.contracts.triggers.SourceType.BITBUCKET_REPO;
 import static io.harness.pms.contracts.triggers.SourceType.CUSTOM_REPO;
 import static io.harness.pms.contracts.triggers.SourceType.GITHUB_REPO;
 import static io.harness.pms.contracts.triggers.SourceType.GITLAB_REPO;
 import static io.harness.pms.contracts.triggers.Type.SCHEDULED;
-
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
-import io.harness.annotations.dev.OwnedBy;
-import io.harness.ngtriggers.beans.entity.NGTriggerEntity;
-import io.harness.pms.contracts.triggers.ParsedPayload;
-import io.harness.pms.contracts.triggers.SourceType;
-import io.harness.pms.contracts.triggers.TriggerPayload;
-import io.harness.product.ci.scm.proto.PullRequest;
-import io.harness.product.ci.scm.proto.User;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import lombok.experimental.UtilityClass;
 
 @UtilityClass
 @OwnedBy(PIPELINE)
@@ -183,5 +156,14 @@ public class TriggerHelper {
 
   public List<String> getAllTriggerExpressions() {
     return Arrays.asList("trigger.targetBranch", "trigger.sourceBranch", "trigger.prNumber", "trigger.prTitle");
+  }
+
+  public void stampWebhookRegistrationInfo(
+          NGTriggerEntity ngTriggerEntity, WebhookRegistrationStatus registrationStatus) {
+    if (ngTriggerEntity.getTriggerStatus().getWebhookAutoRegistrationStatus() == null) {
+      ngTriggerEntity.getTriggerStatus().setWebhookAutoRegistrationStatus(
+              WebhookAutoRegistrationStatus.builder().registrationResult(registrationStatus).build());
+    }
+    ngTriggerEntity.getTriggerStatus().getWebhookAutoRegistrationStatus().setRegistrationResult(registrationStatus);
   }
 }

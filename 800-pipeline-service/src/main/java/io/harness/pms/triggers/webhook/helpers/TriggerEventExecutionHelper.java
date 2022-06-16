@@ -7,18 +7,8 @@
 
 package io.harness.pms.triggers.webhook.helpers;
 
-import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
-import static io.harness.data.structure.EmptyPredicate.isEmpty;
-import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
-import static io.harness.ngtriggers.beans.response.TriggerEventResponse.FinalStatus.INVALID_RUNTIME_INPUT_YAML;
-import static io.harness.ngtriggers.beans.response.TriggerEventResponse.FinalStatus.TARGET_EXECUTION_REQUESTED;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.AWS_CODECOMMIT;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.BITBUCKET;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.CUSTOM;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.GITHUB;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.GITLAB;
-import static io.harness.pms.contracts.triggers.Type.WEBHOOK;
-
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
 import io.harness.AuthorizationServiceHeader;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.execution.PlanExecution;
@@ -29,34 +19,34 @@ import io.harness.ngtriggers.beans.dto.eventmapping.WebhookEventProcessingResult
 import io.harness.ngtriggers.beans.dto.eventmapping.WebhookEventProcessingResult.WebhookEventProcessingResultBuilder;
 import io.harness.ngtriggers.beans.entity.NGTriggerEntity;
 import io.harness.ngtriggers.beans.entity.TriggerWebhookEvent;
+import io.harness.ngtriggers.beans.entity.metadata.WebhookRegistrationStatus;
 import io.harness.ngtriggers.beans.response.TargetExecutionSummary;
 import io.harness.ngtriggers.beans.response.TriggerEventResponse;
 import io.harness.ngtriggers.beans.source.NGTriggerType;
 import io.harness.ngtriggers.helpers.TriggerEventResponseHelper;
 import io.harness.ngtriggers.helpers.TriggerHelper;
 import io.harness.ngtriggers.helpers.WebhookEventMapperHelper;
-import io.harness.ngtriggers.utils.WebhookEventPayloadParser;
-import io.harness.pipeline.remote.PipelineServiceClient;
-import io.harness.pms.contracts.triggers.ArtifactData;
-import io.harness.pms.contracts.triggers.ManifestData;
-import io.harness.pms.contracts.triggers.ParsedPayload;
-import io.harness.pms.contracts.triggers.SourceType;
-import io.harness.pms.contracts.triggers.TriggerPayload;
+import io.harness.pms.contracts.triggers.*;
 import io.harness.pms.contracts.triggers.TriggerPayload.Builder;
-import io.harness.pms.contracts.triggers.Type;
 import io.harness.pms.triggers.TriggerExecutionHelper;
 import io.harness.polling.contracts.PollingResponse;
 import io.harness.product.ci.scm.proto.ParseWebhookResponse;
 import io.harness.security.SecurityContextBuilder;
 import io.harness.security.SourcePrincipalContextBuilder;
 import io.harness.security.dto.ServicePrincipal;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.inject.Inject;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
+import static io.harness.data.structure.EmptyPredicate.isEmpty;
+import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
+import static io.harness.ngtriggers.beans.response.TriggerEventResponse.FinalStatus.INVALID_RUNTIME_INPUT_YAML;
+import static io.harness.ngtriggers.beans.response.TriggerEventResponse.FinalStatus.TARGET_EXECUTION_REQUESTED;
+import static io.harness.ngtriggers.beans.source.WebhookTriggerType.*;
+import static io.harness.pms.contracts.triggers.Type.WEBHOOK;
 
 @AllArgsConstructor(onConstructor = @__({ @Inject }))
 @Slf4j
@@ -64,8 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 public class TriggerEventExecutionHelper {
   private final WebhookEventMapperHelper webhookEventMapperHelper;
   private final TriggerExecutionHelper triggerExecutionHelper;
-  private final WebhookEventPayloadParser webhookEventPayloadParser;
-  private final PipelineServiceClient pipelineServiceClient;
 
   public WebhookEventProcessingResult handleTriggerWebhookEvent(TriggerMappingRequestData mappingRequestData) {
     WebhookEventMappingResponse webhookEventMappingResponse =
@@ -86,6 +74,8 @@ public class TriggerEventExecutionHelper {
           long yamlVersion = triggerDetails.getNgTriggerEntity().getYmlVersion() == null
               ? 3
               : triggerDetails.getNgTriggerEntity().getYmlVersion();
+          NGTriggerEntity triggerEntity = triggerDetails.getNgTriggerEntity();
+          TriggerHelper.stampWebhookRegistrationInfo(triggerEntity, WebhookRegistrationStatus.SUCCESS);
           eventResponses.add(triggerPipelineExecution(triggerWebhookEvent, triggerDetails,
               getTriggerPayloadForWebhookTrigger(webhookEventMappingResponse, triggerWebhookEvent, yamlVersion),
               triggerWebhookEvent.getPayload()));

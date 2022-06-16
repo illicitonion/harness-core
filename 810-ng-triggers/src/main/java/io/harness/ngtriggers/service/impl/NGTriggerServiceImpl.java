@@ -7,20 +7,18 @@
 
 package io.harness.ngtriggers.service.impl;
 
-import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
-import static io.harness.data.structure.EmptyPredicate.isEmpty;
-import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
-import static io.harness.exception.WingsException.USER_SRE;
-import static io.harness.ngtriggers.beans.source.NGTriggerType.ARTIFACT;
-import static io.harness.ngtriggers.beans.source.NGTriggerType.MANIFEST;
-import static io.harness.ngtriggers.beans.source.NGTriggerType.WEBHOOK;
-import static io.harness.pms.yaml.validation.RuntimeInputValuesValidator.validateStaticValues;
-
-import static java.util.Collections.emptyList;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
+import com.cronutils.model.Cron;
+import com.cronutils.model.CronType;
+import com.cronutils.model.definition.CronDefinitionBuilder;
+import com.cronutils.model.time.ExecutionTime;
+import com.cronutils.parser.CronParser;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.mongodb.client.result.DeleteResult;
+import com.mongodb.client.result.UpdateResult;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.FeatureName;
 import io.harness.common.NGExpressionUtils;
@@ -28,11 +26,7 @@ import io.harness.connector.ConnectorResourceClient;
 import io.harness.connector.ConnectorResponseDTO;
 import io.harness.data.structure.EmptyPredicate;
 import io.harness.dto.PollingResponseDTO;
-import io.harness.exception.DuplicateFieldException;
-import io.harness.exception.InvalidArgumentsException;
-import io.harness.exception.InvalidRequestException;
-import io.harness.exception.InvalidYamlException;
-import io.harness.exception.TriggerException;
+import io.harness.exception.*;
 import io.harness.expression.EngineExpressionEvaluator;
 import io.harness.network.SafeHttpCall;
 import io.harness.ng.core.dto.ResponseDTO;
@@ -50,7 +44,6 @@ import io.harness.ngtriggers.beans.entity.metadata.status.PollingSubscriptionSta
 import io.harness.ngtriggers.beans.entity.metadata.status.StatusResult;
 import io.harness.ngtriggers.beans.entity.metadata.status.TriggerStatus;
 import io.harness.ngtriggers.beans.entity.metadata.status.ValidationStatus;
-import io.harness.ngtriggers.beans.entity.metadata.status.WebhookAutoRegistrationStatus;
 import io.harness.ngtriggers.beans.source.NGTriggerSourceV2;
 import io.harness.ngtriggers.beans.source.NGTriggerSpecV2;
 import io.harness.ngtriggers.beans.source.artifact.BuildAware;
@@ -87,30 +80,6 @@ import io.harness.repositories.spring.NGTriggerRepository;
 import io.harness.repositories.spring.TriggerEventHistoryRepository;
 import io.harness.repositories.spring.TriggerWebhookEventRepository;
 import io.harness.serializer.KryoSerializer;
-
-import com.cronutils.model.Cron;
-import com.cronutils.model.CronType;
-import com.cronutils.model.definition.CronDefinitionBuilder;
-import com.cronutils.model.time.ExecutionTime;
-import com.cronutils.parser.CronParser;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-import com.mongodb.client.result.UpdateResult;
-import java.io.IOException;
-import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.MediaType;
@@ -120,6 +89,23 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
+
+import java.io.IOException;
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
+import static io.harness.data.structure.EmptyPredicate.isEmpty;
+import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
+import static io.harness.exception.WingsException.USER_SRE;
+import static io.harness.ngtriggers.beans.source.NGTriggerType.*;
+import static io.harness.pms.yaml.validation.RuntimeInputValuesValidator.validateStaticValues;
+import static java.util.Collections.emptyList;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 
 @Singleton
 @AllArgsConstructor(onConstructor = @__({ @Inject }))
@@ -762,28 +748,12 @@ public class NGTriggerServiceImpl implements NGTriggerService {
   private void updateWebhookRegistrationStatus(
       NGTriggerEntity ngTriggerEntity, WebhookRegistrationStatus registrationStatus) {
     Criteria criteria = getTriggerEqualityCriteria(ngTriggerEntity, false);
-    stampWebhookRegistrationInfo(ngTriggerEntity, registrationStatus);
+    TriggerHelper.stampWebhookRegistrationInfo(ngTriggerEntity, registrationStatus);
     NGTriggerEntity updatedEntity = ngTriggerRepository.update(criteria, ngTriggerEntity);
     if (updatedEntity == null) {
       throw new InvalidRequestException(
           String.format("NGTrigger [%s] couldn't be updated or doesn't exist", ngTriggerEntity.getIdentifier()));
     }
-  }
-
-  private void stampWebhookRegistrationInfo(
-      NGTriggerEntity ngTriggerEntity, WebhookRegistrationStatus registrationStatus) {
-    // TODO: Needs to be removed later, as will re replaced by new TriggerStatus
-    ngTriggerEntity.getMetadata().getWebhook().setRegistrationStatus(registrationStatus);
-    if (ngTriggerEntity.getTriggerStatus() == null) {
-      ngTriggerEntity.setTriggerStatus(
-          TriggerStatus.builder()
-              .webhookAutoRegistrationStatus(WebhookAutoRegistrationStatus.builder().build())
-              .build());
-    } else if (ngTriggerEntity.getTriggerStatus().getWebhookAutoRegistrationStatus() == null) {
-      ngTriggerEntity.getTriggerStatus().setWebhookAutoRegistrationStatus(
-          WebhookAutoRegistrationStatus.builder().build());
-    }
-    ngTriggerEntity.getTriggerStatus().getWebhookAutoRegistrationStatus().setRegistrationResult(registrationStatus);
   }
 
   private Criteria getTriggerWebhookEventEqualityCriteria(TriggerWebhookEvent webhookEventQueueRecord) {
