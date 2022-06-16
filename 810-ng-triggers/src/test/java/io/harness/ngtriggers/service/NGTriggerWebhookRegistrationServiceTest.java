@@ -28,6 +28,7 @@ import io.harness.ngtriggers.beans.entity.metadata.GitMetadata;
 import io.harness.ngtriggers.beans.entity.metadata.NGTriggerMetadata;
 import io.harness.ngtriggers.beans.entity.metadata.WebhookMetadata;
 import io.harness.ngtriggers.beans.entity.metadata.WebhookRegistrationStatus;
+import io.harness.ngtriggers.beans.entity.metadata.status.WebhookAutoRegistrationStatus;
 import io.harness.ngtriggers.service.impl.NGTriggerWebhookRegistrationServiceImpl;
 import io.harness.rule.Owner;
 import io.harness.utils.ConnectorUtils;
@@ -80,9 +81,9 @@ public class NGTriggerWebhookRegistrationServiceTest extends CategoryTest {
                                        .build())
                           .build())
             .build();
-    WebhookRegistrationStatus webhookRegistrationStatus =
+    WebhookAutoRegistrationStatus webhookRegistrationStatus =
         ngTriggerWebhookRegistrationService.registerWebhook(ngTriggerEntity);
-    assertThat(webhookRegistrationStatus).isEqualTo(WebhookRegistrationStatus.SUCCESS);
+    assertThat(webhookRegistrationStatus.getRegistrationResult()).isEqualTo(WebhookRegistrationStatus.SUCCESS);
   }
 
   public void shouldRegisterWebhookWithFailure() throws IOException {
@@ -103,8 +104,8 @@ public class NGTriggerWebhookRegistrationServiceTest extends CategoryTest {
                                        .build())
                           .build())
             .build();
-    WebhookRegistrationStatus webhookRegistrationStatus =
+    WebhookAutoRegistrationStatus webhookRegistrationStatus =
         ngTriggerWebhookRegistrationService.registerWebhook(ngTriggerEntity);
-    assertThat(webhookRegistrationStatus).isEqualTo(WebhookRegistrationStatus.FAILED);
+    assertThat(webhookRegistrationStatus.getRegistrationResult()).isEqualTo(WebhookRegistrationStatus.FAILED);
   }
 }

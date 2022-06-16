@@ -7,22 +7,6 @@
 
 package io.harness.ngtriggers.helpers;
 
-import io.harness.annotations.dev.OwnedBy;
-import io.harness.ngtriggers.beans.entity.NGTriggerEntity;
-import io.harness.ngtriggers.beans.entity.metadata.WebhookRegistrationStatus;
-import io.harness.ngtriggers.beans.entity.metadata.status.WebhookAutoRegistrationStatus;
-import io.harness.pms.contracts.triggers.ParsedPayload;
-import io.harness.pms.contracts.triggers.SourceType;
-import io.harness.pms.contracts.triggers.TriggerPayload;
-import io.harness.product.ci.scm.proto.PullRequest;
-import io.harness.product.ci.scm.proto.User;
-import lombok.experimental.UtilityClass;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
 import static io.harness.ngtriggers.Constants.ARTIFACT_BUILD_EXPR;
 import static io.harness.ngtriggers.Constants.ARTIFACT_EXPR;
@@ -60,8 +44,24 @@ import static io.harness.pms.contracts.triggers.SourceType.CUSTOM_REPO;
 import static io.harness.pms.contracts.triggers.SourceType.GITHUB_REPO;
 import static io.harness.pms.contracts.triggers.SourceType.GITLAB_REPO;
 import static io.harness.pms.contracts.triggers.Type.SCHEDULED;
+
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import io.harness.annotations.dev.OwnedBy;
+import io.harness.ngtriggers.beans.entity.NGTriggerEntity;
+import io.harness.ngtriggers.beans.entity.metadata.status.WebhookAutoRegistrationStatus;
+import io.harness.pms.contracts.triggers.ParsedPayload;
+import io.harness.pms.contracts.triggers.SourceType;
+import io.harness.pms.contracts.triggers.TriggerPayload;
+import io.harness.product.ci.scm.proto.PullRequest;
+import io.harness.product.ci.scm.proto.User;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 @OwnedBy(PIPELINE)
@@ -187,11 +187,7 @@ public class TriggerHelper {
   }
 
   public void stampWebhookRegistrationInfo(
-          NGTriggerEntity ngTriggerEntity, WebhookRegistrationStatus registrationStatus) {
-    if (ngTriggerEntity.getTriggerStatus().getWebhookAutoRegistrationStatus() == null) {
-      ngTriggerEntity.getTriggerStatus().setWebhookAutoRegistrationStatus(
-              WebhookAutoRegistrationStatus.builder().registrationResult(registrationStatus).build());
-    }
-    ngTriggerEntity.getTriggerStatus().getWebhookAutoRegistrationStatus().setRegistrationResult(registrationStatus);
+      NGTriggerEntity ngTriggerEntity, WebhookAutoRegistrationStatus registrationStatus) {
+    ngTriggerEntity.getTriggerStatus().setWebhookAutoRegistrationStatus(registrationStatus);
   }
 }
