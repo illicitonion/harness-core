@@ -37,5 +37,5 @@ public interface NGSecretServiceV2 {
 
   long count(String accountIdentifier, String orgIdentifier, String projectIdentifier);
 
-  Page<Secret> list(Criteria criteria, int page, int size);
+  Page<Secret> listPermitted(Criteria criteria, int page, int size);
 }

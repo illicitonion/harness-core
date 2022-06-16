@@ -264,7 +264,7 @@ public class SecretCrudServiceImpl implements SecretCrudService {
       criteria.and(SecretKeys.identifier).in(identifiers);
     }
 
-    Page<Secret> secrets = ngSecretService.list(criteria, page, size);
+    Page<Secret> secrets = ngSecretService.listPermitted(criteria, page, size);
     return secrets.map(this::getResponseWrapper);
   }
 

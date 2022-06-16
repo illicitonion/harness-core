@@ -448,13 +448,13 @@ public class SecretCrudServiceImplTest extends CategoryTest {
   @Owner(developers = PHOENIKX)
   @Category(UnitTests.class)
   public void testList() {
-    when(ngSecretServiceV2.list(any(), anyInt(), anyInt()))
+    when(ngSecretServiceV2.listPermitted(any(), anyInt(), anyInt()))
         .thenReturn(new PageImpl<>(Lists.newArrayList(Secret.builder().build()), PageRequest.of(0, 10), 1));
     Page<SecretResponseWrapper> secretPage = secretCrudService.list("account", "org", "proj", Collections.emptyList(),
         singletonList(SecretType.SSHKey), false, "abc", 0, 100, null);
     assertThat(secretPage.getContent()).isNotEmpty();
     assertThat(secretPage.getContent().size()).isEqualTo(1);
-    verify(ngSecretServiceV2).list(any(), anyInt(), anyInt());
+    verify(ngSecretServiceV2).listPermitted(any(), anyInt(), anyInt());
   }
 
   @Test

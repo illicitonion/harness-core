@@ -340,7 +340,7 @@ public class NGSecretServiceV2Impl implements NGSecretServiceV2 {
   }
 
   @Override
-  public Page<Secret> list(Criteria criteria, int page, int size) {
+  public Page<Secret> listPermitted(Criteria criteria, int page, int size) {
     List<ResourceScopeAndIdentifierDTO> secrets = secretRepository.findAllWithScopeAndIdentifierOnly(criteria);
     Criteria permittedCriteria = new Criteria().orOperator(Streams.stream(Iterables.partition(secrets, 1000))
                                                                .map(this::checkAccess)

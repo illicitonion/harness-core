@@ -8,8 +8,11 @@
 package io.harness.ng.core.api.impl;
 
 import static io.harness.annotations.dev.HarnessTeam.PL;
+import static io.harness.rule.OwnerRule.NAMANG;
 import static io.harness.rule.OwnerRule.PHOENIKX;
 import static io.harness.rule.OwnerRule.VITALIE;
+import static io.harness.secrets.SecretPermissions.SECRET_RESOURCE_TYPE;
+import static io.harness.secrets.SecretPermissions.SECRET_VIEW_PERMISSION;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -19,9 +22,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import io.harness.CategoryTest;
+import io.harness.accesscontrol.acl.api.AccessCheckResponseDTO;
+import io.harness.accesscontrol.acl.api.AccessControlDTO;
+import io.harness.accesscontrol.acl.api.PermissionCheckDTO;
+import io.harness.accesscontrol.acl.api.ResourceScope;
 import io.harness.accesscontrol.clients.AccessControlClient;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
@@ -30,6 +38,7 @@ import io.harness.delegate.beans.secrets.WinRmConfigValidationTaskResponse;
 import io.harness.delegate.utils.TaskSetupAbstractionHelper;
 import io.harness.encryption.SecretRefData;
 import io.harness.ng.core.api.NGSecretActivityService;
+import io.harness.ng.core.dto.ResourceScopeAndIdentifierDTO;
 import io.harness.ng.core.dto.secrets.SSHCredentialType;
 import io.harness.ng.core.dto.secrets.SecretDTOV2;
 import io.harness.ng.core.dto.secrets.TGTGenerationMethod;
@@ -43,6 +52,7 @@ import io.harness.ng.core.models.SSHKeyCredential;
 import io.harness.ng.core.models.SSHKeyPathCredential;
 import io.harness.ng.core.models.SSHPasswordCredential;
 import io.harness.ng.core.models.Secret;
+import io.harness.ng.core.models.Secret.SecretKeys;
 import io.harness.ng.core.models.TGTKeyTabFilePathSpec;
 import io.harness.ng.core.models.TGTPasswordSpec;
 import io.harness.ng.core.models.WinRmAuth;
@@ -59,9 +69,13 @@ import io.harness.secretmanagerclient.WinRmAuthScheme;
 import io.harness.secretmanagerclient.services.SshKeySpecDTOHelper;
 import io.harness.secretmanagerclient.services.WinRmCredentialsSpecDTOHelper;
 import io.harness.service.DelegateGrpcClientWrapper;
+import io.harness.utils.PageUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import org.junit.Before;
 import org.junit.Test;
@@ -167,14 +181,76 @@ public class NGSecretServiceV2ImplTest extends CategoryTest {
   }
 
   @Test
-  @Owner(developers = PHOENIKX)
+  @Owner(developers = NAMANG)
   @Category(UnitTests.class)
-  public void testList() {
-    when(secretRepository.findAll(any(), any())).thenReturn(Page.empty());
-    Page<Secret> secretPage = secretServiceV2Spy.list(Criteria.where("a").is("b"), 0, 100);
+  public void testListPermitted() {
+    Criteria criteria = Criteria.where("a").is("b");
+    ResourceScopeAndIdentifierDTO s1 = ResourceScopeAndIdentifierDTO.builder()
+                                           .identifier("S1")
+                                           .accountIdentifier("A1")
+                                           .orgIdentifier("O1")
+                                           .projectIdentifier("P1")
+                                           .build();
+    ResourceScopeAndIdentifierDTO s2 = ResourceScopeAndIdentifierDTO.builder()
+                                           .identifier("S2")
+                                           .accountIdentifier("A1")
+                                           .orgIdentifier("O1")
+                                           .projectIdentifier("P1")
+                                           .build();
+    ResourceScope resourceScope =
+        ResourceScope.builder().accountIdentifier("A1").orgIdentifier("O1").projectIdentifier("P1").build();
+    PermissionCheckDTO p1 = PermissionCheckDTO.builder()
+                                .permission(SECRET_VIEW_PERMISSION)
+                                .resourceIdentifier("S1")
+                                .resourceScope(resourceScope)
+                                .resourceType(SECRET_RESOURCE_TYPE)
+                                .build();
+    PermissionCheckDTO p2 = PermissionCheckDTO.builder()
+                                .permission(SECRET_VIEW_PERMISSION)
+                                .resourceIdentifier("S2")
+                                .resourceScope(resourceScope)
+                                .resourceType(SECRET_RESOURCE_TYPE)
+                                .build();
+    AccessControlDTO a1 = AccessControlDTO.builder()
+                              .permission(SECRET_VIEW_PERMISSION)
+                              .resourceIdentifier("S1")
+                              .resourceScope(resourceScope)
+                              .resourceType(SECRET_RESOURCE_TYPE)
+                              .permitted(true)
+                              .build();
+    AccessControlDTO a2 = AccessControlDTO.builder()
+                              .permission(SECRET_VIEW_PERMISSION)
+                              .resourceIdentifier("S2")
+                              .resourceScope(resourceScope)
+                              .resourceType(SECRET_RESOURCE_TYPE)
+                              .permitted(false)
+                              .build();
+    AccessCheckResponseDTO accessCheckResponseDTO =
+        AccessCheckResponseDTO.builder().accessControlList(new ArrayList<>(Arrays.asList(a1, a2))).build();
+    Criteria finalCriteria = new Criteria().orOperator(Criteria.where(SecretKeys.identifier)
+                                                           .is("S1")
+                                                           .and(SecretKeys.accountIdentifier)
+                                                           .is("A1")
+                                                           .and(SecretKeys.orgIdentifier)
+                                                           .is("O1")
+                                                           .and(SecretKeys.projectIdentifier)
+                                                           .is("P1"));
+    when(secretRepository.findAllWithScopeAndIdentifierOnly(criteria))
+        .thenReturn(new ArrayList<>(Arrays.asList(s1, s2)));
+    when(accessControlClient.checkForAccess(new ArrayList<>(Arrays.asList(p1, p2)))).thenReturn(accessCheckResponseDTO);
+    when(secretRepository.findAll(finalCriteria,
+             PageUtils.getPageRequest(0, 100, Collections.singletonList(SecretKeys.createdAt + ",desc"))))
+        .thenReturn(Page.empty());
+    Page<Secret> secretPage = secretServiceV2Spy.listPermitted(criteria, 0, 100);
     assertThat(secretPage).isNotNull();
     assertThat(secretPage.toList()).isEmpty();
-    verify(secretRepository).findAll(any(), any());
+    verify(secretRepository, times(1)).findAllWithScopeAndIdentifierOnly(criteria);
+    verify(accessControlClient, times(1)).checkForAccess((new ArrayList<>(Arrays.asList(p1, p2))));
+    verify(secretRepository, times(1))
+        .findAll(
+            finalCriteria, PageUtils.getPageRequest(0, 100, Collections.singletonList(SecretKeys.createdAt + ",desc")));
+    verifyNoMoreInteractions(secretRepository);
+    verifyNoMoreInteractions(accessControlClient);
   }
 
   @Test
