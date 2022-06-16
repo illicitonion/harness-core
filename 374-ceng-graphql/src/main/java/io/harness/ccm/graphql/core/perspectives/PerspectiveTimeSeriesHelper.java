@@ -277,11 +277,13 @@ public class PerspectiveTimeSeriesHelper {
   public PerspectiveTimeSeriesData postFetch(PerspectiveTimeSeriesData data, Integer limit, boolean includeOthers,
       @Nullable Map<Long, Double> unallocatedCostMapping) {
     Map<String, Double> aggregatedDataPerUniqueId = new HashMap<>();
-    data.getStats().forEach(dataPoint -> {
+    String type = DEFAULT_STRING_VALUE;
+    for (final TimeSeriesDataPoints dataPoint : data.getStats()) {
       for (DataPoint entry : dataPoint.getValues()) {
         Reference qlReference = entry.getKey();
         if (qlReference != null && qlReference.getId() != null) {
           String key = qlReference.getId();
+          type = qlReference.getType();
           if (aggregatedDataPerUniqueId.containsKey(key)) {
             aggregatedDataPerUniqueId.put(key, entry.getValue().doubleValue() + aggregatedDataPerUniqueId.get(key));
           } else {
@@ -289,14 +291,14 @@ public class PerspectiveTimeSeriesHelper {
           }
         }
       }
-    });
+    }
     if (aggregatedDataPerUniqueId.isEmpty()) {
       return data;
     }
     List<String> selectedIdsAfterLimit = getElementIdsAfterLimit(aggregatedDataPerUniqueId, limit);
 
     return PerspectiveTimeSeriesData.builder()
-        .stats(getDataAfterLimit(data, selectedIdsAfterLimit, includeOthers, unallocatedCostMapping))
+        .stats(getDataAfterLimit(data, selectedIdsAfterLimit, includeOthers, unallocatedCostMapping, type))
         .cpuLimit(data.getCpuLimit())
         .cpuRequest(data.getCpuRequest())
         .cpuUtilValues(data.getCpuUtilValues())
@@ -341,11 +343,13 @@ public class PerspectiveTimeSeriesHelper {
   }
 
   private List<TimeSeriesDataPoints> getDataAfterLimit(PerspectiveTimeSeriesData data,
-      List<String> selectedIdsAfterLimit, boolean includeOthers, @Nullable Map<Long, Double> unallocatedCostMapping) {
+      List<String> selectedIdsAfterLimit, boolean includeOthers, @Nullable Map<Long, Double> unallocatedCostMapping,
+      String type) {
     List<TimeSeriesDataPoints> limitProcessedData = new ArrayList<>();
     data.getStats().forEach(dataPoint -> {
       List<DataPoint> limitProcessedValues = new ArrayList<>();
-      DataPoint others = DataPoint.builder().key(Reference.builder().id(OTHERS).name(OTHERS).build()).value(0).build();
+      DataPoint others =
+          DataPoint.builder().key(Reference.builder().id(OTHERS).name(OTHERS).type(type).build()).value(0).build();
       for (DataPoint entry : dataPoint.getValues()) {
         String key = entry.getKey().getId();
         if (selectedIdsAfterLimit.contains(key)) {
@@ -355,16 +359,17 @@ public class PerspectiveTimeSeriesHelper {
         }
       }
 
-      if (Objects.nonNull(unallocatedCostMapping) && unallocatedCostMapping.containsKey(dataPoint.getTime())) {
-        limitProcessedValues.add(DataPoint.builder()
-                                     .key(Reference.builder().id(UNALLOCATED_COST).name(UNALLOCATED_COST).build())
-                                     .value(unallocatedCostMapping.get(dataPoint.getTime()))
-                                     .build());
-      }
-
       if (others.getValue().doubleValue() > 0 && includeOthers) {
         others.setValue(getRoundedDoubleValue(others.getValue().doubleValue()));
         limitProcessedValues.add(others);
+      }
+
+      if (Objects.nonNull(unallocatedCostMapping) && unallocatedCostMapping.containsKey(dataPoint.getTime())) {
+        limitProcessedValues.add(
+            DataPoint.builder()
+                .key(Reference.builder().id(UNALLOCATED_COST).name(UNALLOCATED_COST).type(type).build())
+                .value(unallocatedCostMapping.get(dataPoint.getTime()))
+                .build());
       }
 
       limitProcessedData.add(
