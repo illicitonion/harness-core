@@ -26,8 +26,13 @@ import io.harness.ngtriggers.beans.source.NGTriggerType;
 import io.harness.ngtriggers.helpers.TriggerEventResponseHelper;
 import io.harness.ngtriggers.helpers.TriggerHelper;
 import io.harness.ngtriggers.helpers.WebhookEventMapperHelper;
-import io.harness.pms.contracts.triggers.*;
+import io.harness.pms.contracts.triggers.ArtifactData;
+import io.harness.pms.contracts.triggers.ManifestData;
+import io.harness.pms.contracts.triggers.ParsedPayload;
+import io.harness.pms.contracts.triggers.SourceType;
+import io.harness.pms.contracts.triggers.TriggerPayload;
 import io.harness.pms.contracts.triggers.TriggerPayload.Builder;
+import io.harness.pms.contracts.triggers.Type;
 import io.harness.pms.triggers.TriggerExecutionHelper;
 import io.harness.polling.contracts.PollingResponse;
 import io.harness.product.ci.scm.proto.ParseWebhookResponse;
@@ -45,7 +50,11 @@ import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.ngtriggers.beans.response.TriggerEventResponse.FinalStatus.INVALID_RUNTIME_INPUT_YAML;
 import static io.harness.ngtriggers.beans.response.TriggerEventResponse.FinalStatus.TARGET_EXECUTION_REQUESTED;
-import static io.harness.ngtriggers.beans.source.WebhookTriggerType.*;
+import static io.harness.ngtriggers.beans.source.WebhookTriggerType.AWS_CODECOMMIT;
+import static io.harness.ngtriggers.beans.source.WebhookTriggerType.BITBUCKET;
+import static io.harness.ngtriggers.beans.source.WebhookTriggerType.CUSTOM;
+import static io.harness.ngtriggers.beans.source.WebhookTriggerType.GITHUB;
+import static io.harness.ngtriggers.beans.source.WebhookTriggerType.GITLAB;
 import static io.harness.pms.contracts.triggers.Type.WEBHOOK;
 
 @AllArgsConstructor(onConstructor = @__({ @Inject }))
