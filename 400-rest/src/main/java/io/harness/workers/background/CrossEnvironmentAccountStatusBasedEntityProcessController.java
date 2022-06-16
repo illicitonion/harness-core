@@ -24,6 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @OwnedBy(GTM)
 @TargetModule(HarnessModule._945_ACCOUNT_MGMT)
+/**
+ * The account status check cross cg and ng environment
+ */
 public class CrossEnvironmentAccountStatusBasedEntityProcessController<T extends PersistentIterable & AccountAccess>
     implements EntityProcessController<T> {
   private final AccountService accountService;

@@ -625,6 +625,12 @@ public class LicenseServiceImpl implements LicenseService {
     return true;
   }
 
+  /**
+   * Check ng licenses, cg cd license and ce license to determine if user account is actively used
+   * @param account
+   * @param licenseInfo
+   * @param ngLicenseDecision
+   */
   private void checkAtLeastOneModuleLicenseActive(
       Account account, LicenseInfo licenseInfo, CheckExpiryResultDTO ngLicenseDecision) {
     CeLicenseInfo ceLicenseInfo = account.getCeLicenseInfo();

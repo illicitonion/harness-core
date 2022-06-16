@@ -20,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @OwnedBy(GTM)
+/**
+ * The account level check cross cg and ng environment
+ */
 public class CrossEnvironmentAccountLevelEntityProcessController implements EntityProcessController<Account> {
   private final AccountService accountService;
 
