@@ -95,6 +95,7 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
           LogLevel.ERROR, CommandExecutionStatus.FAILURE);
       throw ex;
     }
+    serverlessClient = ServerlessClient.client(serverlessDelegateTaskParams.getServerlessClientPath());
 
     try {
       if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
@@ -145,7 +146,6 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
       LogCallback executionLogCallback, ServerlessDelegateTaskParams serverlessDelegateTaskParams) throws Exception {
     serverlessAwsLambdaConfig = (ServerlessAwsLambdaConfig) serverlessInfraConfigHelper.createServerlessConfig(
         serverlessPrepareRollbackDataRequest.getServerlessInfraConfig());
-    serverlessClient = ServerlessClient.client(serverlessDelegateTaskParams.getServerlessClientPath());
 
     ServerlessCliResponse response = serverlessAwsCommandTaskHelper.configCredential(serverlessClient,
         serverlessAwsLambdaConfig, serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis);
