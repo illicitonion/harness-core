@@ -15,6 +15,7 @@ import com.google.inject.Singleton;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import software.wings.service.impl.SlackMessageSenderImpl;
 import software.wings.service.intfc.SlackMessageSender;
 
 @Singleton
@@ -24,8 +25,8 @@ public class CESlackNotificationService {
 
   public static final String SLACK_WEBHOOK_URL_PREFIX = "https://hooks.slack.com/services/";
 
-  public CESlackNotificationService(SlackMessageSender slackMessageSender) {
-    this.slackMessageSender = slackMessageSender;
+  public CESlackNotificationService() {
+    this.slackMessageSender = new SlackMessageSenderImpl();
   }
 
   public void sendMessage(SlackNotificationConfiguration slackConfig, String slackChannel, String senderName,
