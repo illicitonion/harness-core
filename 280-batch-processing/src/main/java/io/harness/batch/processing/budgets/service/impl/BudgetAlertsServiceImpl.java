@@ -183,6 +183,7 @@ public class BudgetAlertsServiceImpl {
 
   private void sendBudgetAlertViaSlack(Budget budget, AlertThreshold alertThreshold, List<String> slackWebhooks) {
     log.info("Sending budget alert via slack for budget={}", budget.getUuid());
+    budget.setNotifyOnSlack(true);
     if ((isEmpty(slackWebhooks) || !budget.isNotifyOnSlack()) && alertThreshold.getSlackWebhooks() == null) {
       return;
     }
