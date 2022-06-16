@@ -62,6 +62,7 @@ public class KubernetesSteadyStateService {
     Set<String> namespaces = workloads.stream().map(KubernetesResourceId::getNamespace).collect(Collectors.toSet());
     namespaces.add(namespace);
 
+    executionLogCallback.saveExecutionLog("Executing steady state check using Kube Watch API.");
     ApiClient apiClient = kubernetesHelperService.getApiClient(kubernetesConfig);
 
     KubernetesNamespaceEventWatchDTO k8sNamespaceEventWatchDTO =
