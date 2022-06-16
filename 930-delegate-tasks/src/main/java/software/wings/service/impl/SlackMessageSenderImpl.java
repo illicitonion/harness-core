@@ -19,6 +19,7 @@ import io.harness.annotations.dev.OwnedBy;
 import io.harness.exception.InvalidRequestException;
 import io.harness.network.Http;
 
+import org.springframework.stereotype.Service;
 import software.wings.beans.SlackMessage;
 import software.wings.beans.SlackMessageJSON;
 import software.wings.common.NotificationConstants;
@@ -45,6 +46,7 @@ import retrofit2.http.Url;
 
 @OwnedBy(CDC)
 @Slf4j
+@Service
 public class SlackMessageSenderImpl implements SlackMessageSender {
   @Override
   public void send(SlackMessage slackMessage, boolean sendFromDelegate, boolean isCertValidationRequired) {
