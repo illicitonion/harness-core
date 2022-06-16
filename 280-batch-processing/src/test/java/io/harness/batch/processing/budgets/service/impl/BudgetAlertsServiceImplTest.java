@@ -21,7 +21,7 @@ import io.harness.batch.processing.config.BatchMainConfig;
 import io.harness.batch.processing.config.BillingDataPipelineConfig;
 import io.harness.batch.processing.mail.CEMailNotificationService;
 import io.harness.batch.processing.shard.AccountShardService;
-import io.harness.batch.processing.slackNotification.CESlackNotificationService;
+import io.harness.batch.processing.slackNotification.impl.CESlackNotificationServiceImpl;
 import io.harness.category.element.UnitTests;
 import io.harness.ccm.budget.AlertThreshold;
 import io.harness.ccm.budget.AlertThresholdBase;
@@ -59,7 +59,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class BudgetAlertsServiceImplTest extends CategoryTest {
   @Mock private TimeScaleDBService timeScaleDBService;
   @Mock private CEMailNotificationService emailNotificationService;
-  @Mock private CESlackNotificationService slackNotificationService;
+  @Mock private CESlackNotificationServiceImpl slackNotificationService;
   @Mock private BudgetTimescaleQueryHelper budgetTimescaleQueryHelper;
   @Mock private CESlackWebhookService ceSlackWebhookService;
   @Mock private BatchMainConfig mainConfiguration;
