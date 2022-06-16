@@ -9,6 +9,7 @@ package software.wings.service.impl;
 
 import static io.harness.annotations.dev.HarnessTeam.PL;
 import static io.harness.beans.PageRequest.PageRequestBuilder.aPageRequest;
+import static io.harness.beans.SearchFilter.Operator.EQ;
 import static io.harness.data.structure.CollectionUtils.emptyIfNull;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
@@ -247,7 +248,7 @@ public class UserGroupServiceImpl implements UserGroupService {
     notNullCheck(UserGroupKeys.accountId, accountId, USER);
     Account account = accountService.get(accountId);
     notNullCheck("account", account, USER);
-    req.addFilter(UserGroupKeys.accountId, Operator.EQ, accountId);
+    req.addFilter(UserGroupKeys.accountId, EQ, accountId);
     if (APPLICATION_NAME.equals(searchTermType) && isNotEmpty(searchTerm)) {
       Set<String> applicationIdsMatchingSearchTerm = getApplicationsMatchingTheSearchTerm(accountId, searchTerm);
       if (isEmpty(applicationIdsMatchingSearchTerm)) {
@@ -272,14 +273,15 @@ public class UserGroupServiceImpl implements UserGroupService {
 
   private Set<String> getApplicationsMatchingTheSearchTerm(String accountId, String searchTerm) {
     SearchFilter applicationSearchFilter = SearchFilter.builder()
-                                               .fieldName(Application.ApplicationKeys.uuid)
-                                               .op(Operator.EQ)
-                                               .fieldValues(new Object[] {accountId})
                                                .fieldName(Application.ApplicationKeys.name)
                                                .op(Operator.CONTAINS)
                                                .fieldValues(new Object[] {searchTerm})
                                                .build();
-    PageRequest<Application> applicationPageRequest = aPageRequest().addFilter(applicationSearchFilter).build();
+    PageRequest<Application> applicationPageRequest =
+        aPageRequest()
+            .addFilter(Application.ApplicationKeys.accountId, EQ, accountId)
+            .addFilter(applicationSearchFilter)
+            .build();
     PageResponse<Application> applicationList = appService.list(applicationPageRequest);
     if (applicationList == null && applicationList.isEmpty()) {
       return Collections.emptySet();
@@ -290,12 +292,12 @@ public class UserGroupServiceImpl implements UserGroupService {
   private void populateAppIdFilter(PageRequest<UserGroup> req, Set<String> applicationIds) {
     SearchFilter searchFilterForAllApplication = SearchFilter.builder()
                                                      .fieldName(UserGroupKeys.appFilterType)
-                                                     .op(Operator.EQ)
+                                                     .op(EQ)
                                                      .fieldValues(new Object[] {AppFilter.FilterType.ALL})
                                                      .build();
     SearchFilter searchFilterForSpecifiedIdsApplication = SearchFilter.builder()
                                                               .fieldName(UserGroupKeys.appFilterType)
-                                                              .op(Operator.EQ)
+                                                              .op(EQ)
                                                               .fieldValues(new Object[] {AppFilter.FilterType.SELECTED})
                                                               .fieldName(UserGroupKeys.appIds)
                                                               .op(Operator.IN)
@@ -894,7 +896,7 @@ public class UserGroupServiceImpl implements UserGroupService {
   public List<UserGroup> listByAccountId(String accountId, User user, boolean loadUsers) {
     PageRequestBuilder pageRequest = aPageRequest()
                                          .withLimit(Long.toString(getCountOfUserGroups(accountId)))
-                                         .addFilter(UserGroupKeys.accountId, Operator.EQ, accountId)
+                                         .addFilter(UserGroupKeys.accountId, EQ, accountId)
                                          .addFilter(UserGroupKeys.memberIds, Operator.HAS, user.getUuid());
     return list(accountId, pageRequest.build(), loadUsers, null, null).getResponse();
   }
@@ -903,7 +905,7 @@ public class UserGroupServiceImpl implements UserGroupService {
   public List<UserGroup> listByAccountId(String accountId) {
     PageRequestBuilder pageRequest = aPageRequest()
                                          .withLimit(Long.toString(getCountOfUserGroups(accountId)))
-                                         .addFilter(UserGroupKeys.accountId, Operator.EQ, accountId);
+                                         .addFilter(UserGroupKeys.accountId, EQ, accountId);
     return list(accountId, pageRequest.build(), true, null, null).getResponse();
   }
 
@@ -1195,9 +1197,9 @@ public class UserGroupServiceImpl implements UserGroupService {
   public List<UserGroup> getUserGroupsBySsoId(String accountId, String ssoId) {
     PageRequest<UserGroup> pageRequest = aPageRequest()
                                              .withLimit(Long.toString(getCountOfUserGroups(accountId)))
-                                             .addFilter(UserGroupKeys.accountId, Operator.EQ, accountId)
-                                             .addFilter(UserGroupKeys.isSsoLinked, Operator.EQ, true)
-                                             .addFilter(UserGroupKeys.linkedSsoId, Operator.EQ, ssoId)
+                                             .addFilter(UserGroupKeys.accountId, EQ, accountId)
+                                             .addFilter(UserGroupKeys.isSsoLinked, EQ, true)
+                                             .addFilter(UserGroupKeys.linkedSsoId, EQ, ssoId)
                                              .build();
     PageResponse<UserGroup> pageResponse = list(accountId, pageRequest, true, null, null);
     return pageResponse.getResponse();
@@ -1215,8 +1217,8 @@ public class UserGroupServiceImpl implements UserGroupService {
   public UserGroup getAdminUserGroup(String accountId) {
     PageRequest<UserGroup> pageRequest =
         aPageRequest()
-            .addFilter(UserGroupKeys.name, Operator.EQ, UserGroup.DEFAULT_ACCOUNT_ADMIN_USER_GROUP_NAME)
-            .addFilter(UserGroupKeys.isDefault, Operator.EQ, true)
+            .addFilter(UserGroupKeys.name, EQ, UserGroup.DEFAULT_ACCOUNT_ADMIN_USER_GROUP_NAME)
+            .addFilter(UserGroupKeys.isDefault, EQ, true)
             .build();
 
     return list(accountId, pageRequest, true, null, null).getResponse().get(0);
