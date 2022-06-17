@@ -77,7 +77,7 @@ import javax.ws.rs.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -140,7 +140,7 @@ public class EnvironmentServiceImpl implements EnvironmentService {
       publishEvent(environment.getAccountId(), environment.getOrgIdentifier(), environment.getProjectIdentifier(),
           environment.getIdentifier(), EventsFrameworkMetadataConstants.CREATE_ACTION);
       return createdEnvironment;
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           getDuplicateServiceExistsErrorMessage(environment.getAccountId(), environment.getOrgIdentifier(),
               environment.getProjectIdentifier(), environment.getIdentifier()),

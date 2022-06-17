@@ -19,7 +19,7 @@ import com.google.inject.Singleton;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @OwnedBy(HarnessTeam.DX)
 @Singleton
@@ -41,7 +41,7 @@ public class InfrastructureMappingServiceImpl implements InfrastructureMappingSe
       InfrastructureMapping infrastructureMapping =
           infrastructureMappingRepository.save(InfrastructureMappingMapper.toEntity(infrastructureMappingDTO));
       return Optional.of(InfrastructureMappingMapper.toDTO(infrastructureMapping));
-    } catch (DuplicateKeyException duplicateKeyException) {
+    } catch (DataIntegrityViolationException duplicateKeyException) {
       log.warn("Duplicate key error while inserting infrastructure mapping for infrastructure key : {}",
           infrastructureMappingDTO.getInfrastructureKey());
       Optional<InfrastructureMapping> infrastructureMappingOptional =

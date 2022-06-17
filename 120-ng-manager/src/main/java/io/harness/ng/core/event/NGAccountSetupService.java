@@ -55,7 +55,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @OwnedBy(PL)
 @Singleton
@@ -193,7 +193,7 @@ public class NGAccountSetupService {
               .projectIdentifier(scope.getProjectIdentifier())
               .build(),
           emptyList(), emptyList(), UserMembershipUpdateSource.SYSTEM);
-    } catch (DuplicateKeyException | DuplicateFieldException duplicateException) {
+    } catch (DataIntegrityViolationException | DuplicateFieldException duplicateException) {
       // ignore
     }
   }

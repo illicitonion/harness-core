@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -147,7 +147,7 @@ public class NGActivityServiceImpl implements NGActivityService {
     NGActivity savedActivityEntity = null;
     try {
       savedActivityEntity = activityRepository.save(activityEntity);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.info(String.format("Error while saving the activity history [%s] for [%s]", ex.getMessage(),
           activityEntity.getReferredEntityFQN()));
       throw new UnexpectedException(

@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
@@ -62,7 +62,7 @@ public class InstanceServiceImpl implements InstanceService {
     Instance instance = InstanceMapper.toEntity(instanceDTO);
     try {
       instance = instanceRepository.save(instance);
-    } catch (DuplicateKeyException duplicateKeyException) {
+    } catch (DataIntegrityViolationException duplicateKeyException) {
       // If instance exists in deleted state, undelete it
       if (undeleteInstance(instance) != null) {
         log.info("Undeleted instance : {}", instanceDTO);

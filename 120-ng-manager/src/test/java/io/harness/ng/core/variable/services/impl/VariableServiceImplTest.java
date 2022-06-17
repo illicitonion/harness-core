@@ -62,7 +62,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.support.SimpleTransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -217,7 +217,7 @@ public class VariableServiceImplTest extends CategoryTest {
     VariableDTO variableDTO = getVariableDTO(identifier, orgIdentifier, projectIdentifier, value);
     Variable variable = getVariable(accountIdentifier, orgIdentifier, projectIdentifier, identifier, value);
     when(variableMapper.toVariable(accountIdentifier, variableDTO)).thenReturn(variable);
-    when(variableRepository.save(variable)).thenThrow(new DuplicateKeyException(""));
+    when(variableRepository.save(variable)).thenThrow(new DataIntegrityViolationException(""));
     when(projectService.get(accountIdentifier, orgIdentifier, projectIdentifier)).thenReturn(Optional.of(project));
     when(organizationService.get(accountIdentifier, orgIdentifier)).thenReturn(Optional.of(organization));
     when(transactionTemplate.execute(any()))

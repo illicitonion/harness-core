@@ -61,7 +61,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -93,7 +93,7 @@ public class ApiKeyServiceImpl implements ApiKeyService {
         outboxService.save(new ApiKeyCreateEvent(savedDTO));
         return savedDTO;
       }));
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       throw new DuplicateFieldException(
           String.format("Try using different Key name, [%s] already exists", apiKeyDTO.getIdentifier()));
     }

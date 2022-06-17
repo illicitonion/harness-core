@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -64,7 +64,7 @@ public class ClusterServiceImpl implements ClusterService {
   public Cluster create(Cluster cluster) {
     try {
       return clusterRepository.create(cluster);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           getDuplicateExistsErrorMessage(cluster.getAccountId(), cluster.getOrgIdentifier(),
               cluster.getProjectIdentifier(), cluster.getClusterRef()),
@@ -77,7 +77,7 @@ public class ClusterServiceImpl implements ClusterService {
     try {
       List<Cluster> savedEntities = (List<Cluster>) clusterRepository.saveAll(entities);
       return new PageImpl<>(savedEntities);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(getDuplicateExistsErrorMessage(accountId, ex.getMessage()), USER, ex);
     } catch (Exception ex) {
       String clusters = entities.stream().map(Cluster::getClusterRef).collect(Collectors.joining(","));

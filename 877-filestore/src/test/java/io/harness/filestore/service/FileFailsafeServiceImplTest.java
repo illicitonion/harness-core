@@ -34,7 +34,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @OwnedBy(CDP)
@@ -64,7 +64,7 @@ public class FileFailsafeServiceImplTest extends CategoryTest {
     NGFile ngFile = createNgFile("fileName", "identifier");
     when(transactionTemplate.execute(any()))
         .thenThrow(
-            new DuplicateKeyException(format("The entity with %s identifier already exists", ngFile.getIdentifier())));
+            new DataIntegrityViolationException(format("The entity with %s identifier already exists", ngFile.getIdentifier())));
 
     assertThatThrownBy(() -> fileFailsafeService.saveAndPublish(ngFile))
         .isInstanceOf(DuplicateFieldException.class)

@@ -160,7 +160,7 @@ public class WaitNotifyEngine {
       }
       handleNotifyResponse(correlationId);
       return correlationId;
-    } catch (DuplicateKeyException | org.springframework.dao.DuplicateKeyException exception) {
+    } catch (DuplicateKeyException | org.springframework.dao.DataIntegrityViolationException exception) {
       log.warn("Unexpected rate of DuplicateKeyException per correlation", exception);
     } catch (Exception exception) {
       log.error("Failed to notify for response of type " + response.getClass().getSimpleName(), exception);

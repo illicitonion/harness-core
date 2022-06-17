@@ -83,7 +83,7 @@ import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -130,7 +130,7 @@ public class OrganizationServiceImpl implements OrganizationService {
       log.info(String.format("Organization with identifier %s was successfully created", organization.getIdentifier()));
       instrumentationHelper.sendOrganizationCreateEvent(organization, accountIdentifier);
       return savedOrganization;
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format(
               "An organization with identifier %s is already present or was deleted", organization.getIdentifier()),

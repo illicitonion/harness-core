@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.ws.rs.NotFoundException;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @AllArgsConstructor(onConstructor = @__({ @Inject }))
 public class NGAccountSettingServiceImpl implements NGAccountSettingService {
@@ -64,7 +64,7 @@ public class NGAccountSettingServiceImpl implements NGAccountSettingService {
     try {
       savedAccountSetting = accountSettingRepository.save(accountSettings);
       savedAccountSetting.setConfig(accountSettings.getConfig());
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           format("Account Setting already created for account [%s] org [%s] project [%s] already exists",
               accountSettings.getAccountIdentifier(), accountSettings.getOrgIdentifier(),

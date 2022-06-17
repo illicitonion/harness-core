@@ -32,7 +32,7 @@ import com.google.inject.name.Named;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @OwnedBy(CDP)
@@ -67,7 +67,7 @@ public class FileFailsafeServiceImpl implements FileFailsafeService {
         outboxService.save(new FileCreateEvent(fileDTOFromSavedNGFile.getAccountIdentifier(), fileDTOFromSavedNGFile));
         return fileDTOFromSavedNGFile;
       }));
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format("Try using another identifier, [%s] already exists", ngFile.getIdentifier()), USER, ex);
     }
@@ -85,7 +85,7 @@ public class FileFailsafeServiceImpl implements FileFailsafeService {
         outboxService.save(new FileUpdateEvent(newFileDTO.getAccountIdentifier(), newFileDTO, oldFileDTO));
         return newFileDTO;
       }));
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format("Try using another name, [%s] already exists in parent folder [%s]", newNGFile.getName(),
               newNGFile.getParentIdentifier()),

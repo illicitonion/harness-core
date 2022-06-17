@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -70,7 +70,7 @@ public class UserMembershipMigrationService implements NGMigration {
                                                 .collect(Collectors.toList());
       try {
         numUserMetadataCreated += userMetadataRepository.insertAllIgnoringDuplicates(userMetadataList);
-      } catch (DuplicateKeyException e) {
+      } catch (DataIntegrityViolationException e) {
         // this would happen when migration is run for the second time
       } catch (Exception e) {
         log.error("Couldn't save UserMetadata", e);
@@ -94,8 +94,8 @@ public class UserMembershipMigrationService implements NGMigration {
         if (!userMembershipList.isEmpty()) {
           numUserMembershipCreated += userMembershipRepository.insertAllIgnoringDuplicates(userMembershipList);
         }
-      } catch (DuplicateKeyException e) {
-        log.error("DuplicateKeyException...{}", e);
+      } catch (DataIntegrityViolationException e) {
+        log.error("DataIntegrityViolationException...{}", e);
         // this would happen when migration is run for the second time
       } catch (Exception e) {
         log.error("Couldn't save UserMembership", e);

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.net.URL;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Singleton
 @AllArgsConstructor(onConstructor = @__({ @Inject }))
@@ -51,7 +51,7 @@ public class SeedDataPopulaterServiceImpl implements SeedDataPopulaterService {
         notificationTemplateService.save(notificationTemplate);
       } catch (IOException exception) {
         log.error("Error while converting file to byte array: {}", path);
-      } catch (DuplicateKeyException duplicateKeyException) {
+      } catch (DataIntegrityViolationException duplicateKeyException) {
         log.info("Predefined Notification Template: {} already present in DB, skip saving in seed templates step",
             predefinedTemplate.getIdentifier());
       }

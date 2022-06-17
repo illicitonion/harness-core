@@ -30,7 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -72,7 +72,7 @@ public class RoleAssignmentPrincipalScopeLevelMigration implements NGMigration {
       for (RoleAssignmentDBO roleAssignment : roleAssignmentList) {
         try {
           roleAssignmentRepository.save(buildRoleAssignmentDBO(roleAssignment));
-        } catch (DuplicateKeyException exception) {
+        } catch (DataIntegrityViolationException exception) {
           log.warn("[RoleAssignmentPrincipalScopeLevelMigration] RoleAssignment already exists.", exception);
         } catch (Exception exception) {
           log.error("[RoleAssignmentPrincipalScopeLevelMigration] Unexpected error occurred.", exception);

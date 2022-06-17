@@ -36,7 +36,7 @@ import com.google.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -56,7 +56,7 @@ public class FilterServiceImpl implements FilterService {
     Filter filterEntity = filterMapper.toEntity(filterDTO, accountId);
     try {
       return filterMapper.writeDTO(filterRepository.save(filterEntity));
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(format("A filter already exists with name %s in %s",
           filterEntity.getIdentifier(), getFilterScopeMessage(accountId, filterDTO)));
     }

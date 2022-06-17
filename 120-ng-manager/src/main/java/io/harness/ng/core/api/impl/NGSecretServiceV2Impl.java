@@ -71,7 +71,7 @@ import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -162,7 +162,7 @@ public class NGSecretServiceV2Impl implements NGSecretServiceV2 {
         outboxService.save(new SecretCreateEvent(accountIdentifier, savedSecret.toDTO()));
         return savedSecret;
       }));
-    } catch (DuplicateKeyException duplicateKeyException) {
+    } catch (DataIntegrityViolationException duplicateKeyException) {
       throw new DuplicateFieldException(
           "Duplicate identifier, please try again with a new identifier", USER, duplicateKeyException);
     }
@@ -198,7 +198,7 @@ public class NGSecretServiceV2Impl implements NGSecretServiceV2 {
           createSecretUpdateActivity(accountIdentifier, secretDTO);
           return oldSecret;
         }));
-      } catch (DuplicateKeyException duplicateKeyException) {
+      } catch (DataIntegrityViolationException duplicateKeyException) {
         throw new DuplicateFieldException(
             "Duplicate identifier, please try again with a new identifier", USER, duplicateKeyException);
       }

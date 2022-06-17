@@ -26,7 +26,7 @@ import com.google.inject.Inject;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 
@@ -49,7 +49,7 @@ public class GitFullSyncConfigServiceImpl implements GitFullSyncConfigService {
     try {
       GitFullSyncConfig savedGitFullSyncConfig = gitFullSyncConfigRepository.save(gitFullSyncConfig);
       return GitFullSyncConfigMapper.toDTO(savedGitFullSyncConfig);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.error(String.format(ERROR_MSG_WHEN_CONFIG_EXIST, accountIdentifier, orgIdentifier, projectIdentifier));
       throw new InvalidRequestException(
           String.format(ERROR_MSG_WHEN_CONFIG_EXIST, accountIdentifier, orgIdentifier, projectIdentifier));

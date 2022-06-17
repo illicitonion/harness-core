@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -70,7 +70,7 @@ public class UserMetadataMigrationService implements NGMigration {
                                                    .collect(Collectors.toList());
       try {
         numNewUserMetadataCreated += userMetadataRepository.insertAllIgnoringDuplicates(newUserMetadataList);
-      } catch (DuplicateKeyException e) {
+      } catch (DataIntegrityViolationException e) {
         // this would happen when migration is run for the second time
       } catch (Exception e) {
         log.error("Couldn't save UserMetadata", e);

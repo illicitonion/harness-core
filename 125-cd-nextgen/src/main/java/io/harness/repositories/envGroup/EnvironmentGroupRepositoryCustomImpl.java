@@ -29,7 +29,7 @@ import javax.validation.Valid;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.FindAndReplaceOptions;
@@ -81,7 +81,7 @@ public class EnvironmentGroupRepositoryCustomImpl implements EnvironmentGroupRep
                              .environmentGroupEntity(environmentGroupEntity)
                              .build());
       return savedEntity;
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           format("Identifier %s already exists in organization id %s and project id %s",
               environmentGroupEntity.getIdentifier(), environmentGroupEntity.getProjectIdentifier(),

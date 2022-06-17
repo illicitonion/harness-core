@@ -40,7 +40,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @OwnedBy(PIPELINE)
 @Singleton
@@ -109,7 +109,7 @@ public class ResourceRestraintRegistryImpl implements ResourceRestraintRegistry 
 
     try {
       resourceRestraintInstanceService.save(builder.build());
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       log.error("Failed to add ResourceRestraintInstance", e);
       return false;
     }

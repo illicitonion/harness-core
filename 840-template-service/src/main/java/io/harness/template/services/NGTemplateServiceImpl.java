@@ -62,7 +62,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -147,7 +147,7 @@ public class NGTemplateServiceImpl implements NGTemplateService {
         });
       }
 
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           format(DUP_KEY_EXP_FORMAT_STRING, templateEntity.getIdentifier(), templateEntity.getVersionLabel(),
               templateEntity.getProjectIdentifier(), templateEntity.getOrgIdentifier()),
@@ -252,7 +252,7 @@ public class NGTemplateServiceImpl implements NGTemplateService {
 
       return makeTemplateUpdateCall(templateToUpdate, oldTemplateEntity, changeType, comments,
           eventType != null ? eventType : TemplateUpdateEventType.OTHERS_EVENT, false);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           format(DUP_KEY_EXP_FORMAT_STRING, templateEntity.getIdentifier(), templateEntity.getVersionLabel(),
               templateEntity.getProjectIdentifier(), templateEntity.getOrgIdentifier()),
@@ -525,7 +525,7 @@ public class NGTemplateServiceImpl implements NGTemplateService {
       //      templateReferenceHelper.populateTemplateReferences(templateEntity));
       return makeTemplateUpdateCall(unSyncedTemplate.get(), unSyncedTemplate.get(), ChangeType.ADD, "",
           TemplateUpdateEventType.OTHERS_EVENT, true);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       TemplateReferenceProtoDTO templateRef = entityDetailProtoDTO.getTemplateRef();
       throw new DuplicateFieldException(
           format(DUP_KEY_EXP_FORMAT_STRING, StringValueUtils.getStringFromStringValue(templateRef.getIdentifier()),

@@ -38,7 +38,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -64,7 +64,7 @@ public class PMSInputSetServiceImpl implements PMSInputSetService {
       } else {
         return inputSetRepository.save(inputSetEntity);
       }
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           format(DUP_KEY_EXP_FORMAT_STRING, inputSetEntity.getIdentifier(), inputSetEntity.getProjectIdentifier(),
               inputSetEntity.getOrgIdentifier(), inputSetEntity.getPipelineIdentifier()),

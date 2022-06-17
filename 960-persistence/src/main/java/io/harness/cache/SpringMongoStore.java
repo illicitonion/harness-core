@@ -28,7 +28,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -152,7 +152,7 @@ public class SpringMongoStore implements DistributedStore {
       } else {
         new Exception().addSuppressed(e);
       }
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       log.error("Failed to update cache for key {}, hash {} ", canonicalKey, contextValue, e);
     } catch (RuntimeException e) {
       log.error("Failed to update cache for key {}, hash {}", canonicalKey, contextValue, e);

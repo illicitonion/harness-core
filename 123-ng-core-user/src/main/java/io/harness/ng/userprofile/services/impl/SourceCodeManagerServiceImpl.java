@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @OwnedBy(PL)
 @NoArgsConstructor
@@ -66,7 +66,7 @@ public class SourceCodeManagerServiceImpl implements SourceCodeManagerService {
       try {
         sourceCodeManager = sourceCodeManagerRepository.save(
             scmMapBinder.get(sourceCodeManagerDTO.getType()).toSCMEntity(sourceCodeManagerDTO));
-      } catch (DuplicateKeyException e) {
+      } catch (DataIntegrityViolationException e) {
         throw new DuplicateFieldException(
             format("Source Code Manager with userId [%s], accountId [%s] and name [%s] already exists",
                 userIdentifier.get(), sourceCodeManagerDTO.getAccountIdentifier(), sourceCodeManagerDTO.getName()));
@@ -90,7 +90,7 @@ public class SourceCodeManagerServiceImpl implements SourceCodeManagerService {
 
         try {
           toUpdateSCM = sourceCodeManagerRepository.save(toUpdateSCM);
-        } catch (DuplicateKeyException e) {
+        } catch (DataIntegrityViolationException e) {
           throw new DuplicateFieldException(
               format("Source Code Manager with userId [%s], accountId [%s] and name [%s] already exists",
                   userIdentifier.get(), sourceCodeManagerDTO.getAccountIdentifier(), sourceCodeManagerDTO.getName()));

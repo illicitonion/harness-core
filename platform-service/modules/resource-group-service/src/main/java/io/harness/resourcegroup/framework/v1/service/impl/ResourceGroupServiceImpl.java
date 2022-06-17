@@ -43,7 +43,7 @@ import javax.validation.executable.ValidateOnExecution;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -73,7 +73,7 @@ public class ResourceGroupServiceImpl implements ResourceGroupService {
   private ResourceGroup create(ResourceGroup resourceGroup) {
     try {
       return createInternal(resourceGroup);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format("A resource group with identifier %s already exists at the specified scope",
               resourceGroup.getIdentifier()),

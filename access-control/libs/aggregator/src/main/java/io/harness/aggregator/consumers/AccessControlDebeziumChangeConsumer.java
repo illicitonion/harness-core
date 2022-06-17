@@ -26,7 +26,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.serialization.Deserializer;
 import org.apache.kafka.connect.source.SourceRecord;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Singleton
 @Slf4j
@@ -50,7 +50,7 @@ public class AccessControlDebeziumChangeConsumer implements DebeziumEngine.Chang
 
     IntervalFunction intervalFunction = IntervalFunction.ofExponentialBackoff(1000, 2);
     RetryConfig retryConfig = RetryConfig.custom()
-                                  .ignoreExceptions(DuplicateKeyException.class, DuplicateFieldException.class)
+                                  .ignoreExceptions(DataIntegrityViolationException.class, DuplicateFieldException.class)
                                   .intervalFunction(intervalFunction)
                                   .maxAttempts(10)
                                   .build();
