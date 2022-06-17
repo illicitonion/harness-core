@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -205,7 +205,7 @@ public class GitEntityServiceImpl implements GitEntityService {
     try {
       gitFileLocation = gitFileLocationRepository.findByEntityIdentifierFQNAndEntityTypeAndAccountIdAndBranch(
           entityReference.getFullyQualifiedName(), entityType.name(), entityReference.getAccountIdentifier(), branch);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.error("Error encountered while getting the git entity for {} in the branch {} in account {}",
           entityReference.getFullyQualifiedName(), branch, entityReference.getAccountIdentifier(), ex);
       throw new InvalidRequestException(

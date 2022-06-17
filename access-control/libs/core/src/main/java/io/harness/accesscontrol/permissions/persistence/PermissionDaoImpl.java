@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.validation.executable.ValidateOnExecution;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 @OwnedBy(HarnessTeam.PL)
@@ -46,7 +46,7 @@ public class PermissionDaoImpl implements PermissionDao {
     PermissionDBO permissionDBO = toDBO(permissionDTO);
     try {
       return fromDBO(permissionRepository.save(permissionDBO));
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       throw new DuplicateFieldException(
           String.format("A permission with identifier %s is already present", permissionDBO.getIdentifier()));
     }

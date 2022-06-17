@@ -56,7 +56,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -69,7 +69,7 @@ public class NGSecretMigrationFromManager implements NGMigration {
   private static final Set<EncryptionType> ENCRYPTION_TYPES_REQUIRING_FILE_DOWNLOAD = EnumSet.of(LOCAL, GCP_KMS, KMS);
   private final RetryPolicy<Object> retryPolicy = RetryUtils.getRetryPolicy(
       "[Retrying]: Failed migrating Secret; attempt: {}", "[Failed]: Failed migrating Secret; attempt: {}",
-      ImmutableList.of(OptimisticLockingFailureException.class, DuplicateKeyException.class), Duration.ofSeconds(1), 3,
+      ImmutableList.of(OptimisticLockingFailureException.class, DataIntegrityViolationException.class), Duration.ofSeconds(1), 3,
       log);
 
   private final MongoTemplate mongoTemplate;

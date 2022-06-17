@@ -31,7 +31,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @RunWith(MockitoJUnitRunner.class)
 @OwnedBy(HarnessTeam.PIPELINE)
@@ -73,7 +73,7 @@ public class ResourceRestraintServiceImplTest {
   @Owner(developers = FERNANDOD)
   @Category(UnitTests.class)
   public void shouldSaveThrowInvalidRequestWhenCatchIgnoreDuplicateKey() {
-    when(resourceRestraintRepository.save(notNull(ResourceRestraint.class))).thenThrow(new DuplicateKeyException(""));
+    when(resourceRestraintRepository.save(notNull(ResourceRestraint.class))).thenThrow(new DataIntegrityViolationException(""));
     assertThatThrownBy(() -> rrService.save(ResourceRestraint.builder().build()))
         .isInstanceOf(InvalidRequestException.class)
         .hasMessage("The resource constraint name cannot be reused.")

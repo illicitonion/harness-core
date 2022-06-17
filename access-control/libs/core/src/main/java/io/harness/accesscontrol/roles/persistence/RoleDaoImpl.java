@@ -41,7 +41,7 @@ import com.mongodb.client.result.UpdateResult;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.validation.executable.ValidateOnExecution;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -65,7 +65,7 @@ public class RoleDaoImpl implements RoleDao {
     RoleDBO roleDBO = toDBO(role);
     try {
       return fromDBO(roleRepository.save(roleDBO));
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       throw new DuplicateFieldException(String.format("A role with identifier %s in this scope %s is already present",
           roleDBO.getIdentifier(), roleDBO.getScopeIdentifier()));
     }

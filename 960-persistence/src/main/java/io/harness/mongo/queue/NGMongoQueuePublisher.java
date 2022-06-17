@@ -18,7 +18,7 @@ import io.harness.queue.TopicUtils;
 import java.util.List;
 import java.util.Objects;
 import lombok.Getter;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 
 public class NGMongoQueuePublisher<T extends Queuable> implements QueuePublisher<T> {
@@ -53,7 +53,7 @@ public class NGMongoQueuePublisher<T extends Queuable> implements QueuePublisher
     }
     try {
       persistence.insert(payload);
-    } catch (DuplicateKeyException duplicateKeyException) {
+    } catch (DataIntegrityViolationException duplicateKeyException) {
       // ignore
     }
   }

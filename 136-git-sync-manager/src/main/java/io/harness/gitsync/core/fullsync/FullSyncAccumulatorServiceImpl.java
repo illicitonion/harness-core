@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Singleton
 @AllArgsConstructor(onConstructor = @__({ @Inject }))
@@ -172,7 +172,7 @@ public class FullSyncAccumulatorServiceImpl implements FullSyncAccumulatorServic
                                      .build();
     try {
       return fullSyncJobService.save(fullSyncJob);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.error("A full sync job already exists for the message {}", messageId, ex);
     }
     return null;

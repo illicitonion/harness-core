@@ -67,7 +67,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -97,7 +97,7 @@ public class ServiceAccountServiceImpl implements ServiceAccountService {
         outboxService.save(new ServiceAccountCreateEvent(savedDTO));
         return savedDTO;
       }));
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format("A service account with identifier %s is already present or was deleted in scope",
               requestDTO.getIdentifier()),

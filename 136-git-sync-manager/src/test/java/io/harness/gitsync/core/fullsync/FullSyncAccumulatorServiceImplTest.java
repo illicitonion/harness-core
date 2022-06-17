@@ -51,7 +51,7 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @OwnedBy(PL)
 public class FullSyncAccumulatorServiceImplTest extends GitSyncTestBase {
@@ -113,7 +113,7 @@ public class FullSyncAccumulatorServiceImplTest extends GitSyncTestBase {
     when(entityDetailProtoToRestMapper.createEntityDetailDTO(any())).thenReturn(entityDetail);
     doNothing().when(gitFullSyncEntityService).updateStatus(any(), any(), any(), any(), any(), any());
     doNothing().when(gitBranchService).updateBranchSyncStatus(any(), any(), any(), any());
-    doThrow(DuplicateKeyException.class).when(fullSyncJobService).save(any());
+    doThrow(DataIntegrityViolationException.class).when(fullSyncJobService).save(any());
     fullSyncAccumulatorService.triggerFullSync(fullSyncEventRequest, messageId);
     verify(fullSyncServiceBlockingStub).getEntitiesForFullSync(any());
     verify(fullSyncJobService).save(any());

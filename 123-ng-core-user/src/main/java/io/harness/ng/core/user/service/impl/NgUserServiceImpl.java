@@ -126,7 +126,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -655,9 +655,9 @@ public class NgUserServiceImpl implements NgUserService {
                                     .build();
     try {
       userMetadataRepository.save(userMetadata);
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       log.info(
-          "DuplicateKeyException while creating usermembership for user id {}. This race condition is benign", userId);
+          "DataIntegrityViolationException while creating usermembership for user id {}. This race condition is benign", userId);
     }
   }
 
@@ -692,7 +692,7 @@ public class NgUserServiceImpl implements NgUserService {
       UserMembership userMembership = null;
       try {
         userMembership = userMembershipRepository.save(UserMembership.builder().userId(userId).scope(scope).build());
-      } catch (DuplicateKeyException e) {
+      } catch (DataIntegrityViolationException e) {
         //  This is benign. Move on.
       }
       if (userMembership != null) {

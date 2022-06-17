@@ -103,7 +103,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -172,7 +172,7 @@ public class ProjectServiceImpl implements ProjectService {
           project.getIdentifier(), projectDTO.getOrgIdentifier()));
       instrumentationHelper.sendProjectCreateEvent(createdProject, accountIdentifier);
       return createdProject;
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format("A project with identifier %s and orgIdentifier %s is already present or was deleted",
               project.getIdentifier(), orgIdentifier),

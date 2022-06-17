@@ -98,7 +98,7 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -146,7 +146,7 @@ public class UserGroupServiceImpl implements UserGroupService {
         outboxService.save(new UserGroupCreateEvent(userGroupDTO.getAccountIdentifier(), userGroupDTO));
         return savedUserGroup;
       }));
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format("Try using different user group identifier, [%s] cannot be used", userGroupDTO.getIdentifier()),
           USER_SRE, ex);
@@ -463,7 +463,7 @@ public class UserGroupServiceImpl implements UserGroupService {
             new UserGroupUpdateEvent(updatedUserGroup.getAccountIdentifier(), toDTO(updatedUserGroup), oldUserGroup));
         return updatedUserGroup;
       }));
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           String.format("Try using different user group identifier, [%s] cannot be used", newUserGroup.getIdentifier()),
           USER_SRE, ex);

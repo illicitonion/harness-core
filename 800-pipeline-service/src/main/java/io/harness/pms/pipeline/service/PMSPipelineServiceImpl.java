@@ -69,7 +69,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -117,7 +117,7 @@ public class PMSPipelineServiceImpl implements PMSPipelineService {
       }
       pmsPipelineServiceHelper.sendPipelineSaveTelemetryEvent(createdEntity, CREATING_PIPELINE);
       return PipelineCRUDResult.builder().governanceMetadata(governanceMetadata).pipelineEntity(createdEntity).build();
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(format(DUP_KEY_EXP_FORMAT_STRING, pipelineEntity.getIdentifier(),
                                             pipelineEntity.getProjectIdentifier(), pipelineEntity.getOrgIdentifier()),
           USER_SRE, ex);
@@ -443,7 +443,7 @@ public class PMSPipelineServiceImpl implements PMSPipelineService {
           entityWithUpdatedInfo, !updatedImportedPipeline.equals(importedPipelineYAML));
       pmsPipelineServiceHelper.sendPipelineSaveTelemetryEvent(savedPipelineEntity, CREATING_PIPELINE);
       return savedPipelineEntity;
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.error(format(DUP_KEY_EXP_FORMAT_STRING, pipelineEntity.getIdentifier(), pipelineEntity.getProjectIdentifier(),
                     pipelineEntity.getOrgIdentifier()),
           ex);

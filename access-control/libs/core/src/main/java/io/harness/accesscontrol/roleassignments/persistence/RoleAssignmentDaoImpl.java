@@ -30,7 +30,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 import javax.validation.executable.ValidateOnExecution;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -52,7 +52,7 @@ public class RoleAssignmentDaoImpl implements RoleAssignmentDao {
     RoleAssignmentDBO roleAssignmentDBO = toDBO(roleAssignment);
     try {
       return fromDBO(roleAssignmentRepository.save(roleAssignmentDBO));
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       throw new DuplicateFieldException(String.format(
           "A role assignment with the same resource group, role and principal is already present in the scope %s",
           roleAssignmentDBO.getScopeIdentifier()));

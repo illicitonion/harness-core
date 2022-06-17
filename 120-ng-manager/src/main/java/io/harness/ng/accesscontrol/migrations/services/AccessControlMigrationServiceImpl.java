@@ -62,7 +62,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.query.Criteria;
 
 @OwnedBy(HarnessTeam.PL)
@@ -94,7 +94,7 @@ public class AccessControlMigrationServiceImpl implements AccessControlMigration
   public void save(AccessControlMigration accessControlMigration) {
     try {
       accessControlMigrationDAO.save(accessControlMigration);
-    } catch (DuplicateFieldException | DuplicateKeyException duplicateException) {
+    } catch (DuplicateFieldException | DataIntegrityViolationException duplicateException) {
       // Ignore
     }
   }
@@ -272,7 +272,7 @@ public class AccessControlMigrationServiceImpl implements AccessControlMigration
               .projectIdentifier(scope.getProjectIdentifier())
               .build(),
           emptyList(), emptyList(), UserMembershipUpdateSource.SYSTEM);
-    } catch (DuplicateKeyException | DuplicateFieldException duplicateException) {
+    } catch (DataIntegrityViolationException | DuplicateFieldException duplicateException) {
       // ignore
     }
   }

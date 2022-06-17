@@ -74,7 +74,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.json.JSONObject;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -124,7 +124,7 @@ public class ServiceEntityServiceImpl implements ServiceEntityService {
         return service;
       }));
 
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           getDuplicateServiceExistsErrorMessage(serviceEntity.getAccountId(), serviceEntity.getOrgIdentifier(),
               serviceEntity.getProjectIdentifier(), serviceEntity.getIdentifier()),
@@ -315,7 +315,7 @@ public class ServiceEntityServiceImpl implements ServiceEntityService {
       modifyServiceRequestBatch(serviceEntities);
       List<ServiceEntity> outputServiceEntitiesList = (List<ServiceEntity>) serviceRepository.saveAll(serviceEntities);
       return new PageImpl<>(outputServiceEntitiesList);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           getDuplicateServiceExistsErrorMessage(accountId, ex.getMessage()), USER_SRE, ex);
     } catch (Exception ex) {

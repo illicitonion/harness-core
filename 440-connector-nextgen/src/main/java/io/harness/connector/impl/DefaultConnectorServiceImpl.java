@@ -128,7 +128,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -419,7 +419,7 @@ public class DefaultConnectorServiceImpl implements ConnectorService {
       connectorEntityReferenceHelper.createSetupUsageForSecret(
           connectorRequestDTO.getConnectorInfo(), accountIdentifier, false);
       log.info("[SecretManagerCreate] Created secret Manager {}", savedConnectorEntity);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(format("Connector [%s] already exists", connectorEntity.getIdentifier()));
     }
     return getResponse(
@@ -520,7 +520,7 @@ public class DefaultConnectorServiceImpl implements ConnectorService {
       return getResponse(accountIdentifier, updatedConnector.getOrgIdentifier(),
           updatedConnector.getProjectIdentifier(), updatedConnector);
 
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(format("Connector [%s] already exists", existingConnector.getIdentifier()));
     }
   }

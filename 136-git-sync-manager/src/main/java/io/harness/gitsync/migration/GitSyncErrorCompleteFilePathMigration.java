@@ -21,7 +21,7 @@ import com.google.inject.Inject;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -53,7 +53,7 @@ public class GitSyncErrorCompleteFilePathMigration implements NGMigration {
       try {
         updateCompleteFilePath(gitSyncErrorList);
         gitSyncErrorRepository.saveAll(gitSyncErrorList);
-      } catch (DuplicateKeyException ex) {
+      } catch (DataIntegrityViolationException ex) {
         // this would happen when migration is run for the second time
         log.error("GitSyncError Migration failed", ex);
       } catch (Exception ex) {

@@ -56,7 +56,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.json.JSONObject;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -93,7 +93,7 @@ public class InfrastructureEntityServiceImpl implements InfrastructureEntityServ
       return Failsafe.with(transactionRetryPolicy)
           .get(() -> transactionTemplate.execute(status -> infrastructureRepository.save(infraEntity)));
 
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           getDuplicateInfrastructureExistsErrorMessage(infraEntity.getAccountId(), infraEntity.getOrgIdentifier(),
               infraEntity.getProjectIdentifier(), infraEntity.getEnvIdentifier(), infraEntity.getIdentifier()),
@@ -245,7 +245,7 @@ public class InfrastructureEntityServiceImpl implements InfrastructureEntityServ
       List<InfrastructureEntity> outputInfrastructureEntitiesList =
           (List<InfrastructureEntity>) infrastructureRepository.saveAll(infraEntities);
       return new PageImpl<>(outputInfrastructureEntitiesList);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new DuplicateFieldException(
           getDuplicateInfrastructureExistsErrorMessage(accountId, ex.getMessage()), USER, ex);
     } catch (Exception ex) {

@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 
@@ -54,7 +54,7 @@ public class GitSyncSettingsServiceImpl implements GitSyncSettingsService {
     GitSyncSettings savedGitSyncSettings = null;
     try {
       savedGitSyncSettings = gitSyncSettingsRepository.save(gitSyncSettings);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       throw new io.harness.exception.InvalidRequestException(
           String.format("A git sync settings already exists in the project %s in the org %s",
               request.getProjectIdentifier(), request.getOrgIdentifier()));
@@ -95,7 +95,7 @@ public class GitSyncSettingsServiceImpl implements GitSyncSettingsService {
           getGitSyncSettingsForGitSimplification(accountIdentifier, orgIdentifier, projectIdentifier);
       try {
         gitSyncSettingsRepository.save(gitSyncSettings);
-      } catch (DuplicateKeyException ex) {
+      } catch (DataIntegrityViolationException ex) {
         return isGitSimplificationEnabled(accountIdentifier, orgIdentifier, projectIdentifier);
       }
     }

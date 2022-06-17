@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -146,7 +146,7 @@ public class GitBranchServiceImpl implements GitBranchService {
   public void save(GitBranch gitBranch) {
     try {
       gitBranchesRepository.save(gitBranch);
-    } catch (DuplicateKeyException duplicateKeyException) {
+    } catch (DataIntegrityViolationException duplicateKeyException) {
       // log.error("The branch {} in repo {} is already saved", gitBranch.getBranchName(), gitBranch.getRepoURL());
     }
   }

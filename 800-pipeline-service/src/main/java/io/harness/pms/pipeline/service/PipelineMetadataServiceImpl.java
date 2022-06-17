@@ -19,7 +19,7 @@ import com.google.inject.Singleton;
 import java.time.Duration;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @Singleton
 @Slf4j
@@ -43,7 +43,7 @@ public class PipelineMetadataServiceImpl implements PipelineMetadataService {
                                           .identifier(pipelineEntity.getIdentifier())
                                           .build();
         return save(metadata).getRunSequence();
-      } catch (DuplicateKeyException exception) {
+      } catch (DataIntegrityViolationException exception) {
         // retry insert if above fails
         return incrementExecutionCounter(accountId, orgIdentifier, projectIdentifier, pipelineEntity.getIdentifier());
       }

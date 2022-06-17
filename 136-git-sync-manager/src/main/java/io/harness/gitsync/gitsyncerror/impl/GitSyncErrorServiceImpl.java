@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -295,7 +295,7 @@ public class GitSyncErrorServiceImpl implements GitSyncErrorService {
       validate(gitSyncError);
       GitSyncError savedError = gitSyncErrorRepository.save(gitSyncError);
       return Optional.of(GitSyncErrorMapper.toGitSyncErrorDTO(savedError));
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.info("A git sync error for this commitId and File already exists.", ex);
       if (gitSyncError.getErrorType().equals(GitSyncErrorType.CONNECTIVITY_ISSUE)) {
         return getConnectivityError(gitSyncError.getAccountIdentifier(), gitSyncError.getRepoUrl());
@@ -334,7 +334,7 @@ public class GitSyncErrorServiceImpl implements GitSyncErrorService {
     try {
       gitSyncErrorRepository.saveAll(gitSyncErrors).iterator().forEachRemaining(gitSyncErrorsSaved::add);
       return gitSyncErrorsSaved.stream().map(GitSyncErrorMapper::toGitSyncErrorDTO).collect(toList());
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.info("Git sync error already exist", ex);
       return null;
     }

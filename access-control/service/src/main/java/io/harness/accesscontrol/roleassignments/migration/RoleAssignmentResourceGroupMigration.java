@@ -26,7 +26,7 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -66,7 +66,7 @@ public class RoleAssignmentResourceGroupMigration implements NGMigration {
       for (RoleAssignmentDBO roleAssignment : roleAssignmentList) {
         try {
           roleAssignmentRepository.save(buildRoleAssignmentDBO(scopeLevel, roleAssignment));
-        } catch (DuplicateKeyException exception) {
+        } catch (DataIntegrityViolationException exception) {
           log.info("[RoleAssignmentResourceGroupMigration] RoleAssignment already exists.", exception);
         }
         roleAssignmentRepository.deleteById(roleAssignment.getId());

@@ -18,7 +18,7 @@ import io.harness.gitopsprovider.entity.GitOpsProvider;
 import com.google.inject.Inject;
 import java.util.List;
 import lombok.AllArgsConstructor;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.FindAndReplaceOptions;
@@ -66,7 +66,7 @@ public class GitOpsProviderCustomRepositoryImpl implements GitOpsProviderCustomR
   public GitOpsProvider save(GitOpsProvider gitopsProvider) {
     try {
       return mongoTemplate.save(gitopsProvider);
-    } catch (DuplicateKeyException de) {
+    } catch (DataIntegrityViolationException de) {
       throw new InvalidRequestException("Creation of duplicate provider not allowed", USER);
     }
   }

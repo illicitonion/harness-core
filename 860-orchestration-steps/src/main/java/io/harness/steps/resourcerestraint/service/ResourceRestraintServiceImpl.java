@@ -19,7 +19,7 @@ import com.google.inject.Inject;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @OwnedBy(HarnessTeam.PIPELINE)
 public class ResourceRestraintServiceImpl implements ResourceRestraintService {
@@ -46,7 +46,7 @@ public class ResourceRestraintServiceImpl implements ResourceRestraintService {
     try {
       resourceRestraintRepository.save(resourceConstraint);
       return resourceConstraint;
-    } catch (DuplicateKeyException exception) {
+    } catch (DataIntegrityViolationException exception) {
       throw new InvalidRequestException("The resource constraint name cannot be reused.", exception, USER);
     }
   }

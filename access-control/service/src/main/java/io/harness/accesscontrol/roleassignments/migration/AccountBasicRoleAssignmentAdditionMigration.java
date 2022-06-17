@@ -30,7 +30,7 @@ import com.google.inject.Singleton;
 import java.util.HashMap;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -91,7 +91,7 @@ public class AccountBasicRoleAssignmentAdditionMigration implements NGMigration 
               RoleAssignmentDBO newRoleAssignmentDBO = buildRoleAssignmentDBO(roleAssignment);
               try {
                 roleAssignmentRepository.save(newRoleAssignmentDBO);
-              } catch (DuplicateKeyException e) {
+              } catch (DataIntegrityViolationException e) {
                 log.error("Corresponding account basic was already created {}", newRoleAssignmentDBO.toString(), e);
               }
               roleAssignmentRepository.updateById(roleAssignment.getId(), update(RoleAssignmentDBOKeys.managed, false));

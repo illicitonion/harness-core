@@ -59,7 +59,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Update;
 
@@ -112,7 +112,7 @@ public class RoleDaoImplTest extends AccessControlCoreTestBase {
   public void testCreateDuplicate() {
     Role role = getRole(5);
     RoleDBO roleDBO = toDBO(role);
-    when(roleRepository.save(roleDBO)).thenThrow(new DuplicateKeyException(""));
+    when(roleRepository.save(roleDBO)).thenThrow(new DataIntegrityViolationException(""));
     roleDao.create(role);
   }
 

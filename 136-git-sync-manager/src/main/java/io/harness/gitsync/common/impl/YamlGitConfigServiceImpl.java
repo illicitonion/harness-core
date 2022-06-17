@@ -87,7 +87,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -271,7 +271,7 @@ public class YamlGitConfigServiceImpl implements YamlGitConfigService {
       sendEventForGitSyncConfigChange(gitSyncConfigDTO, GitSyncConfigChangeEventType.SAVE_EVENT,
           wasGitSyncEnabled ? GitSyncConfigSwitchType.NONE : GitSyncConfigSwitchType.ENABLED);
       sendEventForConnectorSetupUsageChange(gitSyncConfigDTO);
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       String errorMessage = String.format("A git sync config with identifier [%s] or repo [%s] already exists",
           gitSyncConfigDTO.getIdentifier(), gitSyncConfigDTO.getRepo());
       log.error(errorMessage);

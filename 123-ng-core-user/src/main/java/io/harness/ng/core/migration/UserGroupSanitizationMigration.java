@@ -22,7 +22,7 @@ import java.time.Duration;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -35,7 +35,7 @@ public class UserGroupSanitizationMigration implements NGMigration {
   public static final int BATCH_SIZE = 500;
   private final RetryPolicy<Object> retryPolicy = RetryUtils.getRetryPolicy(
       "[Retrying]: Failed migrating User Group; attempt: {}", "[Failed]: Failed migrating User Group; attempt: {}",
-      ImmutableList.of(OptimisticLockingFailureException.class, DuplicateKeyException.class), Duration.ofSeconds(1), 3,
+      ImmutableList.of(OptimisticLockingFailureException.class, DataIntegrityViolationException.class), Duration.ofSeconds(1), 3,
       log);
   private final UserGroupService userGroupService;
   private final MongoTemplate mongoTemplate;

@@ -23,7 +23,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,7 +41,7 @@ public class InviteRepositoryCustomImpl implements InviteRepositoryCustom {
   private final MongoTemplate mongoTemplate;
   private final RetryPolicy<Object> updateRetryPolicy = RetryUtils.getRetryPolicy(
       "[Retrying]: Failed updating Invite; attempt: {}", "[Failed]: Failed updating Invite; attempt: {}",
-      ImmutableList.of(OptimisticLockingFailureException.class, DuplicateKeyException.class), Duration.ofSeconds(1), 3,
+      ImmutableList.of(OptimisticLockingFailureException.class, DataIntegrityViolationException.class), Duration.ofSeconds(1), 3,
       log);
 
   @Override

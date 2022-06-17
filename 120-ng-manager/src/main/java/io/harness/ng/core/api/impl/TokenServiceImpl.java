@@ -60,7 +60,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -105,7 +105,7 @@ public class TokenServiceImpl implements TokenService {
       }));
       return token.getApiKeyType().getValue() + deliminator + newToken.getAccountIdentifier() + deliminator
           + newToken.getUuid() + deliminator + randomString;
-    } catch (DuplicateKeyException e) {
+    } catch (DataIntegrityViolationException e) {
       throw new DuplicateFieldException(
           String.format("Try using different token name, [%s] already exists", tokenDTO.getIdentifier()));
     }

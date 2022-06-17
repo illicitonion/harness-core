@@ -43,7 +43,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -335,7 +335,7 @@ public class PMSInputSetRepositoryCustomImpl implements PMSInputSetRepositoryCus
     int MAX_ATTEMPTS = 3;
     return new RetryPolicy<>()
         .handle(OptimisticLockingFailureException.class)
-        .handle(DuplicateKeyException.class)
+        .handle(DataIntegrityViolationException.class)
         .withDelay(RETRY_SLEEP_DURATION)
         .withMaxAttempts(MAX_ATTEMPTS)
         .onFailedAttempt(event -> log.info(failedAttemptMessage, event.getAttemptCount(), event.getLastFailure()))

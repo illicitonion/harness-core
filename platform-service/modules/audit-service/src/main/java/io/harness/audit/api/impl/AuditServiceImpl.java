@@ -51,7 +51,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -89,7 +89,7 @@ public class AuditServiceImpl implements AuditService {
       log.info(String.format("Took %d milliseconds for create audit db operation for insertId %s.",
           System.currentTimeMillis() - startTime, auditEventDTO.getInsertId()));
       return result;
-    } catch (DuplicateKeyException ex) {
+    } catch (DataIntegrityViolationException ex) {
       log.info("Audit for this entry already exists with id {} and account identifier {}", auditEvent.getInsertId(),
           auditEvent.getResourceScope().getAccountIdentifier());
       return true;

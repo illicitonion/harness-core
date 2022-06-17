@@ -53,7 +53,7 @@ import javax.ws.rs.NotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.dao.DuplicateKeyException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -98,7 +98,7 @@ public class VariableServiceImpl implements VariableService {
         outboxService.save(new VariableCreateEvent(accountIdentifier, variableMapper.writeDTO(savedVariable)));
         return savedVariable;
       }));
-    } catch (DuplicateKeyException de) {
+    } catch (DataIntegrityViolationException de) {
       throw new DuplicateFieldException(
           String.format("Variable with identifier [%s] already exists in this scope.", variableDTO.getIdentifier()));
     }
@@ -190,7 +190,7 @@ public class VariableServiceImpl implements VariableService {
             variableMapper.writeDTO(existingVariable.get())));
         return updatedVariable;
       }));
-    } catch (DuplicateKeyException de) {
+    } catch (DataIntegrityViolationException de) {
       throw new DuplicateFieldException(
           String.format(
               "A variable with identifier [%s] and orgIdentifier [%s] and projectIdentifier [%s] already present.",
