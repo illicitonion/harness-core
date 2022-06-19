@@ -22,7 +22,7 @@ import static org.apache.commons.text.StrSubstitutor.replace;
 import io.harness.batch.processing.config.BatchMainConfig;
 import io.harness.batch.processing.mail.CEMailNotificationService;
 import io.harness.batch.processing.shard.AccountShardService;
-import io.harness.batch.processing.slacknotification.intfc.CESlackNotificationService;
+import io.harness.batch.processing.slackNotification.intfc.CESlackNotificationService;
 import io.harness.ccm.budget.AlertThreshold;
 import io.harness.ccm.budget.BudgetPeriod;
 import io.harness.ccm.budget.dao.BudgetDao;
