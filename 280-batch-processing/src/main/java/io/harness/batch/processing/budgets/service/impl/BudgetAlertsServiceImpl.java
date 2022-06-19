@@ -22,7 +22,7 @@ import static org.apache.commons.text.StrSubstitutor.replace;
 import io.harness.batch.processing.config.BatchMainConfig;
 import io.harness.batch.processing.mail.CEMailNotificationService;
 import io.harness.batch.processing.shard.AccountShardService;
-import io.harness.batch.processing.slackNotification.intfc.CESlackNotificationService;
+import io.harness.batch.processing.slackNotification.CESlackNotificationService;
 import io.harness.ccm.budget.AlertThreshold;
 import io.harness.ccm.budget.BudgetPeriod;
 import io.harness.ccm.budget.dao.BudgetDao;
@@ -30,6 +30,7 @@ import io.harness.ccm.budget.entities.BudgetAlertsData;
 import io.harness.ccm.budget.utils.BudgetUtils;
 import io.harness.ccm.commons.entities.billing.Budget;
 import io.harness.ccm.communication.CESlackWebhookService;
+import io.harness.ccm.communication.entities.CESlackWebhook;
 import io.harness.timescaledb.TimeScaleDBService;
 
 import org.apache.commons.lang3.StringUtils;

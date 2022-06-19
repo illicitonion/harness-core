@@ -5,11 +5,10 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.batch.processing.slackNotification.impl;
+package io.harness.batch.processing.slackNotification;
 
 import com.google.inject.Inject;
 import io.harness.annotations.dev.OwnedBy;
-import io.harness.batch.processing.slackNotification.intfc.CESlackNotificationService;
 import software.wings.beans.SlackMessage;
 import software.wings.beans.notification.SlackNotificationConfiguration;
 import software.wings.beans.notification.SlackNotificationSetting;
@@ -25,8 +24,10 @@ import static io.harness.annotations.dev.HarnessTeam.CE;
 @OwnedBy(CE)
 @Singleton
 @Slf4j
-public class CESlackNotificationServiceImpl implements CESlackNotificationService {
+public class CESlackNotificationService {
   @Inject private SlackMessageSender slackMessageSender;
+
+  public static final String SLACK_WEBHOOK_URL_PREFIX = "https://hooks.slack.com/services/";
 
   public void sendMessage(SlackNotificationConfiguration slackConfig, String slackChannel, String senderName,
       String message, String accountId) {
