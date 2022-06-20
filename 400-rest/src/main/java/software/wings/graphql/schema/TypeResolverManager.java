@@ -103,6 +103,7 @@ import software.wings.graphql.schema.type.instance.QLEcsContainerInstance;
 import software.wings.graphql.schema.type.instance.QLK8SPodInstance;
 import software.wings.graphql.schema.type.instance.QLPcfInstance;
 import software.wings.graphql.schema.type.instance.QLPhysicalHostInstance;
+import software.wings.graphql.schema.type.secretManagers.QLCustomSecretManagerConfig;
 import software.wings.graphql.schema.type.secrets.QLEncryptedFile;
 import software.wings.graphql.schema.type.secrets.QLEncryptedText;
 import software.wings.graphql.schema.type.secrets.QLKerberosAuthentication;
@@ -512,7 +513,7 @@ public class TypeResolverManager {
                                       .build()))
             .put(TypeResolverManagerUnifaces.SECRET_MANAGER_CONFIG,
                     getResultTypeResolver(ImmutableMap.<Class, String>builder()
-                            .put(QLUGApprovalDetails.class, TypeResolverManagerTypes.CUSTOM_SECRET_MANAGER)
+                            .put(QLCustomSecretManagerConfig.class, TypeResolverManagerTypes.CUSTOM_SECRET_MANAGER)
                             .build()))
         .build();
   }
