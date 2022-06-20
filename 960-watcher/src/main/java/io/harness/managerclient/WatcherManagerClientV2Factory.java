@@ -10,16 +10,18 @@ package io.harness.managerclient;
 import io.harness.network.FibonacciBackOff;
 import io.harness.network.Http;
 import io.harness.network.NoopHostnameVerifier;
+import io.harness.security.AllTrustingX509TrustManager;
 import io.harness.security.TokenGenerator;
-import io.harness.security.X509TrustManagerBuilder;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.guava.GuavaModule;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Provider;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.ConnectionPool;
@@ -30,6 +32,9 @@ import retrofit2.converter.jackson.JacksonConverterFactory;
 
 @Slf4j
 public class WatcherManagerClientV2Factory implements Provider<ManagerClientV2> {
+  private static final ImmutableList<TrustManager> TRUST_ALL_CERTS =
+      ImmutableList.of(new AllTrustingX509TrustManager());
+
   private String baseUrl;
   private TokenGenerator tokenGenerator;
 
@@ -55,10 +60,8 @@ public class WatcherManagerClientV2Factory implements Provider<ManagerClientV2> 
   private OkHttpClient getUnsafeOkHttpClient() {
     try {
       // Install the all-trusting trust manager
-      X509TrustManager[] trustManagers =
-          new X509TrustManager[] {new X509TrustManagerBuilder().trustAllCertificates().build()};
       final SSLContext sslContext = SSLContext.getInstance("SSL");
-      sslContext.init(null, trustManagers, new java.security.SecureRandom());
+      sslContext.init(null, TRUST_ALL_CERTS.toArray(new TrustManager[1]), new java.security.SecureRandom());
       // Create an ssl socket factory with our all-trusting manager
       final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
@@ -66,7 +69,7 @@ public class WatcherManagerClientV2Factory implements Provider<ManagerClientV2> 
           .connectionPool(new ConnectionPool())
           .retryOnConnectionFailure(true)
           .addInterceptor(new WatcherAuthInterceptor(tokenGenerator))
-          .sslSocketFactory(sslSocketFactory, trustManagers[0])
+          .sslSocketFactory(sslSocketFactory, (X509TrustManager) TRUST_ALL_CERTS.get(0))
           .addInterceptor(chain -> {
             Builder request = chain.request().newBuilder().addHeader("User-Agent", "watcher");
             return chain.proceed(request.build());

@@ -59,7 +59,7 @@ public class X509TrustManagerBuilder {
       }
     } catch (Exception ex) {
       throw new TrustManagerBuilderException(
-          String.format("Failed to build trust key store from default Java trust store: %s", ex.getMessage()));
+          String.format("Failed to build trust key store from default Java trust store: %s", ex.getMessage()), ex);
     }
 
     return this;

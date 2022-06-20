@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * {@link ClientInterceptor} that adds metadata to grpc calls allowing to route grpc calls to the
- * correct destination (grpc metadata is an HTTP/2 header).
+ * correct destination (grpc metadata is transferred via HTTP/2 headers).
  *
  * Note:
  *  Currently only used by delegate-gateway.
