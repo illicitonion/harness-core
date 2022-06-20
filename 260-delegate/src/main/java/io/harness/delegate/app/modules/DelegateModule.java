@@ -139,6 +139,8 @@ import io.harness.delegate.task.PagerDutySenderDelegateTask;
 import io.harness.delegate.task.SlackSenderDelegateTask;
 import io.harness.delegate.task.artifactory.ArtifactoryDelegateTask;
 import io.harness.delegate.task.artifactory.ArtifactoryValidationHandler;
+import io.harness.delegate.task.artifacts.ArtifactDownloadService;
+import io.harness.delegate.task.artifacts.ArtifactDownloadServiceImpl;
 import io.harness.delegate.task.artifacts.ArtifactSourceDelegateRequest;
 import io.harness.delegate.task.artifacts.DelegateArtifactTaskHandler;
 import io.harness.delegate.task.artifacts.artifactory.ArtifactoryArtifactDelegateRequest;
@@ -1130,6 +1132,7 @@ public class DelegateModule extends AbstractModule {
     bind(AzureKubernetesClient.class).to(AzureKubernetesClientImpl.class);
     bind(ArtifactoryNgService.class).to(ArtifactoryNgServiceImpl.class);
     bind(AWSCloudformationClient.class).to(AWSCloudformationClientImpl.class);
+    bind(ArtifactDownloadService.class).to(ArtifactDownloadServiceImpl.class);
 
     // NG Delegate
     MapBinder<String, K8sRequestHandler> k8sTaskTypeToRequestHandler =

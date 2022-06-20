@@ -288,10 +288,12 @@ import io.harness.delegate.exception.HelmNGException;
 import io.harness.delegate.exception.ServerlessNGException;
 import io.harness.delegate.exception.TaskNGDataException;
 import io.harness.delegate.task.ListNotifyResponseData;
+import io.harness.delegate.task.artifacts.ArtifactRequestDetails;
 import io.harness.delegate.task.artifacts.ArtifactSourceType;
 import io.harness.delegate.task.artifacts.ArtifactTaskType;
 import io.harness.delegate.task.artifacts.artifactory.ArtifactoryArtifactDelegateRequest;
 import io.harness.delegate.task.artifacts.artifactory.ArtifactoryArtifactDelegateResponse;
+import io.harness.delegate.task.artifacts.artifactory.ArtifactoryArtifactRequestDetails;
 import io.harness.delegate.task.artifacts.artifactory.ArtifactoryBaseArtifactDelegateRequest;
 import io.harness.delegate.task.artifacts.artifactory.ArtifactoryGenericArtifactDelegateRequest;
 import io.harness.delegate.task.artifacts.artifactory.ArtifactoryGenericArtifactDelegateResponse;
@@ -368,6 +370,7 @@ import io.harness.delegate.task.azure.arm.response.AzureBlueprintDeploymentRespo
 import io.harness.delegate.task.azure.artifact.AzureArtifactConfig;
 import io.harness.delegate.task.azure.artifact.AzureArtifactType;
 import io.harness.delegate.task.azure.artifact.AzureContainerArtifactConfig;
+import io.harness.delegate.task.azure.artifact.AzurePackageArtifactConfig;
 import io.harness.delegate.task.azure.request.AzureLoadBalancerDetailForBGDeployment;
 import io.harness.delegate.task.azure.request.AzureVMSSDeployTaskParameters;
 import io.harness.delegate.task.azure.request.AzureVMSSGetVirtualMachineScaleSetParameters;
@@ -1581,6 +1584,9 @@ public class DelegateTasksBeansKryoRegister implements KryoRegistrar {
     kryo.register(AzureWebAppNGRollbackResponse.class, 55327);
     kryo.register(AzureWebAppFetchPreDeploymentDataRequest.class, 55328);
     kryo.register(AzureWebAppFetchPreDeploymentDataResponse.class, 55329);
+    kryo.register(AzurePackageArtifactConfig.class, 55330);
+    kryo.register(ArtifactRequestDetails.class, 55331);
+    kryo.register(ArtifactoryArtifactRequestDetails.class, 55332);
 
     kryo.register(SerializedResponseData.class, 55401);
     kryo.register(SerializationFormat.class, 55402);

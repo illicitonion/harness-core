@@ -5,19 +5,23 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.delegate.task.azure.artifact;
+package io.harness.delegate.task.azure.common;
 
 import static io.harness.annotations.dev.HarnessTeam.CDP;
 
 import io.harness.annotations.dev.OwnedBy;
-import io.harness.delegate.beans.connector.ConnectorConfigDTO;
-import io.harness.security.encryption.EncryptedDataDetail;
+import io.harness.delegate.task.azure.artifact.AzurePackageArtifactConfig;
 
-import java.util.List;
+import java.io.File;
+import lombok.Builder;
+import lombok.Data;
 
+@Data
+@Builder
 @OwnedBy(CDP)
-public interface AzureArtifactConfig {
-  AzureArtifactType getArtifactType();
-  ConnectorConfigDTO getConnectorConfig();
-  List<EncryptedDataDetail> getEncryptedDataDetails();
+public class ArtifactNgDownloadContext {
+  private AzureLogCallbackProvider logCallbackProvider;
+  private AzurePackageArtifactConfig artifactConfig;
+  private String commandUnitName;
+  private File workingDirectory;
 }

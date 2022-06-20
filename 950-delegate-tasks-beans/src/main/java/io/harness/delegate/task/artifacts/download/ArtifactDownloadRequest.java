@@ -5,32 +5,21 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.delegate.task.azure.artifact;
+package io.harness.delegate.task.artifacts.download;
 
 import static io.harness.annotations.dev.HarnessTeam.CDP;
 
 import io.harness.annotations.dev.OwnedBy;
-import io.harness.delegate.beans.azure.registry.AzureRegistryType;
 import io.harness.delegate.beans.connector.ConnectorConfigDTO;
-import io.harness.security.encryption.EncryptedDataDetail;
+import io.harness.delegate.task.artifacts.ArtifactSourceType;
 
-import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
 @OwnedBy(CDP)
-public class AzureContainerArtifactConfig implements AzureArtifactConfig {
+public class ArtifactDownloadRequest {
   private ConnectorConfigDTO connectorConfig;
-  private AzureRegistryType registryType;
-  private String image;
-  private String tag;
-
-  private List<EncryptedDataDetail> encryptedDataDetails;
-
-  @Override
-  public AzureArtifactType getArtifactType() {
-    return AzureArtifactType.CONTAINER;
-  }
+  private ArtifactSourceType artifactSourceType;
 }

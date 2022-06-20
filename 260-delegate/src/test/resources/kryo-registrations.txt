@@ -1704,6 +1704,9 @@
 55327:io.harness.delegate.task.azure.appservice.webapp.ng.response.AzureWebAppNGRollbackResponse
 55328:io.harness.delegate.task.azure.appservice.webapp.ng.request.AzureWebAppFetchPreDeploymentDataRequest
 55329:io.harness.delegate.task.azure.appservice.webapp.ng.response.AzureWebAppFetchPreDeploymentDataResponse
+55330:io.harness.delegate.task.azure.artifact.AzurePackageArtifactConfig
+55331:io.harness.delegate.task.artifacts.ArtifactRequestDetails
+55332:io.harness.delegate.task.artifacts.artifactory.ArtifactoryArtifactRequestDetails
 55401:io.harness.delegate.beans.SerializedResponseData
 55402:software.wings.beans.SerializationFormat
 70001:io.harness.accesscontrol.commons.exceptions.AccessDeniedErrorDTO

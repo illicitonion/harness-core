@@ -17,12 +17,16 @@ import io.harness.azure.model.AzureConfig;
 import io.harness.azure.utility.AzureResourceUtility;
 import io.harness.delegate.task.azure.appservice.AzureAppServiceResourceUtilities;
 import io.harness.delegate.task.azure.appservice.deployment.context.AzureAppServiceDockerDeploymentContext;
+import io.harness.delegate.task.azure.appservice.deployment.context.AzureAppServicePackageDeploymentContext;
 import io.harness.delegate.task.azure.appservice.webapp.ng.AzureWebAppInfraDelegateConfig;
 import io.harness.delegate.task.azure.appservice.webapp.ng.request.AbstractSlotDataRequest;
 import io.harness.delegate.task.azure.artifact.AzureContainerArtifactConfig;
 import io.harness.delegate.task.azure.common.AzureLogCallbackProvider;
 
+import software.wings.utils.ArtifactType;
+
 import com.google.inject.Inject;
+import java.io.File;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +61,26 @@ public abstract class AbstractSlotDataRequestHandler<T extends AbstractSlotDataR
         .imagePathAndTag(imagePathAndTag)
         .steadyStateTimeoutInMin(azureResourceUtilities.getTimeoutIntervalInMin(taskRequest.getTimeoutIntervalInMin()))
         .skipTargetSlotValidation(true)
+        .build();
+  }
+
+  protected AzureAppServicePackageDeploymentContext toAzureAppServicePackageDeploymentContext(T taskRequest,
+      AzureWebClientContext clientContext, File artifactFile, AzureLogCallbackProvider logCallbackProvider) {
+    Map<String, AzureAppServiceApplicationSetting> appSettingsToAdd =
+        azureResourceUtilities.getAppSettingsToAdd(taskRequest.getApplicationSettings());
+    Map<String, AzureAppServiceConnectionString> connSettingsToAdd =
+        azureResourceUtilities.getConnectionSettingsToAdd(taskRequest.getConnectionStrings());
+
+    return AzureAppServicePackageDeploymentContext.builder()
+        .logCallbackProvider(logCallbackProvider)
+        .appSettingsToAdd(appSettingsToAdd)
+        .connSettingsToAdd(connSettingsToAdd)
+        .slotName(taskRequest.getInfrastructure().getDeploymentSlot())
+        .azureWebClientContext(clientContext)
+        .startupCommand(taskRequest.getStartupCommand())
+        .artifactFile(artifactFile)
+        .artifactType(ArtifactType.ZIP) // TODO: check how we can get artifact type
+        .steadyStateTimeoutInMin(azureResourceUtilities.getTimeoutIntervalInMin(taskRequest.getTimeoutIntervalInMin()))
         .build();
   }
 }

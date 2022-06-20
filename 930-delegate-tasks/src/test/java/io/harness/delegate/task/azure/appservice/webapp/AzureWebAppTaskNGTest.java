@@ -180,6 +180,7 @@ public class AzureWebAppTaskNGTest extends CategoryTest {
                             .build())
             .build());
     infrastructure.setEncryptionDataDetails(encryptedDataDetails);
+    abstractWebAppTaskRequest.setInfrastructure(infrastructure);
 
     doReturn(AzureWebAppRequestType.SLOT_DEPLOYMENT).when(abstractWebAppTaskRequest).getRequestType();
     doReturn(requestResponse)
@@ -188,7 +189,6 @@ public class AzureWebAppTaskNGTest extends CategoryTest {
     doReturn(CommandUnitsProgress.builder().commandUnitProgressMap(new LinkedHashMap<>()).build())
         .when(abstractWebAppTaskRequest)
         .getCommandUnitsProgress();
-    doReturn(infrastructure).when(abstractWebAppTaskRequest).getInfrastructure();
 
     azureWebAppTaskNG.run(abstractWebAppTaskRequest);
 

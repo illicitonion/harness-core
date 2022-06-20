@@ -5,19 +5,13 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.delegate.task.azure.artifact;
+package io.harness.delegate.task.artifacts;
 
 import static io.harness.annotations.dev.HarnessTeam.CDP;
 
 import io.harness.annotations.dev.OwnedBy;
-import io.harness.delegate.beans.connector.ConnectorConfigDTO;
-import io.harness.security.encryption.EncryptedDataDetail;
-
-import java.util.List;
 
 @OwnedBy(CDP)
-public interface AzureArtifactConfig {
-  AzureArtifactType getArtifactType();
-  ConnectorConfigDTO getConnectorConfig();
-  List<EncryptedDataDetail> getEncryptedDataDetails();
+public interface ArtifactRequestDetails {
+  String getArtifactName();
 }

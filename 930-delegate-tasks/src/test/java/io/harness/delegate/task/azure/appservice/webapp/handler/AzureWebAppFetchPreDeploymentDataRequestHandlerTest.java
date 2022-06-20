@@ -22,6 +22,7 @@ import io.harness.delegate.task.azure.AzureTestUtils;
 import io.harness.delegate.task.azure.appservice.AzureAppServicePreDeploymentData;
 import io.harness.delegate.task.azure.appservice.AzureAppServiceResourceUtilities;
 import io.harness.delegate.task.azure.appservice.deployment.context.AzureAppServiceDockerDeploymentContext;
+import io.harness.delegate.task.azure.appservice.deployment.context.AzureAppServicePackageDeploymentContext;
 import io.harness.delegate.task.azure.appservice.webapp.AppServiceDeploymentProgress;
 import io.harness.delegate.task.azure.appservice.webapp.ng.request.AzureWebAppFetchPreDeploymentDataRequest;
 import io.harness.delegate.task.azure.appservice.webapp.ng.response.AzureWebAppFetchPreDeploymentDataResponse;
@@ -69,6 +70,33 @@ public class AzureWebAppFetchPreDeploymentDataRequestHandlerTest extends Categor
     doReturn(preDeploymentData)
         .when(azureAppServiceService)
         .getDockerDeploymentPreDeploymentData(any(AzureAppServiceDockerDeploymentContext.class));
+
+    AzureWebAppRequestResponse response = requestHandler.execute(request, azureConfig, logCallbackProvider);
+    assertThat(response).isInstanceOf(AzureWebAppFetchPreDeploymentDataResponse.class);
+    AzureWebAppFetchPreDeploymentDataResponse preDeploymentDataResponse =
+        (AzureWebAppFetchPreDeploymentDataResponse) response;
+    assertThat(preDeploymentDataResponse.getPreDeploymentData()).isSameAs(preDeploymentData);
+  }
+
+  @Test
+  @Owner(developers = ABOSII)
+  @Category(UnitTests.class)
+  public void testExecutePackage() {
+    final AzureWebAppFetchPreDeploymentDataRequest request =
+        AzureWebAppFetchPreDeploymentDataRequest.builder()
+            .applicationSettings(Collections.emptyList())
+            .connectionStrings(Collections.emptyList())
+            .artifact(AzureTestUtils.createTestPackageArtifactConfig())
+            .infraDelegateConfig(AzureTestUtils.createTestWebAppInfraDelegateConfig())
+            .build();
+
+    final AzureAppServicePreDeploymentData preDeploymentData =
+        AzureTestUtils.buildTestPreDeploymentData(AppServiceDeploymentProgress.DEPLOY_TO_SLOT);
+    final AzureConfig azureConfig = AzureTestUtils.createTestAzureConfig();
+
+    doReturn(preDeploymentData)
+        .when(azureAppServiceService)
+        .getPackageDeploymentPreDeploymentData(any(AzureAppServicePackageDeploymentContext.class));
 
     AzureWebAppRequestResponse response = requestHandler.execute(request, azureConfig, logCallbackProvider);
     assertThat(response).isInstanceOf(AzureWebAppFetchPreDeploymentDataResponse.class);

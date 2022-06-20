@@ -14,11 +14,14 @@ import io.harness.azure.AzureEnvironmentType;
 import io.harness.azure.model.AzureAuthenticationType;
 import io.harness.azure.model.AzureConfig;
 import io.harness.delegate.beans.azure.registry.AzureRegistryType;
+import io.harness.delegate.task.artifacts.ArtifactSourceType;
+import io.harness.delegate.task.artifacts.artifactory.ArtifactoryArtifactRequestDetails;
 import io.harness.delegate.task.azure.appservice.AzureAppServicePreDeploymentData;
 import io.harness.delegate.task.azure.appservice.webapp.AppServiceDeploymentProgress;
 import io.harness.delegate.task.azure.appservice.webapp.ng.AzureWebAppInfraDelegateConfig;
 import io.harness.delegate.task.azure.artifact.AzureArtifactConfig;
 import io.harness.delegate.task.azure.artifact.AzureContainerArtifactConfig;
+import io.harness.delegate.task.azure.artifact.AzurePackageArtifactConfig;
 
 import java.util.Collections;
 import lombok.experimental.UtilityClass;
@@ -37,12 +40,24 @@ public class AzureTestUtils {
   public static final String TENANT_ID = "tenant-id";
   public static final String CLIENT_ID = "client-id";
   public static final byte[] CERT = "test-cert".getBytes();
+  public static final String ARTIFACT_PATH = "artifact";
+  public static final String ARTIFACT_REPOSITORY = "repository";
 
   public AzureArtifactConfig createTestContainerArtifactConfig() {
     return AzureContainerArtifactConfig.builder()
         .image(TEST_IMAGE)
         .tag(TEST_IMAGE_TAG)
         .registryType(AzureRegistryType.DOCKER_HUB_PRIVATE)
+        .build();
+  }
+
+  public AzureArtifactConfig createTestPackageArtifactConfig() {
+    return AzurePackageArtifactConfig.builder()
+        .sourceType(ArtifactSourceType.ARTIFACTORY_REGISTRY)
+        .artifactDetails(ArtifactoryArtifactRequestDetails.builder()
+                             .artifactPaths(Collections.singletonList(ARTIFACT_PATH))
+                             .repository(ARTIFACT_REPOSITORY)
+                             .build())
         .build();
   }
 
