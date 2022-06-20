@@ -10,9 +10,7 @@ package io.harness.delegate.task.artifacts.jenkins;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.exception.WingsException.ExecutionContext.DELEGATE;
 import static io.harness.exception.WingsException.USER;
-import static io.harness.logging.CommandExecutionStatus.FAILURE;
 import static io.harness.logging.CommandExecutionStatus.RUNNING;
-import static io.harness.logging.CommandExecutionStatus.SUCCESS;
 import static io.harness.threading.Morpheus.sleep;
 
 import static software.wings.beans.Log.Builder.aLog;
@@ -45,7 +43,6 @@ import io.harness.logging.LogLevel;
 import io.harness.security.encryption.SecretDecryptionService;
 
 import software.wings.beans.JenkinsConfig;
-import software.wings.beans.JenkinsSubTaskType;
 import software.wings.helpers.ext.jenkins.BuildDetails;
 import software.wings.helpers.ext.jenkins.Jenkins;
 import software.wings.helpers.ext.jenkins.JobDetails;
@@ -146,7 +143,7 @@ public class JenkinsArtifactTaskHandler extends DelegateArtifactTaskHandler<Jenk
     return ArtifactTaskExecutionResponse.builder().buildDetails(buildDetails).build();
   }
 
-  public JenkinsBuildTaskNGResponse triggerBuild(
+  public ArtifactTaskExecutionResponse triggerBuild(
       JenkinsArtifactDelegateRequest attributesRequest, LogCallback executionLogCallback) {
     JenkinsBuildTaskNGResponse jenkinsBuildTaskNGResponse = new JenkinsBuildTaskNGResponse();
     ExecutionStatus executionStatus = ExecutionStatus.SUCCESS;
@@ -171,48 +168,47 @@ public class JenkinsArtifactTaskHandler extends DelegateArtifactTaskHandler<Jenk
                 + " and remaining Time (sec): "
                 + (attributesRequest.getTimeout() - (System.currentTimeMillis() - attributesRequest.getStartTs()))
                     / 1000,
-            LogLevel.INFO, CommandExecutionStatus.RUNNING);
+            LogLevel.INFO);
       } else {
         log.error("The Job was not triggered successfully with queued Build URL {} ", queueItemUrl);
         executionStatus = ExecutionStatus.FAILED;
         jenkinsBuildTaskNGResponse.setErrorMessage(msg);
         executionLogCallback.saveExecutionLog(
-            "The Job was not triggered successfully with queued Build URL {} " + queueItemUrl, LogLevel.ERROR,
-            CommandExecutionStatus.FAILURE);
+            "The Job was not triggered successfully with queued Build URL {} " + queueItemUrl, LogLevel.ERROR);
       }
       JenkinsCustomServer jenkinsServer = JenkinsClient.getJenkinsServer(jenkinsInternalConfig);
       Build jenkinsBuild = jenkinsRegistryUtils.waitForJobToStartExecution(queueReference, jenkinsInternalConfig);
       jenkinsBuildTaskNGResponse.setBuildNumber(String.valueOf(jenkinsBuild.getNumber()));
       jenkinsBuildTaskNGResponse.setJobUrl(jenkinsBuild.getUrl());
       executionLogCallback.saveExecutionLog(
-          "The Job was build successfull. Build number " + jenkinsBuild.getNumber(), LogLevel.INFO, RUNNING);
+          "The Job was build successfull. Build number " + jenkinsBuild.getNumber(), LogLevel.INFO);
     } catch (WingsException e) {
-      executionLogCallback.saveExecutionLog(msg + e, LogLevel.ERROR, CommandExecutionStatus.FAILURE);
+      executionLogCallback.saveExecutionLog(msg + e, LogLevel.ERROR);
       ExceptionLogger.logProcessedMessages(e, DELEGATE, log);
       throw e;
     } catch (IOException ex) {
-      executionLogCallback.saveExecutionLog(msg + ex, LogLevel.ERROR, CommandExecutionStatus.FAILURE);
+      executionLogCallback.saveExecutionLog(msg + ex, LogLevel.ERROR);
       throw new InvalidRequestException("Failed to trigger the Jenkins Job" + ExceptionUtils.getMessage(ex), USER);
     } catch (URISyntaxException e) {
-      executionLogCallback.saveExecutionLog("Invalid URI Syntax\n" + e, LogLevel.ERROR, CommandExecutionStatus.FAILURE);
+      executionLogCallback.saveExecutionLog("Invalid URI Syntax\n" + e, LogLevel.ERROR);
     } catch (Exception e) {
-      executionLogCallback.saveExecutionLog(msg + e, LogLevel.ERROR, CommandExecutionStatus.FAILURE);
+      executionLogCallback.saveExecutionLog(msg + e, LogLevel.ERROR);
       log.error(msg, e);
       executionStatus = ExecutionStatus.FAILED;
       jenkinsBuildTaskNGResponse.setErrorMessage(ExceptionUtils.getMessage(e));
-      executionLogCallback.saveExecutionLog(msg + e, LogLevel.ERROR, CommandExecutionStatus.FAILURE);
+      executionLogCallback.saveExecutionLog(msg + e, LogLevel.ERROR);
     }
     jenkinsBuildTaskNGResponse.setExecutionStatus(executionStatus);
-    return jenkinsBuildTaskNGResponse;
+    return ArtifactTaskExecutionResponse.builder().jenkinsBuildTaskNGResponse(jenkinsBuildTaskNGResponse).build();
   }
 
-  public ArtifactTaskExecutionResponse pollTask(JenkinsArtifactDelegateRequest attributesRequest,
-      JenkinsBuildTaskNGResponse jenkinsBuildTaskNGResponse, LogCallback executionLogCallback) {
-    //    JenkinsBuildTaskNGResponse jenkinsBuildTaskNGResponse = new JenkinsBuildTaskNGResponse();
+  public ArtifactTaskExecutionResponse pollTask(
+      JenkinsArtifactDelegateRequest attributesRequest, LogCallback executionLogCallback) {
+    JenkinsBuildTaskNGResponse jenkinsBuildTaskNGResponse = new JenkinsBuildTaskNGResponse();
     ExecutionStatus executionStatus = ExecutionStatus.SUCCESS;
     try {
       // Get jenkins build from queued URL
-      String queuedBuildUrl = jenkinsBuildTaskNGResponse.getQueuedBuildUrl();
+      String queuedBuildUrl = attributesRequest.getQueuedBuildUrl();
       JenkinsInternalConfig jenkinsInternalConfig =
           JenkinsRequestResponseMapper.toJenkinsInternalConfig(attributesRequest);
 
@@ -239,27 +235,25 @@ public class JenkinsArtifactTaskHandler extends DelegateArtifactTaskHandler<Jenk
 
       executionLogCallback.saveExecutionLog("Waiting for Jenkins task completion. Remaining time (sec): "
               + (attributesRequest.getTimeout() - (System.currentTimeMillis() - attributesRequest.getStartTs())) / 1000,
-          LogLevel.INFO, CommandExecutionStatus.RUNNING);
+          LogLevel.INFO);
 
       BuildWithDetails jenkinsBuildWithDetails = waitForJobExecutionToFinish(
           jenkinsBuild, attributesRequest.getUnitName(), jenkinsInternalConfig, executionLogCallback);
       jenkinsBuildTaskNGResponse.setJobUrl(jenkinsBuildWithDetails.getUrl());
 
       if (attributesRequest.isCaptureEnvironmentVariable()) {
-        executionLogCallback.saveExecutionLog(
-            "Collecting environment variables for Jenkins task", LogLevel.INFO, CommandExecutionStatus.RUNNING);
+        executionLogCallback.saveExecutionLog("Collecting environment variables for Jenkins task", LogLevel.INFO);
         try {
           jenkinsBuildTaskNGResponse.setEnvVars(
               jenkinsRegistryUtils.getEnvVars(jenkinsBuildWithDetails.getUrl(), jenkinsInternalConfig));
         } catch (WingsException e) {
           executionLogCallback.saveExecutionLog(
-              "Failed to collect environment variables from Jenkins ", LogLevel.ERROR, CommandExecutionStatus.FAILURE);
+              "Failed to collect environment variables from Jenkins ", LogLevel.ERROR);
           throw e;
         }
       }
 
-      executionLogCallback.saveExecutionLog(
-          "Jenkins task execution complete ", LogLevel.INFO, CommandExecutionStatus.SUCCESS);
+      executionLogCallback.saveExecutionLog("Jenkins task execution complete ", LogLevel.INFO);
 
       BuildResult buildResult = jenkinsBuildWithDetails.getResult();
       jenkinsBuildTaskNGResponse.setJenkinsResult(buildResult.toString());
