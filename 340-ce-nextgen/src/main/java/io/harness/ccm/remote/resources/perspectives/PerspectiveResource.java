@@ -42,7 +42,6 @@ import io.harness.ng.core.dto.FailureDTO;
 import io.harness.ng.core.dto.ResponseDTO;
 import io.harness.outbox.api.OutboxService;
 import io.harness.security.annotations.NextGenManagerAuth;
-import io.harness.security.annotations.PublicApi;
 import io.harness.telemetry.Category;
 import io.harness.telemetry.TelemetryReporter;
 
@@ -87,7 +86,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Path("perspective")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@PublicApi
+@NextGenManagerAuth
 @Slf4j
 @Service
 @OwnedBy(CE)
