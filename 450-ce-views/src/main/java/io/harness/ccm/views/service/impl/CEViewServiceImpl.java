@@ -324,28 +324,32 @@ public class CEViewServiceImpl implements CEViewService {
   @Override
   public List<QLCEView> getAllViews(String accountId, boolean includeDefault, QLCEViewSortCriteria sortCriteria) {
     List<CEView> viewList = ceViewDao.findByAccountId(accountId, sortCriteria);
+    List<CEViewFolder> folderList = ceViewFolderDao.getFolders(accountId);
     if (!includeDefault) {
       viewList = viewList.stream()
                      .filter(view -> ImmutableSet.of(ViewType.SAMPLE, ViewType.CUSTOMER).contains(view.getViewType()))
                      .collect(Collectors.toList());
     }
-    return getQLCEViewsFromCEViews(viewList);
+    return getQLCEViewsFromCEViews(viewList, folderList);
   }
 
   @Override
   public List<QLCEView> getAllViews(
       String accountId, String folderId, boolean includeDefault, QLCEViewSortCriteria sortCriteria) {
     List<CEView> viewList = ceViewDao.findByAccountIdAndFolderId(accountId, folderId, sortCriteria);
+    List<CEViewFolder> folderList = ceViewFolderDao.getFolders(accountId, Collections.singletonList(folderId));
     if (!includeDefault) {
       viewList = viewList.stream()
                      .filter(view -> ImmutableSet.of(ViewType.SAMPLE, ViewType.CUSTOMER).contains(view.getViewType()))
                      .collect(Collectors.toList());
     }
-    return getQLCEViewsFromCEViews(viewList);
+    return getQLCEViewsFromCEViews(viewList, folderList);
   }
 
-  private List<QLCEView> getQLCEViewsFromCEViews(List<CEView> viewList) {
+  private List<QLCEView> getQLCEViewsFromCEViews(List<CEView> viewList, List<CEViewFolder> folderList) {
     List<QLCEView> graphQLViewObjList = new ArrayList<>();
+    Map<String, String> folderIdToNameMapping = folderList.stream()
+            .collect(Collectors.toMap(CEViewFolder::getUuid, CEViewFolder::getName));
     for (CEView view : viewList) {
       List<CEReportSchedule> reportSchedules =
           ceReportScheduleDao.getReportSettingByView(view.getUuid(), view.getAccountId());
@@ -359,6 +363,7 @@ public class CEViewServiceImpl implements CEViewService {
                                  .id(view.getUuid())
                                  .name(view.getName())
                                  .folderId(view.getFolderId())
+                                 .folderName((view.getFolderId() != null) ? folderIdToNameMapping.get(view.getFolderId()) : null)
                                  .totalCost(view.getTotalCost())
                                  .createdBy(null != view.getCreatedBy() ? view.getCreatedBy().getEmail() : "")
                                  .createdAt(view.getCreatedAt())
