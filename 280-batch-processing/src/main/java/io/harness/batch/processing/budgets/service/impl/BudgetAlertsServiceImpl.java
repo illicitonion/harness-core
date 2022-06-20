@@ -9,20 +9,17 @@ package io.harness.batch.processing.budgets.service.impl;
 
 import static io.harness.ccm.budget.AlertThresholdBase.ACTUAL_COST;
 import static io.harness.ccm.budget.AlertThresholdBase.FORECASTED_COST;
-import static io.harness.ccm.commons.constants.Constants.HARNESS_NAME;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.stripToEmpty;
 import static org.apache.commons.text.StrSubstitutor.replace;
 
 import io.harness.batch.processing.config.BatchMainConfig;
 import io.harness.batch.processing.mail.CEMailNotificationService;
 import io.harness.batch.processing.shard.AccountShardService;
-import io.harness.batch.processing.slackNotification.CESlackNotificationService;
 import io.harness.ccm.budget.AlertThreshold;
 import io.harness.ccm.budget.BudgetPeriod;
 import io.harness.ccm.budget.dao.BudgetDao;
@@ -32,13 +29,14 @@ import io.harness.ccm.commons.entities.billing.Budget;
 import io.harness.timescaledb.TimeScaleDBService;
 
 import org.apache.commons.lang3.StringUtils;
+import software.wings.beans.SlackMessage;
 import software.wings.beans.User;
-import software.wings.beans.notification.SlackNotificationConfiguration;
 import software.wings.beans.notification.SlackNotificationSetting;
 import software.wings.beans.security.UserGroup;
 import software.wings.graphql.datafetcher.billing.CloudBillingHelper;
 import software.wings.graphql.datafetcher.budget.BudgetTimescaleQueryHelper;
 import software.wings.helpers.ext.mail.EmailData;
+import software.wings.service.intfc.SlackMessageSender;
 import software.wings.service.intfc.instance.CloudToHarnessMappingService;
 
 import com.google.common.collect.ImmutableMap;
@@ -64,7 +62,7 @@ import org.springframework.stereotype.Service;
 public class BudgetAlertsServiceImpl {
   @Autowired private TimeScaleDBService timeScaleDBService;
   @Autowired private CEMailNotificationService emailNotificationService;
-  @Autowired private CESlackNotificationService slackNotificationService;
+  @Autowired private SlackMessageSender slackMessageSender;
   @Autowired private BudgetTimescaleQueryHelper budgetTimescaleQueryHelper;
   @Autowired private BudgetDao budgetDao;
   @Autowired private BatchMainConfig mainConfiguration;
@@ -181,7 +179,6 @@ public class BudgetAlertsServiceImpl {
       return;
     }
     slackWebhooks.forEach(webhook -> {
-      SlackNotificationConfiguration slackConfig = new SlackNotificationSetting("#ccm-test", webhook);
       String slackMessageTemplate =
           "The cost associated with *${BUDGET_NAME}* has reached a limit of ${THRESHOLD_PERCENTAGE}%.";
       Map<String, String> params =
@@ -190,8 +187,8 @@ public class BudgetAlertsServiceImpl {
               .put("BUDGET_NAME", budget.getName())
               .build();
       String slackMessage = replace(slackMessageTemplate, params);
-      slackNotificationService.sendMessage(
-          slackConfig, stripToEmpty(slackConfig.getName()), HARNESS_NAME, slackMessage, budget.getAccountId());
+      slackMessageSender.send(
+              new SlackMessage(webhook, null, null, slackMessage), false, false);
     });
   }
 
