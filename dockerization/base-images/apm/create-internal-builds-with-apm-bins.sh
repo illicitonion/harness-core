@@ -29,28 +29,27 @@ function download_apm_binaries(){
 function create_and_push_docker_build(){
 	local_service_name="$1"
 	local_tag="$2"
-  local_non_apm_image_path="${REGISTRY_PATH}/${ONPREM_PATH}/${local_service_name}:${local_tag}"
-  local_apm_image_path="${REGISTRY_PATH}/${SAAS_PATH}/${local_service_name}:${local_tag}"
+  local_image_path="${REGISTRY_PATH}/${REPO_PATH}/${BUILD_TYPE}-${local_service_name}:${local_tag}"
 
   echo "INFO: Pulling Non APM IMAGE...."
-	docker pull "${local_non_apm_image_path}"; STATUS=$?
+	docker pull "${local_image_path}"; STATUS=$?
 	if [ "$STATUS" -eq 0 ]; then
-		echo "Successfully pulled NON APM IMAGE: ${local_non_apm_image_path} from GCR"
+		echo "Successfully pulled NON APM IMAGE: ${local_image_path} from GCR"
 	else
-		echo "Failed to pull NON APM IMAGE: ${local_non_apm_image_path} from GCR. Exiting..."
+		echo "Failed to pull NON APM IMAGE: ${local_image_path} from GCR. Exiting..."
 		exit 1
 	fi
 
    echo "INFO: Bulding APM IMAGE...."
-	 docker build -t "${local_apm_image_path}" \
+	 docker build -t "${local_image_path}" \
 	 --build-arg BUILD_TAG="${local_tag}" --build-arg REGISTRY_PATH="${REGISTRY_PATH}" \
-   --build-arg ONPREM_PATH="${ONPREM_PATH}" --build-arg SERVICE_NAME="${local_service_name}" \
-   --build-arg APPD_AGENT="${APPD_AGENT##*/}" --build-arg TAKIPI_AGENT="${TAKIPI_AGENT##*/}" \
-   --build-arg OCELET_AGENT="${OCELET_AGENT##*/}" --build-arg ET_AGENT="${ET_AGENT##*/}" \
-   -f Dockerfile .; STATUS1=$?
+   --build-arg REPO_PATH="${REPO_PATH}" --build-arg BUILD_TYPE="${BUILD_TYPE}" \
+   --build-arg SERVICE_NAME="${local_service_name}" --build-arg APPD_AGENT="${APPD_AGENT##*/}" \
+   --build-arg TAKIPI_AGENT="${TAKIPI_AGENT##*/}" --build-arg OCELET_AGENT="${OCELET_AGENT##*/}" \
+   --build-arg ET_AGENT="${ET_AGENT##*/}" -f internalBuilds.dockerfile .; STATUS1=$?
 
   echo "INFO: Pushing APM IMAGE...."
-	docker push "${local_apm_image_path}"; STATUS2=$?
+	docker push "${local_image_path}"; STATUS2=$?
 
 	if [ "${STATUS1}" -eq 0 ] && [ "${STATUS2}" -eq 0 ]; then
 		echo "INFO: Successfully created and pushed apm build for SERVICE: ${local_service_name} with TAG:${local_tag}"
@@ -61,23 +60,25 @@ function create_and_push_docker_build(){
 
 }
 
-
 export APPD_AGENT='https://harness.jfrog.io/artifactory/BuildsTools/docker/apm/appd/AppServerAgent-1.8-21.11.2.33305.zip'
 export TAKIPI_AGENT='https://harness.jfrog.io/artifactory/BuildsTools/docker/apm/overops/takipi-agent-latest.tar.gz'
 export ET_AGENT='https://get.et.harness.io/releases/latest/nix/harness-et-agent.tar.gz'
 export OCELET_AGENT='https://github.com/inspectIT/inspectit-ocelot/releases/download/1.16.0/inspectit-ocelot-agent-1.16.0.jar'
 
 export REGISTRY_PATH='us.gcr.io/platform-205701'
-export SAAS_PATH=${SAAS_PATH}
-export ONPREM_PATH=${ONPREM_PATH}
+export REPO_PATH=${REPO_PATH}
+export BUILD_TYPE=${BUILD_TYPE}
 export VERSION=${VERSION}
 
-IMAGES_LIST=(manager ng-manager verification-service pipeline-service cv-nextgen ce-nextgen \
-template-service ci-manager command-library-server platform-service eventsapi-monitor dms)
+IMAGES_LIST=(manager-openjdk-8u242 ng-manager-openjdk-8u242 verification-service-openjdk-8u242 \
+pipeline-service-openjdk-8u242 cv-nextgen-openjdk-8u242 ce-nextgen-openjdk-8u242 \
+template-service-openjdk-8u242 ci-manager-openjdk-8u242 command-library-server-openjdk-8u242 \
+change-data-capture-openjdk-8u242 eventsapi-monitor-openjdk-8u242 dms-openjdk-8u242 \
+event-server-openjdk-8u242 batch-processing-openjdk-8u242 migrator-openjdk-8u242)
 
 #<+steps.build.output.outputVariables.VERSION>
-if [ -z "${VERSION}" ]; then
-    echo "ERROR: VERSION is not defined. Exiting..."
+if [ -z "${VERSION}" ] && [ -z "${REPO_PATH}" ] && [ -z "${BUILD_TYPE}" ]; then
+    echo "ERROR: VERSION, REPO_PATH and BUILD_TYPE are not defined. Exiting..."
     exit 1
 fi
 
