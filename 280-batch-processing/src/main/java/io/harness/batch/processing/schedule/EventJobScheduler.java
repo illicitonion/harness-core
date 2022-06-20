@@ -290,7 +290,7 @@ public class EventJobScheduler {
     }
   }
 
-  @Scheduled(cron = "0 */10 * * * ?")
+  @Scheduled(cron = "${scheduler-jobs-config.budgetAlertsJobCron}")
   public void runBudgetAlertsJob() {
     try {
       budgetAlertsService.sendBudgetAlerts();

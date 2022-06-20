@@ -144,10 +144,10 @@ public class BudgetAlertsServiceImpl {
                                   .time(System.currentTimeMillis())
                                   .build();
 
-//      if (BudgetUtils.isAlertSentInCurrentPeriod(
-//              budgetTimescaleQueryHelper.getLastAlertTimestamp(data, budget.getAccountId()), budget.getStartTime())) {
-//        break;
-//      }
+      if (BudgetUtils.isAlertSentInCurrentPeriod(
+              budgetTimescaleQueryHelper.getLastAlertTimestamp(data, budget.getAccountId()), budget.getStartTime())) {
+        break;
+      }
       String costType = ACTUAL_COST_BUDGET;
       try {
         if (alertThreshold.getBasedOn() == FORECASTED_COST) {
