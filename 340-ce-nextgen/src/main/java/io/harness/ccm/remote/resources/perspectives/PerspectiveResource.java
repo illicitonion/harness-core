@@ -42,6 +42,7 @@ import io.harness.ng.core.dto.FailureDTO;
 import io.harness.ng.core.dto.ResponseDTO;
 import io.harness.outbox.api.OutboxService;
 import io.harness.security.annotations.NextGenManagerAuth;
+import io.harness.security.annotations.PublicApi;
 import io.harness.telemetry.Category;
 import io.harness.telemetry.TelemetryReporter;
 
@@ -86,7 +87,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 @Path("perspective")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@NextGenManagerAuth
+@PublicApi
 @Slf4j
 @Service
 @OwnedBy(CE)
@@ -394,6 +395,7 @@ public class PerspectiveResource {
              NGCommonEntityConstants.ACCOUNT_KEY) @AccountIdentifier @NotNull @Valid String accountId,
       @QueryParam("perspectiveId") @Parameter(required = true,
           description = "Unique identifier for the Perspective") @NotNull @Valid String perspectiveId) {
+    CEView perspective = ceViewService.get(perspectiveId).toDTO();
     ceViewService.delete(perspectiveId, accountId);
 
     ceReportScheduleService.deleteAllByView(perspectiveId, accountId);
@@ -403,7 +405,7 @@ public class PerspectiveResource {
 
     return ResponseDTO.newResponse(
         Failsafe.with(transactionRetryPolicy).get(() -> transactionTemplate.execute(status -> {
-          outboxService.save(new PerspectiveDeleteEvent(accountId, ceViewService.get(perspectiveId).toDTO()));
+          outboxService.save(new PerspectiveDeleteEvent(accountId, perspective));
           return "Successfully deleted the view";
         })));
   }
