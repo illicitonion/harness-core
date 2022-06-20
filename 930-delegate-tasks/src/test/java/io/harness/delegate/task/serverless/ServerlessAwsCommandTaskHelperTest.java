@@ -7,33 +7,21 @@
 
 package io.harness.delegate.task.serverless;
 
-import static io.harness.annotations.dev.HarnessTeam.CDP;
-import static io.harness.rule.OwnerRule.PIYUSH_BHUWALKA;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.verify;
-
 import io.harness.CategoryTest;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.aws.beans.AwsInternalConfig;
 import io.harness.category.element.UnitTests;
+import io.harness.delegate.beans.connector.awsconnector.AwsConnectorDTO;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaManifestSchema;
 import io.harness.delegate.task.aws.AwsNgConfigMapper;
-import io.harness.delegate.task.serverless.request.ServerlessDeployRequest;
+import io.harness.delegate.task.serverless.request.ServerlessCommandRequest;
+import io.harness.delegate.task.serverless.request.ServerlessPrepareRollbackDataRequest;
 import io.harness.logging.CommandExecutionStatus;
 import io.harness.logging.LogCallback;
 import io.harness.rule.Owner;
 import io.harness.serverless.ServerlessCliResponse;
 import io.harness.serverless.ServerlessClient;
 import io.harness.serverless.model.ServerlessDelegateTaskParams;
-
-import software.wings.service.intfc.aws.delegate.AwsCFHelperServiceDelegate;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -41,6 +29,20 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import software.wings.service.intfc.aws.delegate.AwsCFHelperServiceDelegate;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static io.harness.annotations.dev.HarnessTeam.CDP;
+import static io.harness.rule.OwnerRule.PIYUSH_BHUWALKA;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @OwnedBy(CDP)
 public class ServerlessAwsCommandTaskHelperTest extends CategoryTest {
@@ -48,11 +50,15 @@ public class ServerlessAwsCommandTaskHelperTest extends CategoryTest {
   @Mock private ServerlessTaskPluginHelper serverlessTaskPluginHelper;
   @Mock private AwsCFHelperServiceDelegate awsCFHelperServiceDelegate;
   @Mock private AwsNgConfigMapper awsNgConfigMapper;
+  @Mock private AwsInternalConfig awsInternalConfig;
+  @Mock private ServerlessCommandRequest serverlessCommandRequest;
 
+  private final long timeout = 10;
   @InjectMocks private ServerlessAwsCommandTaskHelper serverlessAwsCommandTaskHelper;
   private ServerlessAwsLambdaManifestSchema serverlessAwsLambdaManifestSchema =
       ServerlessAwsLambdaManifestSchema.builder().plugins(Arrays.asList("asfd", "asfdasdf")).build();
   private ServerlessDelegateTaskParams serverlessDelegateTaskParams = ServerlessDelegateTaskParams.builder().build();
+  @Mock private AwsConnectorDTO awsConnectorDTO;
   @Mock private LogCallback logCallback;
   @Mock private ServerlessClient serverlessClient;
 
@@ -81,20 +87,25 @@ public class ServerlessAwsCommandTaskHelperTest extends CategoryTest {
         + "  - custom-resources.zip\n"
         + "  - serverless-state.json";
 
+    ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig = ServerlessAwsLambdaInfraConfig.builder()
+                                                                        .region("us-east-2")
+                                                                        .stage("dev")
+                                                                        .awsConnectorDTO(awsConnectorDTO)
+                                                                        .build();
     String serverlessManifest = "service: ABC";
-    ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig =
-        ServerlessAwsLambdaInfraConfig.builder().region("us-east-2").stage("dev").build();
-    ServerlessDeployRequest serverlessDeployRequest = ServerlessDeployRequest.builder()
-                                                          .manifestContent(serverlessManifest)
-                                                          .serverlessInfraConfig(serverlessAwsLambdaInfraConfig)
-                                                          .build();
+    ServerlessPrepareRollbackDataRequest serverlessPrepareRollbackDataRequest =
+        ServerlessPrepareRollbackDataRequest.builder()
+            .manifestContent(serverlessManifest)
+            .serverlessInfraConfig(serverlessAwsLambdaInfraConfig)
+            .build();
 
     List<String> timeStamps = serverlessAwsCommandTaskHelper.getDeployListTimeStamps(output);
     assertThat(timeStamps).contains("1646988531400", "1646989096845");
     doReturn("abc1646988531400xyz").when(awsCFHelperServiceDelegate).getStackBody(any(), any(), any());
     doReturn(AwsInternalConfig.builder().build()).when(awsNgConfigMapper).createAwsInternalConfig(any());
 
-    assertThat(serverlessAwsCommandTaskHelper.getPreviousVersionTimeStamp(timeStamps, null, serverlessDeployRequest))
+    assertThat(serverlessAwsCommandTaskHelper.getPreviousVersionTimeStamp(
+                   timeStamps, null, serverlessPrepareRollbackDataRequest))
         .isEqualTo(Optional.of("1646988531400"));
   }
 
@@ -118,5 +129,26 @@ public class ServerlessAwsCommandTaskHelperTest extends CategoryTest {
         .installServerlessPlugin(serverlessDelegateTaskParams, serverlessClient, "asfd", logCallback, 10, "c");
     verify(serverlessTaskPluginHelper)
         .installServerlessPlugin(serverlessDelegateTaskParams, serverlessClient, "asfdasdf", logCallback, 10, "c");
+  }
+
+  @Test
+  @Owner(developers = PIYUSH_BHUWALKA)
+  @Category(UnitTests.class)
+  public void cloudFormationStackExistsTest() throws Exception {
+    String serverlessManifest = "service: ABC";
+    ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig = ServerlessAwsLambdaInfraConfig.builder()
+                                                                        .region("us-east-2")
+                                                                        .stage("dev")
+                                                                        .awsConnectorDTO(awsConnectorDTO)
+                                                                        .build();
+    when(serverlessCommandRequest.getServerlessInfraConfig()).thenReturn(serverlessAwsLambdaInfraConfig);
+    String cloudFormationStackName = "ABC"
+        + "-"
+        + "dev";
+    when(awsNgConfigMapper.createAwsInternalConfig(awsConnectorDTO)).thenReturn(awsInternalConfig);
+    serverlessAwsCommandTaskHelper.cloudFormationStackExists(logCallback, serverlessCommandRequest, serverlessManifest);
+    verify(awsNgConfigMapper, times(1)).createAwsInternalConfig(awsConnectorDTO);
+    verify(awsCFHelperServiceDelegate, times(1))
+        .stackExists(awsInternalConfig, serverlessAwsLambdaInfraConfig.getRegion(), cloudFormationStackName);
   }
 }

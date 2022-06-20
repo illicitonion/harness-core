@@ -83,6 +83,9 @@ public interface DelegateService extends OwnedByAccount {
   File generateKubernetesYaml(String accountId, DelegateSetupDetails delegateSetupDetails, String managerHost,
       String verificationServiceUrl, MediaType fileFormat) throws IOException;
 
+  File generateNgHelmValuesYaml(String accountId, DelegateSetupDetails delegateSetupDetails, String managerHost,
+      String verificationServiceUrl) throws IOException;
+
   Delegate update(@Valid Delegate delegate);
 
   Delegate updateTags(@Valid Delegate delegate);
@@ -221,4 +224,6 @@ public interface DelegateService extends OwnedByAccount {
 
   DelegateApprovalResponse approveDelegatesUsingToken(
       String accountId, String delegateTokenName, DelegateApproval action) throws InvalidRequestException;
+
+  void checkUniquenessOfDelegateName(String accountId, String delegateName, boolean isNg);
 }

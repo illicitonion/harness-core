@@ -13,8 +13,8 @@ import static io.harness.EntityType.SECRETS;
 import static io.harness.EntityType.SERVICE;
 import static io.harness.EntityType.TEMPLATE;
 import static io.harness.exception.WingsException.USER;
-import static io.harness.filestore.FilePermissionConstants.FILE_ACCESS_PERMISSION;
 import static io.harness.filestore.FilePermissionConstants.FILE_DELETE_PERMISSION;
+import static io.harness.filestore.FilePermissionConstants.FILE_EDIT_PERMISSION;
 import static io.harness.filestore.FilePermissionConstants.FILE_VIEW_PERMISSION;
 import static io.harness.rule.OwnerRule.BOJAN;
 import static io.harness.rule.OwnerRule.IVAN;
@@ -68,10 +68,10 @@ import org.springframework.data.domain.PageImpl;
 @OwnedBy(HarnessTeam.CDP)
 @RunWith(MockitoJUnitRunner.class)
 public class FileStoreResourceTest extends CategoryTest {
-  private static final String ACCOUNT = "account";
-  private static final String ORG = "org";
-  private static final String PROJECT = "project";
-  private static final String IDENTIFIER = "testFile";
+  private final String ACCOUNT = "account";
+  private final String ORG = "org";
+  private final String PROJECT = "project";
+  private final String IDENTIFIER = "testFile";
 
   @Mock private FileStoreServiceImpl fileStoreService;
   @Mock private AccessControlClient accessControlClient;
@@ -197,7 +197,7 @@ public class FileStoreResourceTest extends CategoryTest {
     SearchPageParams pageParams = SearchPageParams.builder().page(page).size(size).build();
     final Page<EntitySetupUsageDTO> entityServiceUsageList =
         new PageImpl<>(Collections.singletonList(entitySetupUsage));
-    doNothing().when(accessControlClient).checkForAccessOrThrow(any(), any(), eq(FILE_ACCESS_PERMISSION));
+    doNothing().when(accessControlClient).checkForAccessOrThrow(any(), any(), eq(FILE_EDIT_PERMISSION));
     when(fileStoreService.listReferencedBy(pageParams, ACCOUNT, ORG, PROJECT, IDENTIFIER, EntityType.PIPELINES))
         .thenReturn(entityServiceUsageList);
     ResponseDTO<Page<EntitySetupUsageDTO>> response =
@@ -216,7 +216,7 @@ public class FileStoreResourceTest extends CategoryTest {
     int size = 10;
     doThrow(new NGAccessDeniedException("Principal doesn't have file access permission", USER, null))
         .when(accessControlClient)
-        .checkForAccessOrThrow(any(), any(), eq(FILE_ACCESS_PERMISSION));
+        .checkForAccessOrThrow(any(), any(), eq(FILE_VIEW_PERMISSION));
     assertThatThrownBy(()
                            -> fileStoreResource.getReferencedBy(
                                page, size, ACCOUNT, ORG, PROJECT, IDENTIFIER, EntityType.PIPELINES, null))
@@ -315,25 +315,5 @@ public class FileStoreResourceTest extends CategoryTest {
     assertThatThrownBy(() -> fileStoreResource.getCreatedByList(ACCOUNT, ORG, PROJECT))
         .isInstanceOf(NGAccessDeniedException.class)
         .hasMessage("Principal doesn't have file view permission");
-  }
-
-  @Test
-  @Owner(developers = BOJAN)
-  @Category(UnitTests.class)
-  public void testListReferencedByInScope() {
-    doNothing().when(accessControlClient).checkForAccessOrThrow(any(), any(), eq(FILE_VIEW_PERMISSION));
-    EntitySetupUsageDTO entitySetupUsage = EntitySetupUsageDTO.builder().build();
-    final Page<EntitySetupUsageDTO> entityServiceUsageList =
-        new PageImpl<>(Collections.singletonList(entitySetupUsage));
-    when(fileStoreService.listReferencedByInScope(any(), any(), any(), any(), any()))
-        .thenReturn(entityServiceUsageList);
-
-    ResponseDTO<Page<EntitySetupUsageDTO>> response =
-        fileStoreResource.getReferencedByInScope(1, 10, ACCOUNT, ORG, PROJECT, EntityType.PIPELINES);
-    Page<EntitySetupUsageDTO> returnedList = response.getData();
-
-    assertThat(returnedList).isNotNull();
-    assertThat(returnedList.getContent().size()).isEqualTo(1);
-    assertThat(returnedList.getContent()).containsExactly(entitySetupUsage);
   }
 }

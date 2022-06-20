@@ -711,8 +711,9 @@ public class DelegateServiceImpl implements DelegateService {
       throw new InvalidRequestException("K8s namespace must be provided for this type of permission.", USER);
     }
 
-    if (!KUBERNETES.equals(delegateSetupDetails.getDelegateType())) {
-      throw new InvalidRequestException("Delegate type must be KUBERNETES.");
+    if (!(KUBERNETES.equals(delegateSetupDetails.getDelegateType())
+            || HELM_DELEGATE.equals(delegateSetupDetails.getDelegateType()))) {
+      throw new InvalidRequestException("Delegate type must be KUBERNETES OR HELM_DELEGATE.");
     }
 
     if (isEmpty(delegateSetupDetails.getTokenName())) {
@@ -1425,10 +1426,8 @@ public class DelegateServiceImpl implements DelegateService {
       params.put(JRE_DIRECTORY, jreConfig.getJreDirectory());
       params.put(JRE_MAC_DIRECTORY, jreConfig.getJreMacDirectory());
       params.put(JRE_TAR_PATH, jreConfig.getJreTarPath());
-      params.put("isJdk11Delegate",
-          String.valueOf(featureFlagService.isEnabledReloadCache(JDK11_DELEGATE, templateParameters.getAccountId())));
-      params.put("isJdk11Watcher",
-          String.valueOf(featureFlagService.isEnabledReloadCache(JDK11_WATCHER, templateParameters.getAccountId())));
+      params.put("isJdk11Delegate", String.valueOf(isJdk11Delegate(templateParameters.getAccountId())));
+      params.put("isJdk11Watcher", String.valueOf(isJdk11Watcher(templateParameters.getAccountId())));
 
       if (jreConfig.getAlpnJarPath() != null) {
         params.put(ALPN_JAR_PATH, jreConfig.getAlpnJarPath());
@@ -1564,8 +1563,7 @@ public class DelegateServiceImpl implements DelegateService {
    * @return
    */
   private JreConfig getJreConfig(final String accountId, final boolean isWatcher) {
-    final boolean enabled = (featureFlagService.isEnabledReloadCache(JDK11_DELEGATE, accountId) && !isWatcher)
-        || (featureFlagService.isEnabledReloadCache(JDK11_WATCHER, accountId) && isWatcher);
+    final boolean enabled = (isJdk11Delegate(accountId) && !isWatcher) || (isJdk11Watcher(accountId) && isWatcher);
     final String jreVersion = enabled ? mainConfiguration.getMigrateToJre() : mainConfiguration.getCurrentJre();
     JreConfig jreConfig = mainConfiguration.getJreConfigs().get(jreVersion);
     final CdnConfig cdnConfig = mainConfiguration.getCdnConfig();
@@ -1582,6 +1580,16 @@ public class DelegateServiceImpl implements DelegateService {
                       .build();
     }
     return jreConfig;
+  }
+
+  private boolean isJdk11Watcher(final String accountId) {
+    return DeployMode.isOnPrem(mainConfiguration.getDeployMode().name())
+        || featureFlagService.isEnabledReloadCache(JDK11_WATCHER, accountId);
+  }
+
+  private boolean isJdk11Delegate(final String accountId) {
+    return DeployMode.isOnPrem(mainConfiguration.getDeployMode().name())
+        || featureFlagService.isEnabledReloadCache(JDK11_DELEGATE, accountId);
   }
 
   /**
@@ -3987,6 +3995,60 @@ public class DelegateServiceImpl implements DelegateService {
     return gzipKubernetesDelegateFile;
   }
 
+  @Override
+  public File generateNgHelmValuesYaml(String accountId, DelegateSetupDetails delegateSetupDetails, String managerHost,
+      String verificationServiceUrl) throws IOException {
+    validateKubernetesSetupDetails(accountId, delegateSetupDetails);
+
+    String version;
+    if (mainConfiguration.getDeployMode() == DeployMode.KUBERNETES) {
+      List<String> delegateVersions = accountService.getDelegateConfiguration(accountId).getDelegateVersions();
+      version = delegateVersions.get(delegateVersions.size() - 1);
+    } else {
+      version = EMPTY_VERSION;
+    }
+
+    boolean isCiEnabled = accountService.isNextGenEnabled(accountId);
+
+    DelegateSizeDetails sizeDetails = fetchAvailableSizes()
+                                          .stream()
+                                          .filter(size -> size.getSize() == delegateSetupDetails.getSize())
+                                          .findFirst()
+                                          .orElse(null);
+
+    upsertDelegateGroup(delegateSetupDetails.getName(), accountId, delegateSetupDetails);
+
+    ImmutableMap<String, String> scriptParams = getJarAndScriptRunTimeParamMap(
+        TemplateParameters.builder()
+            .accountId(accountId)
+            .version(version)
+            .managerHost(managerHost)
+            .verificationHost(verificationServiceUrl)
+            .delegateName(delegateSetupDetails.getName())
+            .delegateType(HELM_DELEGATE)
+            .ciEnabled(isCiEnabled)
+            .delegateDescription(delegateSetupDetails.getDescription())
+            .delegateSize(sizeDetails.getSize().name())
+            .delegateReplicas(sizeDetails.getReplicas())
+            .delegateRam(sizeDetails.getRam() / sizeDetails.getReplicas())
+            .delegateCpu(sizeDetails.getCpu() / sizeDetails.getReplicas())
+            .delegateRequestsRam(sizeDetails.getRam() / sizeDetails.getReplicas())
+            .delegateRequestsCpu(sizeDetails.getCpu() / sizeDetails.getReplicas())
+            .delegateTags(
+                isNotEmpty(delegateSetupDetails.getTags()) ? String.join(",", delegateSetupDetails.getTags()) : "")
+            .delegateNamespace(delegateSetupDetails.getK8sConfigDetails().getNamespace())
+            .k8sPermissionsType(delegateSetupDetails.getK8sConfigDetails().getK8sPermissionType())
+            .logStreamingServiceBaseUrl(mainConfiguration.getLogStreamingServiceConfig().getBaseUrl())
+            .delegateTokenName(delegateSetupDetails.getTokenName())
+            .build(),
+        true);
+
+    File yaml = File.createTempFile(HARNESS_NG_DELEGATE, YAML);
+    saveProcessedTemplate(scriptParams, yaml, "delegate-ng-helm-values.yaml.ftl");
+    delegateTelemetryPublisher.sendTelemetryTrackEvents(accountId, HELM_DELEGATE, true, DELEGATE_CREATED_EVENT);
+    return yaml;
+  }
+
   private ImmutableMap<String, String> getDockerScriptParametersForTemplate(String managerHost,
       String verificationServiceUrl, String accountId, String delegateName, DelegateSetupDetails delegateSetupDetails) {
     String version;
@@ -4037,7 +4099,8 @@ public class DelegateServiceImpl implements DelegateService {
         .orElse(fetchDefaultDockerDelegateSize());
   }
 
-  private void checkUniquenessOfDelegateName(String accountId, String delegateName, boolean isNg) {
+  @Override
+  public void checkUniquenessOfDelegateName(String accountId, String delegateName, boolean isNg) {
     if (isNg) {
       Query<DelegateGroup> delegateGroupQuery = persistence.createQuery(DelegateGroup.class)
                                                     .filter(DelegateGroupKeys.accountId, accountId)
