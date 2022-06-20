@@ -29,8 +29,6 @@ import io.harness.ccm.budget.dao.BudgetDao;
 import io.harness.ccm.budget.entities.BudgetAlertsData;
 import io.harness.ccm.budget.utils.BudgetUtils;
 import io.harness.ccm.commons.entities.billing.Budget;
-import io.harness.ccm.communication.CESlackWebhookService;
-import io.harness.ccm.communication.entities.CESlackWebhook;
 import io.harness.timescaledb.TimeScaleDBService;
 
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +67,6 @@ public class BudgetAlertsServiceImpl {
   @Autowired private CESlackNotificationService slackNotificationService;
   @Autowired private BudgetTimescaleQueryHelper budgetTimescaleQueryHelper;
   @Autowired private BudgetDao budgetDao;
-  @Autowired private CESlackWebhookService ceSlackWebhookService;
   @Autowired private BatchMainConfig mainConfiguration;
   @Autowired private CloudToHarnessMappingService cloudToHarnessMappingService;
   @Autowired private AccountShardService accountShardService;
@@ -98,7 +95,6 @@ public class BudgetAlertsServiceImpl {
   }
 
   private void checkAndSendAlerts(Budget budget) {
-    log.info("Checking and sending alert for budgetId={}", budget.getUuid());
     checkNotNull(budget.getAlertThresholds());
     checkNotNull(budget.getAccountId());
 
@@ -123,7 +119,6 @@ public class BudgetAlertsServiceImpl {
 
   private void checkAlertThresholdsAndSendAlerts(Budget budget, AlertThreshold[] alertThresholds,
       List<String> emailAddresses, double cost) {
-    log.info("Checking alert threshold for budgetId={}", budget.getUuid());
     for (AlertThreshold alertThreshold : alertThresholds) {
       List<String> userGroupIds =
           Arrays.asList(Optional.ofNullable(alertThreshold.getUserGroupIds()).orElse(new String[0]));
@@ -151,10 +146,10 @@ public class BudgetAlertsServiceImpl {
                                   .time(System.currentTimeMillis())
                                   .build();
 
-//      if (BudgetUtils.isAlertSentInCurrentPeriod(
-//              budgetTimescaleQueryHelper.getLastAlertTimestamp(data, budget.getAccountId()), budget.getStartTime())) {
-//        break;
-//      }
+      if (BudgetUtils.isAlertSentInCurrentPeriod(
+              budgetTimescaleQueryHelper.getLastAlertTimestamp(data, budget.getAccountId()), budget.getStartTime())) {
+        break;
+      }
       String costType = ACTUAL_COST_BUDGET;
       try {
         if (alertThreshold.getBasedOn() == FORECASTED_COST) {
@@ -182,13 +177,10 @@ public class BudgetAlertsServiceImpl {
   }
 
   private void sendBudgetAlertViaSlack(Budget budget, AlertThreshold alertThreshold, List<String> slackWebhooks) {
-    log.info("Sending budget alert via slack for budget={}", budget.getUuid());
-    budget.setNotifyOnSlack(true);
     if ((isEmpty(slackWebhooks) || !budget.isNotifyOnSlack()) && alertThreshold.getSlackWebhooks() == null) {
       return;
     }
     slackWebhooks.forEach(webhook -> {
-      log.info("Preparing message for webhook={}", webhook);
       SlackNotificationConfiguration slackConfig = new SlackNotificationSetting("#ccm-test", webhook);
       String slackMessageTemplate =
           "The cost associated with *${BUDGET_NAME}* has reached a limit of ${THRESHOLD_PERCENTAGE}%.";
@@ -198,7 +190,6 @@ public class BudgetAlertsServiceImpl {
               .put("BUDGET_NAME", budget.getName())
               .build();
       String slackMessage = replace(slackMessageTemplate, params);
-      log.info("** Sending slack alert **");
       slackNotificationService.sendMessage(
           slackConfig, stripToEmpty(slackConfig.getName()), HARNESS_NAME, slackMessage, budget.getAccountId());
     });

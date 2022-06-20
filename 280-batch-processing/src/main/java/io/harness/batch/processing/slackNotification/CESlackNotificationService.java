@@ -18,8 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import software.wings.service.impl.SlackMessageSenderImpl;
 import software.wings.service.intfc.SlackMessageSender;
 
-@Singleton
 @Slf4j
+@Singleton
 public class CESlackNotificationService {
   private final SlackMessageSender slackMessageSender;
 

@@ -15,7 +15,6 @@ shared_dependencies = [
     "//450-ce-views:module",
     "//480-pricing-service:module",
     "//490-ce-commons:module",
-    "//930-delegate-tasks:module",
     "//950-telemetry:module",
     "//959-psql-database-models:module",
     "//:lombok",
