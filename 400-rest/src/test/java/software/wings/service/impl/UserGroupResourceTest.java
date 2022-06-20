@@ -48,7 +48,7 @@ public class UserGroupResourceTest extends WingsBaseTest {
   @Category(UnitTests.class)
   public void shouldSearchUsers() {
     when(userGroupService.list(anyString(), any(), anyBoolean(), null, null)).thenReturn(aPageResponse().build());
-    userGroupResource.list(aPageRequest().build(), UUIDGenerator.generateUuid(), "xyz", false);
+    userGroupResource.list(aPageRequest().build(), UUIDGenerator.generateUuid(), "xyz", false, null);
     verify(userGroupService).list(anyString(), any(), anyBoolean(), null, null);
   }
 
