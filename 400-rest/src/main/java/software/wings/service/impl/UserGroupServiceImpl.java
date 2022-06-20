@@ -249,7 +249,8 @@ public class UserGroupServiceImpl implements UserGroupService {
     Account account = accountService.get(accountId);
     notNullCheck("account", account, USER);
     req.addFilter(UserGroupKeys.accountId, EQ, accountId);
-    if (APPLICATION_NAME.equals(searchTermType) && isNotEmpty(searchTerm)) {
+    if (isSearchByApplicationFeatureEnabled(accountId) && APPLICATION_NAME.equals(searchTermType)
+        && isNotEmpty(searchTerm)) {
       Set<String> applicationIdsMatchingSearchTerm = getApplicationsMatchingTheSearchTerm(accountId, searchTerm);
       if (isEmpty(applicationIdsMatchingSearchTerm)) {
         return new PageResponse<>();
@@ -269,6 +270,10 @@ public class UserGroupServiceImpl implements UserGroupService {
     }
 
     return res;
+  }
+
+  private boolean isSearchByApplicationFeatureEnabled(String accountId) {
+    return featureFlagService.isEnabled(FeatureName.SEARCH_USERGROUP_BY_APPLICATION, accountId);
   }
 
   private Set<String> getApplicationsMatchingTheSearchTerm(String accountId, String searchTerm) {
