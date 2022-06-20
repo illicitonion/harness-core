@@ -35,7 +35,6 @@ import static org.mockito.Mockito.when;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.artifacts.jenkins.beans.JenkinsInternalConfig;
-import io.harness.artifacts.jenkins.client.JenkinsClient;
 import io.harness.artifacts.jenkins.service.JenkinsRegistryUtils;
 import io.harness.category.element.UnitTests;
 import io.harness.delegate.beans.artifact.ArtifactFileMetadata;

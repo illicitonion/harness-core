@@ -8,7 +8,6 @@
 package software.wings.helpers.ext.jenkins;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
-import static io.harness.rule.OwnerRule.DEEPAK_PUTHRAYA;
 import static io.harness.rule.OwnerRule.SHIVAM;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -53,7 +52,6 @@ import com.offbytwo.jenkins.model.Job;
 import com.offbytwo.jenkins.model.JobWithDetails;
 import com.offbytwo.jenkins.model.QueueReference;
 import java.io.IOException;
-import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
@@ -340,37 +338,6 @@ public class JenkinsRegistryUtilsTest extends WingsBaseTest {
         jenkinsRegistryUtils.getBuild(new QueueReference(rootUrl + "queue/item/27287"), jenkinsInternalConfig);
     assertThat(build.getNumber()).isEqualTo(21);
   }
-  //
-  //    @Test
-  //    @Owner(developers = DEEPAK_PUTHRAYA)
-  //    @Category(UnitTests.class)
-  //    public void shouldThrowException() throws IOException {
-  //        CustomJenkinsServer jenkinsServer = mock(CustomJenkinsServer.class);
-  //
-  //        // Tests for GetJobWithDetails
-  //        Reflect.on(jenkins).set("jenkinsServer", jenkinsServer);
-  //        when(jenkinsServer.getJob(any(), eq("randomJob1"))).thenThrow(new RuntimeException());
-  //        assertThatThrownBy(() ->
-  //        jenkins.getJobWithDetails("randomJob1")).isInstanceOf(ArtifactServerException.class);
-  //
-  //        Reflect.on(jenkins).set("jenkinsServer", jenkinsServer);
-  //        when(jenkinsServer.getJob(any(), eq("randomJob2"))).thenThrow(new HttpResponseException(400, "Bad
-  //        Request")); assertThatThrownBy(() ->
-  //        jenkins.getJobWithDetails("randomJob2")).isInstanceOf(ArtifactServerException.class);
-  //
-  //        // Tests for GetJob
-  //        Reflect.on(jenkins).set("jenkinsServer", jenkinsServer);
-  //        when(jenkinsServer.createJob(any(), eq("randomJob1"), any(JenkinsConfig.class))).thenThrow(new
-  //        RuntimeException()); assertThatThrownBy(() -> jenkins.getJob("randomJob1", JenkinsConfig.builder().build(),
-  //        120))
-  //                .isInstanceOf(ArtifactServerException.class);
-  //
-  //        Reflect.on(jenkins).set("jenkinsServer", jenkinsServer);
-  //        when(jenkinsServer.createJob(any(), eq("randomJob2"), any(JenkinsConfig.class)))
-  //                .thenThrow(new HttpResponseException(400, "Bad Request"));
-  //        assertThatThrownBy(() -> jenkins.getJob("randomJob2", JenkinsConfig.builder().build(), 120))
-  //                .isInstanceOf(ArtifactServerException.class);
-  //    }
 
   @Test
   @Owner(developers = SHIVAM)
@@ -399,7 +366,7 @@ public class JenkinsRegistryUtilsTest extends WingsBaseTest {
   }
 
   @Test
-  @Owner(developers = DEEPAK_PUTHRAYA)
+  @Owner(developers = SHIVAM)
   @Category(UnitTests.class)
   public void shouldGetAllJobsFromJenkins() throws IOException {
     wireMockRule.stubFor(
@@ -433,33 +400,5 @@ public class JenkinsRegistryUtilsTest extends WingsBaseTest {
     CustomJenkinsServer jenkinsServer = mock(CustomJenkinsServer.class);
     when(jenkinsServer.getJobs()).thenThrow(new RuntimeException());
     assertThat(jenkinsRegistryUtils.getJobs(jenkinsInternalConfig, "randomJob")).isEmpty();
-  }
-
-  @Test
-  @Owner(developers = SHIVAM)
-  @Category(UnitTests.class)
-  public void testIsRunning() throws IOException {
-    assertThat(jenkinsRegistryUtils.isRunning(jenkinsInternalConfig)).isTrue();
-    //        CustomJenkinsHttpClient client = mock(CustomJenkinsHttpClient.class);
-    //        when(client.get(eq("/"))).thenThrow(new HttpResponseException(401, "Unauthorized"));
-    //        assertThatThrownBy(() -> jenkinsRegistryUtils.isRunning(jenkinsInternalConfig))
-    //                .isInstanceOf(ArtifactServerException.class)
-    //                .extracting("message")
-    //                .isEqualTo("Invalid Jenkins credentials");
-    //
-    //        when(client.get(eq("/"))).thenThrow(new HttpResponseException(403, "Forbidden"));
-    //        assertThatThrownBy(() -> jenkinsRegistryUtils.isRunning(jenkinsInternalConfig))
-    //                .isInstanceOf(ArtifactServerException.class)
-    //                .extracting("message")
-    //                .isEqualTo("User not authorized to access jenkins");
-    //
-    //        when(client.get(eq("/"))).thenThrow(new SocketTimeoutException());
-    //        assertThatThrownBy(() -> jenkinsRegistryUtils.isRunning(jenkinsInternalConfig))
-    //                .isInstanceOf(ArtifactServerException.class)
-    //                .extracting("message")
-    //                .isEqualTo("SocketTimeoutException");
-    //
-    //        // 4 this is the sum of all the tests.
-    //        verify(client, times(4)).get(eq("/"));
   }
 }
