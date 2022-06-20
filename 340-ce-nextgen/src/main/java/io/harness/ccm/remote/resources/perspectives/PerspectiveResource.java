@@ -18,6 +18,8 @@ import io.harness.NGCommonEntityConstants;
 import io.harness.accesscontrol.AccountIdentifier;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.ccm.audittrails.events.PerspectiveCreateEvent;
+import io.harness.ccm.audittrails.events.PerspectiveDeleteEvent;
+import io.harness.ccm.audittrails.events.PerspectiveUpdateEvent;
 import io.harness.ccm.bigQuery.BigQueryService;
 import io.harness.ccm.budget.BudgetPeriod;
 import io.harness.ccm.commons.utils.BigQueryHelper;
@@ -363,10 +365,15 @@ public class PerspectiveResource {
   update(@Parameter(required = true, description = ACCOUNT_PARAM_MESSAGE) @QueryParam(
              NGCommonEntityConstants.ACCOUNT_KEY) @AccountIdentifier @NotNull @Valid String accountId,
       @Valid @RequestBody(required = true, description = "Perspective's CEView object") CEView ceView) {
+    CEView oldPerspective = ceViewService.get(ceView.getUuid());
     ceView.setAccountId(accountId);
     log.info(ceView.toString());
-
-    return ResponseDTO.newResponse(updateTotalCost(ceViewService.update(ceView)));
+    CEView newPerspective = updateTotalCost(ceViewService.update(ceView));
+    return ResponseDTO.newResponse(
+        Failsafe.with(transactionRetryPolicy).get(() -> transactionTemplate.execute(status -> {
+          outboxService.save(new PerspectiveUpdateEvent(accountId, newPerspective, oldPerspective));
+          return newPerspective;
+        })));
   }
 
   @DELETE
@@ -394,7 +401,11 @@ public class PerspectiveResource {
     budgetService.deleteBudgetsForPerspective(accountId, perspectiveId);
     notificationService.delete(perspectiveId, accountId);
 
-    return ResponseDTO.newResponse("Successfully deleted the view");
+    return ResponseDTO.newResponse(
+        Failsafe.with(transactionRetryPolicy).get(() -> transactionTemplate.execute(status -> {
+          outboxService.save(new PerspectiveDeleteEvent(accountId, ceViewService.get(perspectiveId).toDTO()));
+          return "Successfully deleted the view";
+        })));
   }
 
   @POST
