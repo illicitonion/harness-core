@@ -167,6 +167,7 @@ public class TypeResolverManager {
     public static final String PipelineStageExecution = "PipelineStageExecution";
     public static final String MANIFEST_SELECTION = "ManifestSelection";
     public static final String APPROVAL_DETAILS = "ApprovalDetails";
+    public static final String SECRET_MANAGER_CONFIG = "SecretManagerConfig";
   }
 
   @UtilityClass
@@ -296,6 +297,7 @@ public class TypeResolverManager {
     public static final String JIRA_APPROVAL_DETAILS = "JiraApprovalDetails";
     public static final String SNOW_APPROVAL_DETAILS = "SNOWApprovalDetails";
     public static final String SHELL_SCRIPT_DETAILS = "ShellScriptDetails";
+    public static final String CUSTOM_SECRET_MANAGER = "CustomSecretManagerConfig";
   }
 
   /**
@@ -508,6 +510,10 @@ public class TypeResolverManager {
                                       .put(QLSNOWApprovalDetails.class, TypeResolverManagerTypes.SNOW_APPROVAL_DETAILS)
                                       .put(QLShellScriptDetails.class, TypeResolverManagerTypes.SHELL_SCRIPT_DETAILS)
                                       .build()))
+            .put(TypeResolverManagerUnifaces.SECRET_MANAGER_CONFIG,
+                    getResultTypeResolver(ImmutableMap.<Class, String>builder()
+                            .put(QLUGApprovalDetails.class, TypeResolverManagerTypes.CUSTOM_SECRET_MANAGER)
+                            .build()))
         .build();
   }
 
