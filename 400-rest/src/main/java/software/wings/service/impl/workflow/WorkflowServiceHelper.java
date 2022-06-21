@@ -2848,8 +2848,10 @@ public class WorkflowServiceHelper {
         throw new InvalidRequestException(
             format("%s variable %s is not set for stage %s", prefix, variable.getName(), stageElement.getName()));
       } else if (ExpressionEvaluator.matchesVariablePattern(finalValue) && (isEntity || !finalValue.contains("."))) {
-        throw new InvalidRequestException(format("%s variable %s for stage %s cannot be left as an expression", prefix,
-            variable.getName(), stageElement.getName()));
+        if(!(INFRASTRUCTURE_DEFINITION.equals(variable.obtainEntityType()) && finalValue.contains("."))) {
+          throw new InvalidRequestException(format("%s variable %s for stage %s cannot be left as an expression", prefix,
+                  variable.getName(), stageElement.getName()));
+        }
       }
     }
   }
