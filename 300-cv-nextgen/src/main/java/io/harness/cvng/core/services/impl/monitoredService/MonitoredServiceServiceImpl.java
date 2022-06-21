@@ -577,6 +577,15 @@ public class MonitoredServiceServiceImpl implements MonitoredServiceService {
     }
   }
 
+  private MonitoredServiceResponse getMonitoredServiceResponse(MonitoredServiceParams monitoredServiceParams) {
+    MonitoredService monitoredService = getMonitoredService(monitoredServiceParams);
+    if (Objects.nonNull(monitoredService)) {
+      return get(monitoredServiceParams, monitoredService.getIdentifier());
+    } else {
+      return null;
+    }
+  }
+
   @Override
   public MonitoredServiceResponse get(ServiceEnvironmentParams serviceEnvironmentParams) {
     MonitoredService monitoredService = getMonitoredService(serviceEnvironmentParams);
@@ -693,8 +702,7 @@ public class MonitoredServiceServiceImpl implements MonitoredServiceService {
   }
   @Override
   public MonitoredServiceDTO getMonitoredServiceDTO(MonitoredServiceParams monitoredServiceParams) {
-    MonitoredServiceResponse monitoredServiceResponse =
-        createMonitoredServiceDTOFromEntity(getMonitoredService(monitoredServiceParams), monitoredServiceParams);
+    MonitoredServiceResponse monitoredServiceResponse = getMonitoredServiceResponse(monitoredServiceParams);
     if (monitoredServiceResponse == null) {
       return null;
     } else {
