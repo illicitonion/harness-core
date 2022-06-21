@@ -8,6 +8,7 @@
 package software.wings.helpers.ext.jenkins;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
+import static io.harness.rule.OwnerRule.DEEPAK_PUTHRAYA;
 import static io.harness.rule.OwnerRule.SHIVAM;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
@@ -21,14 +22,18 @@ import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.artifacts.jenkins.beans.JenkinsInternalConfig;
+import io.harness.artifacts.jenkins.client.JenkinsClient;
+import io.harness.artifacts.jenkins.client.JenkinsCustomServer;
 import io.harness.artifacts.jenkins.service.JenkinsRegistryUtils;
 import io.harness.category.element.UnitTests;
+import io.harness.data.structure.UUIDGenerator;
 import io.harness.delegate.beans.artifact.ArtifactFileMetadata;
 import io.harness.exception.ArtifactServerException;
 import io.harness.logging.LoggingInitializer;
@@ -41,6 +46,7 @@ import software.wings.beans.JenkinsConfig;
 import software.wings.helpers.ext.jenkins.model.JobProperty;
 import software.wings.helpers.ext.jenkins.model.JobWithExtendedDetails;
 import software.wings.helpers.ext.jenkins.model.ParametersDefinitionProperty;
+import software.wings.utils.JsonUtils;
 
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
@@ -52,16 +58,21 @@ import com.offbytwo.jenkins.model.Job;
 import com.offbytwo.jenkins.model.JobWithDetails;
 import com.offbytwo.jenkins.model.QueueReference;
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import org.apache.http.client.HttpResponseException;
+import org.joor.Reflect;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.mockito.Mock;
+import org.powermock.api.mockito.PowerMockito;
 
 /**
  * The Class JenkinsTest.
@@ -82,6 +93,7 @@ public class JenkinsRegistryUtilsTest extends WingsBaseTest {
   private String rootUrl;
   private JenkinsInternalConfig jenkinsInternalConfig;
   @Inject private JenkinsRegistryUtils jenkinsRegistryUtils;
+  private Jenkins jenkins;
 
   @Before
   public void setup() throws URISyntaxException {
@@ -272,8 +284,10 @@ public class JenkinsRegistryUtilsTest extends WingsBaseTest {
   @Owner(developers = SHIVAM)
   @Category(UnitTests.class)
   public void shouldFetchBuildFromQueueItem() throws IOException, URISyntaxException {
+    JenkinsInternalConfig jenkinsInternalConfigTest =
+        JenkinsInternalConfig.builder().jenkinsUrl(rootUrl).username(USERNAME).password(PASSWORD.toCharArray()).build();
     Build build =
-        jenkinsRegistryUtils.getBuild(new QueueReference(rootUrl + "queue/item/27287"), jenkinsInternalConfig);
+        jenkinsRegistryUtils.getBuild(new QueueReference(rootUrl + "queue/item/27287"), jenkinsInternalConfigTest);
     assertThat(build.getQueueId()).isEqualTo(27287);
   }
 
@@ -342,27 +356,32 @@ public class JenkinsRegistryUtilsTest extends WingsBaseTest {
   @Test
   @Owner(developers = SHIVAM)
   @Category(UnitTests.class)
-  public void shouldRetryOnFailures() throws IOException {
-    CustomJenkinsServer jenkinsServer = mock(CustomJenkinsServer.class);
+  public void shouldRetryOnFailures() throws IOException, URISyntaxException {
+    JenkinsInternalConfig jenkinsInternalConfigTest =
+        JenkinsInternalConfig.builder().jenkinsUrl(rootUrl).username(USERNAME).password(PASSWORD.toCharArray()).build();
+    JenkinsCustomServer jenkinsServer = mock(JenkinsCustomServer.class);
+    mockStatic(JenkinsClient.class);
+    PowerMockito.when(JenkinsClient.getJenkinsServer(any())).thenReturn(jenkinsServer);
+
     // Tests for GetJobWithDetails
     JobWithDetails jobWithDetails = new JobWithDetails();
-    when(jenkinsServer.getJob(any(), eq("randomJob")))
+    when(jenkinsServer.getJob(any(), any()))
         .thenThrow(new HttpResponseException(500, "Something went wrong"))
         .thenThrow(new HttpResponseException(400, "Server Error"))
         .thenReturn(jobWithDetails);
-    JobWithDetails actual = jenkinsRegistryUtils.getJobWithDetails(jenkinsInternalConfig, "randomJob");
+    JobWithDetails actual = jenkinsRegistryUtils.getJobWithDetails(any(), "randomJob");
     assertThat(actual).isEqualTo(jobWithDetails);
     verify(jenkinsServer, times(3)).getJob(any(), eq("randomJob"));
 
     // Tests for GetJob
     Job job = new Job();
-    when(jenkinsServer.createJob(any(), eq("randomJob"), any(JenkinsConfig.class)))
+    when(jenkinsServer.createJob(any(), eq("randomJob"), any(JenkinsInternalConfig.class)))
         .thenThrow(new HttpResponseException(500, "Something went wrong"))
         .thenThrow(new HttpResponseException(400, "Server Error"))
         .thenReturn(job);
-    Job actualJob = jenkinsRegistryUtils.getJob("randomJob", jenkinsInternalConfig);
+    Job actualJob = jenkinsRegistryUtils.getJob("randomJob", jenkinsInternalConfigTest);
     assertThat(actualJob).isEqualTo(job);
-    verify(jenkinsServer, times(3)).createJob(any(), eq("randomJob"), any(JenkinsConfig.class));
+    verify(jenkinsServer, times(3)).createJob(any(), eq("randomJob"), any(JenkinsInternalConfig.class));
   }
 
   @Test
@@ -397,8 +416,92 @@ public class JenkinsRegistryUtilsTest extends WingsBaseTest {
   @Owner(developers = SHIVAM)
   @Category(UnitTests.class)
   public void testGetJobsReturnsEmptyArrayWhenException() throws IOException {
-    CustomJenkinsServer jenkinsServer = mock(CustomJenkinsServer.class);
+    JenkinsCustomServer jenkinsServer = mock(JenkinsCustomServer.class);
     when(jenkinsServer.getJobs()).thenThrow(new RuntimeException());
     assertThat(jenkinsRegistryUtils.getJobs(jenkinsInternalConfig, "randomJob")).isEmpty();
+  }
+
+  @Test
+  @Owner(developers = DEEPAK_PUTHRAYA)
+  @Category(UnitTests.class)
+  public void testIsRunning() throws IOException, URISyntaxException {
+    CustomJenkinsHttpClient jenkinsHttpClient = mock(CustomJenkinsHttpClient.class);
+    mockStatic(JenkinsClient.class);
+    when(JenkinsClient.getJenkinsHttpClient(any())).thenReturn(jenkinsHttpClient);
+    assertThat(jenkinsRegistryUtils.isRunning(jenkinsInternalConfig)).isTrue();
+
+    when(jenkinsHttpClient.get(eq("/"))).thenThrow(new HttpResponseException(401, "Unauthorized"));
+    assertThatThrownBy(() -> jenkinsRegistryUtils.isRunning(jenkinsInternalConfig))
+        .isInstanceOf(ArtifactServerException.class)
+        .extracting("message")
+        .isEqualTo("Invalid Jenkins credentials");
+
+    when(jenkinsHttpClient.get(eq("/"))).thenThrow(new HttpResponseException(403, "Forbidden"));
+    assertThatThrownBy(() -> jenkinsRegistryUtils.isRunning(jenkinsInternalConfig))
+        .isInstanceOf(ArtifactServerException.class)
+        .extracting("message")
+        .isEqualTo("User not authorized to access jenkins");
+
+    when(jenkinsHttpClient.get(eq("/"))).thenThrow(new SocketTimeoutException());
+    assertThatThrownBy(() -> jenkinsRegistryUtils.isRunning(jenkinsInternalConfig))
+        .isInstanceOf(ArtifactServerException.class)
+        .extracting("message")
+        .isEqualTo("SocketTimeoutException");
+
+    // 4 this is the sum of all the tests.
+    verify(jenkinsHttpClient, times(4)).get(eq("/"));
+  }
+
+  @Test
+  @Owner(developers = DEEPAK_PUTHRAYA)
+  @Category(UnitTests.class)
+  public void checkGetEnvVarsReturnsEnvMapCorrectly() throws IOException, URISyntaxException {
+    // In case of blank we get empty response
+    assertThat(jenkinsRegistryUtils.getEnvVars("     ", jenkinsInternalConfig)).isEmpty();
+
+    CustomJenkinsHttpClient jenkinsHttpClient = mock(CustomJenkinsHttpClient.class);
+    mockStatic(JenkinsClient.class);
+    when(JenkinsClient.getJenkinsHttpClient(any())).thenReturn(jenkinsHttpClient);
+
+    Map<String, String> apiResponseEnvMap = ImmutableMap.<String, String>builder()
+                                                .put("JOB_NAME", "test")
+                                                .put("JENKINS_VERSION", "2.150.1")
+                                                .put("key1.xyz", "shouldIgnore")
+                                                .put("key2.abc", "ignored")
+                                                .put("dot.com", "notConsider")
+                                                .build();
+    when(jenkinsHttpClient.get("job/test/2/injectedEnvVars/api/json"))
+        .thenThrow(new HttpResponseException(500, "Something went wrong"))
+        .thenThrow(new HttpResponseException(400, "Some Server Error"))
+        .thenReturn(JsonUtils
+                        .toJsonNode(ImmutableMap.<String, Object>builder()
+                                        .put("_class", "org.jenkinsci.plugins.envinject.EnvInjectVarList")
+                                        .put("envMap", apiResponseEnvMap)
+                                        .build())
+                        .toString());
+
+    Map<String, String> envMap = jenkinsRegistryUtils.getEnvVars("job/test/2", jenkinsInternalConfig);
+
+    assertThat(envMap).hasSize(2).isEqualTo(
+        ImmutableMap.<String, String>builder().put("JOB_NAME", "test").put("JENKINS_VERSION", "2.150.1").build());
+  }
+
+  @Test
+  @Owner(developers = DEEPAK_PUTHRAYA)
+  @Category(UnitTests.class)
+  public void checkGetEnvVarsReturnsEnvMapThrowsError() throws IOException, URISyntaxException {
+    CustomJenkinsHttpClient jenkinsHttpClient = mock(CustomJenkinsHttpClient.class);
+    mockStatic(JenkinsClient.class);
+    when(JenkinsClient.getJenkinsHttpClient(any())).thenReturn(jenkinsHttpClient);
+
+    when(jenkinsHttpClient.get("job/test/2/injectedEnvVars/api/json"))
+        .thenThrow(new HttpResponseException(401, "Unauthorized"));
+
+    assertThatThrownBy(() -> jenkinsRegistryUtils.getEnvVars("job/test/2", jenkinsInternalConfig))
+        .isInstanceOf(ArtifactServerException.class)
+        .extracting("message")
+        .isEqualTo(
+            "Failure in fetching environment variables for job: Invalid request: Failed to collect environment variables from Jenkins: job/test/2/injectedEnvVars/api/json."
+            + "\nThis might be because 'Capture environment variables' is enabled in Jenkins step but EnvInject plugin is not installed in the Jenkins instance.");
   }
 }

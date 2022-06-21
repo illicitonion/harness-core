@@ -56,7 +56,7 @@ public class JenkinsBuildStepInfo implements PMSStepInfo, WithConnectorRef, With
   @NotNull @ApiModelProperty(dataType = SwaggerConstants.STRING_CLASSPATH) ParameterField<String> connectorRef;
   @NotNull @ApiModelProperty(dataType = SwaggerConstants.STRING_CLASSPATH) ParameterField<String> jobName;
 
-  List<JenkinsParameterField> jobParameter;
+  @YamlSchemaTypes(value = {runtime}) List<JenkinsParameterField> jobParameter;
   boolean unstableStatusAsSuccess;
   boolean captureEnvironmentVariable;
 
