@@ -7,12 +7,9 @@
 
 package software.wings.beans;
 
-import static io.harness.annotations.dev.HarnessTeam.DX;
-import static io.harness.delegate.beans.DelegateConfiguration.DelegateConfigurationKeys;
-
-import static software.wings.beans.CGConstants.GLOBAL_APP_ID;
-import static software.wings.common.VerificationConstants.SERVICE_GUAARD_LIMIT;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.common.collect.ImmutableList;
 import io.harness.annotation.HarnessEntity;
 import io.harness.annotations.ChangeDataCapture;
 import io.harness.annotations.dev.HarnessModule;
@@ -33,22 +30,6 @@ import io.harness.ng.core.account.ServiceAccountConfig;
 import io.harness.security.EncryptionInterface;
 import io.harness.security.SimpleEncryption;
 import io.harness.validation.Create;
-
-import software.wings.yaml.BaseEntityYaml;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.google.common.collect.ImmutableList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -59,6 +40,23 @@ import lombok.experimental.FieldNameConstants;
 import lombok.experimental.UtilityClass;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
+import software.wings.yaml.BaseEntityYaml;
+
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import static io.harness.annotations.dev.HarnessTeam.DX;
+import static io.harness.delegate.beans.DelegateConfiguration.DelegateConfigurationKeys;
+import static software.wings.beans.CGConstants.GLOBAL_APP_ID;
+import static software.wings.common.VerificationConstants.SERVICE_GUAARD_LIMIT;
 
 @OwnedBy(DX)
 @TargetModule(HarnessModule._955_ACCOUNT_MGMT)
@@ -158,6 +156,7 @@ public class Account extends Base implements PersistentRegularIterable {
   @FdIndex private Long ceLicenseExpiryIteration;
   @FdIndex private Long resourceLookupSyncIteration;
   @FdIndex private long delegateTelemetryPublisherIteration;
+  @FdIndex private long ciTelemetryPublisherIteration;
   @FdIndex private long delegateTaskFailIteration;
   @FdIndex private long delegateTaskRebroadcastIteration;
   @FdIndex private Long perpetualTaskRebalanceIteration;
@@ -471,6 +470,11 @@ public class Account extends Base implements PersistentRegularIterable {
       return;
     }
 
+    else if (AccountKeys.ciTelemetryPublisherIteration.equals(fieldName)) {
+      this.ciTelemetryPublisherIteration = nextIteration;
+      return;
+    }
+
     else if (AccountKeys.delegateTaskFailIteration.equals(fieldName)) {
       this.delegateTaskFailIteration = nextIteration;
       return;
@@ -533,6 +537,10 @@ public class Account extends Base implements PersistentRegularIterable {
 
     else if (AccountKeys.delegateTelemetryPublisherIteration.equals(fieldName)) {
       return this.delegateTelemetryPublisherIteration;
+    }
+
+    else if (AccountKeys.ciTelemetryPublisherIteration.equals(fieldName)) {
+      return this.ciTelemetryPublisherIteration;
     }
 
     else if (AccountKeys.delegateTaskFailIteration.equals(fieldName)) {
@@ -861,5 +869,6 @@ public class Account extends Base implements PersistentRegularIterable {
     public static final String delegateTaskRebroadcastIteration = "delegateTaskRebroadcastIteration";
     public static final String DELEGATE_CONFIGURATION_DELEGATE_VERSIONS =
         delegateConfiguration + "." + DelegateConfigurationKeys.delegateVersions;
+    public static final String ciTelemetryPublisherIteration = "ciTelemetryPublisherIteration";
   }
 }
