@@ -130,6 +130,8 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
       throw ex;
     }
 
+    serverlessClient = ServerlessClient.client(serverlessDelegateTaskParams.getServerlessClientPath());
+
     LogCallback configureCredsLogCallback = serverlessTaskHelperBase.getLogCallback(
         iLogStreamingTaskClient, ServerlessCommandUnitConstants.configureCred.toString(), true, commandUnitsProgress);
     try {
@@ -187,7 +189,6 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
       ServerlessDelegateTaskParams serverlessDelegateTaskParams) throws Exception {
     serverlessAwsLambdaConfig = (ServerlessAwsLambdaConfig) serverlessInfraConfigHelper.createServerlessConfig(
         serverlessDeployRequest.getServerlessInfraConfig());
-    serverlessClient = ServerlessClient.client(serverlessDelegateTaskParams.getServerlessClientPath());
 
     ServerlessCliResponse response = serverlessAwsCommandTaskHelper.configCredential(serverlessClient,
         serverlessAwsLambdaConfig, serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis);
