@@ -106,7 +106,7 @@ public class UserGroupResource {
     if (!StringUtils.isEmpty(searchTerm)) {
       SearchFilter searchFilter = SearchFilter.builder()
                                       .fieldName(UserGroupKeys.name)
-                                      .op(Operator.STARTS_WITH)
+                                      .op(Operator.CONTAINS)
                                       .fieldValues(new String[] {searchTerm})
                                       .build();
       pageRequest.setFilters(Lists.newArrayList(searchFilter));
