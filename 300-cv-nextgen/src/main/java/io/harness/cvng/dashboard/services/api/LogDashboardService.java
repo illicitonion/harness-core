@@ -7,7 +7,6 @@
 
 package io.harness.cvng.dashboard.services.api;
 
-import io.harness.cvng.analysis.beans.LiveMonitoringLogAnalysisClusterDTO;
 import io.harness.cvng.analysis.beans.LiveMonitoringLogAnalysisRadarChartClusterDTO;
 import io.harness.cvng.core.beans.params.MonitoredServiceParams;
 import io.harness.cvng.core.beans.params.PageParams;
@@ -27,9 +26,6 @@ public interface LogDashboardService {
 
   AnalyzedRadarChartLogDataWithCountDTO getAllRadarChartLogsData(MonitoredServiceParams monitoredServiceParams,
       MonitoredServiceLogAnalysisFilter monitoredServiceLogAnalysisFilter, PageParams pageParams);
-
-  List<LiveMonitoringLogAnalysisClusterDTO> getLogAnalysisClusters(MonitoredServiceParams monitoredServiceParams,
-      TimeRangeParams timeRangeParams, LiveMonitoringLogAnalysisFilter liveMonitoringLogAnalysisFilter);
 
   List<LiveMonitoringLogAnalysisRadarChartClusterDTO> getLogAnalysisRadarChartClusters(
       MonitoredServiceParams monitoredServiceParams,
