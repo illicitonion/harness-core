@@ -10,6 +10,7 @@ package io.harness.ccm;
 import static io.harness.AuthorizationServiceHeader.CE_NEXT_GEN;
 import static io.harness.AuthorizationServiceHeader.NG_MANAGER;
 import static io.harness.annotations.dev.HarnessTeam.CE;
+import static io.harness.audit.ResourceTypeConstants.PERSPECTIVE;
 import static io.harness.eventsframework.EventsFrameworkConstants.ENTITY_CRUD;
 import static io.harness.eventsframework.EventsFrameworkMetadataConstants.CONNECTOR_ENTITY;
 import static io.harness.lock.DistributedLockImplementation.MONGO;
@@ -325,7 +326,7 @@ public class CENextGenModule extends AbstractModule {
   private void registerOutboxEventHandlers() {
     MapBinder<String, OutboxEventHandler> outboxEventHandlerMapBinder =
         MapBinder.newMapBinder(binder(), String.class, OutboxEventHandler.class);
-    outboxEventHandlerMapBinder.addBinding("PERSPECTIVE").to(PerspectiveEventHandler.class);
+    outboxEventHandlerMapBinder.addBinding(PERSPECTIVE).to(PerspectiveEventHandler.class);
   }
 
   private void registerDelegateTaskService() {
