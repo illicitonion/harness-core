@@ -12,7 +12,6 @@ import static io.harness.eraro.ErrorCode.FAILED_TO_ACQUIRE_PERSISTENT_LOCK;
 import static io.harness.exception.WingsException.SRE;
 import static io.harness.rule.OwnerRule.ABHIJITH;
 import static io.harness.rule.OwnerRule.KAMAL;
-import static io.harness.rule.OwnerRule.KANHAIYA;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -35,11 +34,6 @@ import io.harness.cvng.analysis.beans.Risk;
 import io.harness.cvng.beans.activity.ActivityStatusDTO;
 import io.harness.cvng.beans.activity.ActivityVerificationStatus;
 import io.harness.cvng.beans.job.Sensitivity;
-import io.harness.cvng.cdng.entities.CVNGStepTask;
-import io.harness.cvng.cdng.services.api.CVNGStepTaskService;
-import io.harness.cvng.core.beans.monitoredService.healthSouceSpec.HealthSourceDTO;
-import io.harness.cvng.core.entities.AppDynamicsCVConfig;
-import io.harness.cvng.core.entities.CVConfig;
 import io.harness.cvng.verificationjob.entities.CanaryVerificationJob;
 import io.harness.cvng.verificationjob.entities.VerificationJob;
 import io.harness.cvng.verificationjob.entities.VerificationJobInstance;
@@ -58,9 +52,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.Before;
@@ -73,8 +65,6 @@ public class ActivityServiceImplTest extends CvNextGenTestBase {
   @Inject private HPersistence hPersistence;
   @Inject private ActivityService activityService;
   @Inject private VerificationJobService realVerificationJobService;
-  @Inject private VerificationJobInstanceService realVerificationJobInstanceService;
-  @Inject private CVNGStepTaskService cvngStepTaskService;
   @Mock private VerificationJobService verificationJobService;
   @Mock private VerificationJobInstanceService verificationJobInstanceService;
   @Mock private PersistentLocker mockedPersistentLocker;
@@ -101,8 +91,6 @@ public class ActivityServiceImplTest extends CvNextGenTestBase {
     deploymentTag = "build#1";
 
     FieldUtils.writeField(activityService, "verificationJobInstanceService", verificationJobInstanceService, true);
-    when(verificationJobInstanceService.getCVConfigsForVerificationJob(any()))
-        .thenReturn(Lists.newArrayList(new AppDynamicsCVConfig()));
     realVerificationJobService.createDefaultVerificationJobs(accountId, orgIdentifier, projectIdentifier);
   }
 
@@ -247,35 +235,6 @@ public class ActivityServiceImplTest extends CvNextGenTestBase {
     // assert that errored activity is not aborted
     assertThat(updatedActivity.getAnalysisStatus()).isEqualTo(ActivityVerificationStatus.ERROR);
     verify(verificationJobInstanceService, never()).abort(any());
-  }
-
-  @Test
-  @Owner(developers = KANHAIYA)
-  @Category(UnitTests.class)
-  public void testHealthSources() throws IllegalAccessException {
-    String verificationJobInstanceId = generateUuid();
-    String cvConfigIdentifier = "nameSpaced/identifier";
-    String activityId = "activityId";
-    CVConfig cvConfig = builderFactory.appDynamicsCVConfigBuilder().identifier(cvConfigIdentifier).build();
-    CVNGStepTask cvngStepTask = builderFactory.cvngStepTaskBuilder()
-                                    .accountId(accountId)
-                                    .skip(true)
-                                    .callbackId(activityId)
-                                    .verificationJobInstanceId(verificationJobInstanceId)
-                                    .status(CVNGStepTask.Status.IN_PROGRESS)
-                                    .build();
-    cvngStepTaskService.create(cvngStepTask);
-    VerificationJobInstance verificationJobInstance = builderFactory.verificationJobInstanceBuilder()
-                                                          .uuid(verificationJobInstanceId)
-                                                          .cvConfigMap(new HashMap<String, CVConfig>() {
-                                                            { put(cvConfigIdentifier, cvConfig); }
-                                                          })
-                                                          .build();
-    realVerificationJobInstanceService.create(verificationJobInstance);
-    FieldUtils.writeField(activityService, "verificationJobInstanceService", realVerificationJobInstanceService, true);
-    Set<HealthSourceDTO> healthSourceDTOSet = activityService.healthSources(accountId, activityId);
-    assertThat(healthSourceDTOSet.size()).isEqualTo(1);
-    assertThat(healthSourceDTOSet.iterator().next().getIdentifier()).isEqualTo(cvConfigIdentifier);
   }
 
   private VerificationJob createVerificationJob() {

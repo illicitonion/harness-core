@@ -125,7 +125,6 @@ import io.harness.cvng.notification.entities.MonitoredServiceNotificationRule.Mo
 import io.harness.cvng.notification.entities.NotificationRule;
 import io.harness.cvng.notification.services.api.NotificationRuleService;
 import io.harness.cvng.notification.utils.NotificationRuleCommonUtils;
-import io.harness.cvng.outbox.CVServiceOutboxEventHandler;
 import io.harness.cvng.servicelevelobjective.beans.ErrorBudgetRisk;
 import io.harness.cvng.servicelevelobjective.entities.SLOHealthIndicator;
 import io.harness.cvng.servicelevelobjective.services.api.ServiceLevelIndicatorService;
@@ -192,10 +191,7 @@ public class MonitoredServiceServiceImplTest extends CvNextGenTestBase {
   @Inject VerificationTaskService verificationTaskService;
   @Inject NotificationRuleService notificationRuleService;
   @Inject private ActivityService activityService;
-
   @Inject private OutboxService outboxService;
-
-  @Inject CVServiceOutboxEventHandler cvServiceOutboxEventHandler;
 
   @Mock SetupUsageEventService setupUsageEventService;
   @Mock ChangeSourceService changeSourceServiceMock;
