@@ -679,8 +679,10 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         switch (approvalDetails.getAction()) {
           case ROLLBACK_PROVISIONER_AFTER_PHASES:
             executionInterrupt.executionInterruptType(ExecutionInterruptType.ROLLBACK_PROVISIONER_AFTER_PHASES);
+            break;
           case ROLLBACK:
             executionInterrupt.executionInterruptType(ExecutionInterruptType.ROLLBACK);
+            break;
         }
 
         triggerExecutionInterrupt(executionInterrupt.build());
