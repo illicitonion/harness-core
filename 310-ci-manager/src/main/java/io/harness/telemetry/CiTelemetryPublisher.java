@@ -1,4 +1,4 @@
-package io.harness.ci.telemetry;
+package io.harness.telemetry;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -11,8 +11,6 @@ import io.harness.logging.AutoLogContext;
 import io.harness.mongo.iterator.MongoPersistenceIterator;
 import io.harness.mongo.iterator.filter.MorphiaFilterExpander;
 import io.harness.mongo.iterator.provider.MorphiaPersistenceProvider;
-import io.harness.telemetry.TelemetryOption;
-import io.harness.telemetry.TelemetryReporter;
 import io.harness.workers.background.AccountLevelEntityProcessController;
 import lombok.extern.slf4j.Slf4j;
 import software.wings.beans.Account;
