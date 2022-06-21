@@ -11,12 +11,10 @@ import static io.harness.data.structure.UUIDGenerator.generateUuid;
 import static io.harness.eraro.ErrorCode.FAILED_TO_ACQUIRE_PERSISTENT_LOCK;
 import static io.harness.exception.WingsException.SRE;
 import static io.harness.rule.OwnerRule.ABHIJITH;
-import static io.harness.rule.OwnerRule.KAMAL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyList;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -27,11 +25,9 @@ import io.harness.CvNextGenTestBase;
 import io.harness.category.element.UnitTests;
 import io.harness.cvng.BuilderFactory;
 import io.harness.cvng.activity.beans.ActivityVerificationSummary;
-import io.harness.cvng.activity.beans.DeploymentActivityResultDTO;
 import io.harness.cvng.activity.entities.Activity;
 import io.harness.cvng.activity.services.api.ActivityService;
 import io.harness.cvng.analysis.beans.Risk;
-import io.harness.cvng.beans.activity.ActivityStatusDTO;
 import io.harness.cvng.beans.activity.ActivityVerificationStatus;
 import io.harness.cvng.beans.job.Sensitivity;
 import io.harness.cvng.verificationjob.entities.CanaryVerificationJob;
@@ -64,7 +60,6 @@ import org.mockito.MockitoAnnotations;
 public class ActivityServiceImplTest extends CvNextGenTestBase {
   @Inject private HPersistence hPersistence;
   @Inject private ActivityService activityService;
-  @Inject private VerificationJobService realVerificationJobService;
   @Mock private VerificationJobService verificationJobService;
   @Mock private VerificationJobInstanceService verificationJobInstanceService;
   @Mock private PersistentLocker mockedPersistentLocker;
@@ -91,7 +86,6 @@ public class ActivityServiceImplTest extends CvNextGenTestBase {
     deploymentTag = "build#1";
 
     FieldUtils.writeField(activityService, "verificationJobInstanceService", verificationJobInstanceService, true);
-    realVerificationJobService.createDefaultVerificationJobs(accountId, orgIdentifier, projectIdentifier);
   }
 
   @Test
@@ -163,31 +157,6 @@ public class ActivityServiceImplTest extends CvNextGenTestBase {
     when(mockedPersistentLocker.waitToAcquireLock(any(), any(), any(), any())).thenReturn(acquiredLock);
     activityService.upsert(builderFactory.getDeploymentActivityBuilder().build());
     verify(acquiredLock).close();
-  }
-
-  @Test
-  @Owner(developers = KAMAL)
-  @Category(UnitTests.class)
-  public void testGetActivityStatus() {
-    VerificationJob verificationJob = createVerificationJob();
-    when(verificationJobService.getVerificationJob(
-             accountId, orgIdentifier, projectIdentifier, verificationJob.getIdentifier()))
-        .thenReturn(verificationJob);
-    String activityId = activityService.createActivity(builderFactory.getDeploymentActivityBuilder()
-                                                           .verificationJobs(Collections.singletonList(verificationJob))
-                                                           .build());
-    DeploymentActivityResultDTO.DeploymentVerificationJobInstanceSummary deploymentVerificationJobInstanceSummary =
-        DeploymentActivityResultDTO.DeploymentVerificationJobInstanceSummary.builder()
-            .durationMs(verificationJob.getDuration().toMillis())
-            .status(ActivityVerificationStatus.NOT_STARTED)
-            .build();
-    when(verificationJobInstanceService.getDeploymentVerificationJobInstanceSummary(anyList()))
-        .thenReturn(deploymentVerificationJobInstanceSummary);
-    assertThat(deploymentVerificationJobInstanceSummary.getActivityId()).isNull();
-    ActivityStatusDTO activityStatusDTO = activityService.getActivityStatus(accountId, activityId);
-    assertThat(activityStatusDTO.getActivityId()).isEqualTo(activityId);
-    assertThat(activityStatusDTO.getDurationMs()).isEqualTo(verificationJob.getDuration().toMillis());
-    assertThat(activityStatusDTO.getStatus()).isEqualTo(ActivityVerificationStatus.NOT_STARTED);
   }
 
   @Test

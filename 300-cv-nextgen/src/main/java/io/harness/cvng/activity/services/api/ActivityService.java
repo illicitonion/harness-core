@@ -10,7 +10,6 @@ package io.harness.cvng.activity.services.api;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.cvng.activity.entities.Activity;
-import io.harness.cvng.beans.activity.ActivityStatusDTO;
 import io.harness.cvng.beans.activity.ActivityType;
 import io.harness.cvng.beans.activity.ActivityVerificationStatus;
 import io.harness.cvng.core.beans.params.MonitoredServiceParams;
@@ -36,8 +35,6 @@ public interface ActivityService {
   String getDeploymentTagFromActivity(String accountId, String verificationJobInstanceId);
 
   String createActivity(Activity activity);
-
-  ActivityStatusDTO getActivityStatus(String accountId, String activityId);
 
   void abort(String activityId);
 

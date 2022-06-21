@@ -21,7 +21,6 @@ import io.harness.cvng.activity.entities.DeploymentActivity;
 import io.harness.cvng.activity.entities.DeploymentActivity.DeploymentActivityKeys;
 import io.harness.cvng.activity.services.api.ActivityService;
 import io.harness.cvng.activity.services.api.ActivityUpdateHandler;
-import io.harness.cvng.beans.activity.ActivityStatusDTO;
 import io.harness.cvng.beans.activity.ActivityType;
 import io.harness.cvng.beans.activity.ActivityVerificationStatus;
 import io.harness.cvng.core.beans.params.MonitoredServiceParams;
@@ -89,27 +88,6 @@ public class ActivityServiceImpl implements ActivityService {
 
   public String createActivity(Activity activity) {
     return hPersistence.save(activity);
-  }
-
-  private DeploymentVerificationJobInstanceSummary getDeploymentVerificationJobInstanceSummary(Activity activity) {
-    List<String> verificationJobInstanceIds = activity.getVerificationJobInstanceIds();
-    DeploymentVerificationJobInstanceSummary deploymentVerificationJobInstanceSummary =
-        verificationJobInstanceService.getDeploymentVerificationJobInstanceSummary(verificationJobInstanceIds);
-    deploymentVerificationJobInstanceSummary.setActivityId(activity.getUuid());
-    deploymentVerificationJobInstanceSummary.setActivityStartTime(activity.getActivityStartTime().toEpochMilli());
-    return deploymentVerificationJobInstanceSummary;
-  }
-  @Override
-  public ActivityStatusDTO getActivityStatus(String accountId, String activityId) {
-    DeploymentVerificationJobInstanceSummary deploymentVerificationJobInstanceSummary =
-        getDeploymentVerificationJobInstanceSummary(get(activityId));
-    return ActivityStatusDTO.builder()
-        .durationMs(deploymentVerificationJobInstanceSummary.getDurationMs())
-        .remainingTimeMs(deploymentVerificationJobInstanceSummary.getRemainingTimeMs())
-        .progressPercentage(deploymentVerificationJobInstanceSummary.getProgressPercentage())
-        .activityId(activityId)
-        .status(deploymentVerificationJobInstanceSummary.getStatus())
-        .build();
   }
 
   @Override
