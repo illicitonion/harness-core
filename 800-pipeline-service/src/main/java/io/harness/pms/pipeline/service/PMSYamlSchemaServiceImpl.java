@@ -311,7 +311,7 @@ public class PMSYamlSchemaServiceImpl implements PMSYamlSchemaService {
     }
     List<YamlSchemaWithDetails> yamlSchemaWithDetailsList = null;
     if (yamlGroup.equals(StepCategory.STAGE.toString())) {
-      List<ModuleType> enabledModules = obtainEnabledModules(accountIdentifier);
+      List<ModuleType> enabledModules = obtainEnabledModules(accountId);
       yamlSchemaWithDetailsList = fetchSchemaWithDetailsFromModules(accountId, enabledModules);
     }
     return schemaFetcher.fetchStepYamlSchema(
