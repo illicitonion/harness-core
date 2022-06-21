@@ -67,6 +67,14 @@ public interface DelegateMtlsEndpointService {
   DelegateMtlsEndpointDetails getEndpointForAccount(String accountId);
 
   /**
+   * Returns the delegate mTLS endpoint for the account if it exists.
+   *
+   * @param accountId The account id.
+   * @return The details of the requested delegate mTLS endpoint or null if it doesn't exist.
+   */
+  DelegateMtlsEndpointDetails getEndpointForAccountOrNull(String accountId);
+
+  /**
    * Removes the delegate mTLS endpoint for the account.
    *
    * @param accountId The account id.

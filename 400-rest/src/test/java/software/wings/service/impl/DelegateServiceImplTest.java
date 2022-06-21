@@ -7,8 +7,10 @@
 
 package software.wings.service.impl;
 
+import static io.harness.beans.FeatureName.USE_IMMUTABLE_DELEGATE;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.data.structure.UUIDGenerator.generateUuid;
+import static io.harness.delegate.beans.DelegateType.KUBERNETES;
 import static io.harness.delegate.beans.TaskData.DEFAULT_ASYNC_CALL_TIMEOUT;
 import static io.harness.rule.OwnerRule.ADWAIT;
 import static io.harness.rule.OwnerRule.ANUPAM;
@@ -20,6 +22,7 @@ import static io.harness.rule.OwnerRule.GAURAV;
 import static io.harness.rule.OwnerRule.GEORGE;
 import static io.harness.rule.OwnerRule.INDER;
 import static io.harness.rule.OwnerRule.JENNY;
+import static io.harness.rule.OwnerRule.JOHANNES;
 import static io.harness.rule.OwnerRule.MARKO;
 import static io.harness.rule.OwnerRule.NICOLAS;
 import static io.harness.rule.OwnerRule.ROHITKARELIA;
@@ -58,6 +61,7 @@ import io.harness.audit.ResourceTypeConstants;
 import io.harness.beans.Cd1SetupFields;
 import io.harness.beans.DelegateTask;
 import io.harness.beans.ExecutionStatus;
+import io.harness.beans.FeatureFlag;
 import io.harness.category.element.UnitTests;
 import io.harness.delegate.NoEligibleDelegatesInAccountException;
 import io.harness.delegate.beans.Delegate;
@@ -68,6 +72,7 @@ import io.harness.delegate.beans.DelegateEntityOwner;
 import io.harness.delegate.beans.DelegateGroup;
 import io.harness.delegate.beans.DelegateInitializationDetails;
 import io.harness.delegate.beans.DelegateInstanceStatus;
+import io.harness.delegate.beans.DelegateMtlsEndpoint;
 import io.harness.delegate.beans.DelegateProfile;
 import io.harness.delegate.beans.DelegateResponseData;
 import io.harness.delegate.beans.DelegateSetupDetails;
@@ -89,6 +94,7 @@ import io.harness.delegate.events.DelegateUnregisterEvent;
 import io.harness.delegate.service.DelegateVersionService;
 import io.harness.delegate.task.http.HttpTaskParameters;
 import io.harness.exception.InvalidRequestException;
+import io.harness.exception.UnexpectedException;
 import io.harness.k8s.model.response.CEK8sDelegatePrerequisite;
 import io.harness.ng.core.ProjectScope;
 import io.harness.ng.core.Resource;
@@ -1450,6 +1456,115 @@ public class DelegateServiceImplTest extends WingsBaseTest {
 
     Double ratio = delegateService.getConnectedDelegatesRatio(VERSION, ACCOUNT_ID);
     assertThat(ratio).isEqualTo(0.5);
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testFinalizeTemplateParametersWithMtlsIfRequiredSmokeTest() {
+    this.persistence.save(
+        FeatureFlag.builder().uuid("21").name(USE_IMMUTABLE_DELEGATE.name()).enabled(true).obsolete(false).build());
+
+    final String accountId = "abc21";
+    this.persistence.save(DelegateMtlsEndpoint.builder().accountId(accountId).fqdn("delegate.ut.harness.io").build());
+
+    TemplateParameters templateParameters = delegateService.finalizeTemplateParametersWithMtlsIfRequired(
+        TemplateParameters.builder()
+            .accountId(accountId)
+            .managerHost("https://someHost")
+            .logStreamingServiceBaseUrl("https://someOtherHost:443")
+            .verificationHost("http://someVerificationHost:4210/and/a/path")
+            .delegateType(KUBERNETES));
+
+    assertThat(templateParameters.isMtlsEnabled()).isTrue();
+    assertThat(templateParameters.getManagerHost()).isEqualTo("https://delegate.ut.harness.io");
+    assertThat(templateParameters.getLogStreamingServiceBaseUrl()).isEqualTo("https://delegate.ut.harness.io:443");
+    assertThat(templateParameters.getVerificationHost()).isEqualTo("http://delegate.ut.harness.io:4210/and/a/path");
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testFinalizeTemplateParametersWithMtlsIfRequiredForNonImmutable() {
+    final String accountId = "abc21";
+    this.persistence.save(DelegateMtlsEndpoint.builder().accountId(accountId).fqdn("delegate.ut.harness.io").build());
+
+    TemplateParameters templateParameters =
+        delegateService.finalizeTemplateParametersWithMtlsIfRequired(TemplateParameters.builder().accountId(accountId));
+
+    assertThat(templateParameters.isMtlsEnabled()).isFalse();
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testFinalizeTemplateParametersWithMtlsIfRequiredForNonMtls() {
+    this.persistence.save(
+        FeatureFlag.builder().uuid("21").name(USE_IMMUTABLE_DELEGATE.name()).enabled(true).obsolete(false).build());
+
+    final String accountId = "abc21";
+    TemplateParameters templateParameters =
+        delegateService.finalizeTemplateParametersWithMtlsIfRequired(TemplateParameters.builder().accountId(accountId));
+
+    assertThat(templateParameters.isMtlsEnabled()).isFalse();
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testUpdateUriHostSmokeTest() {
+    assertThat(delegateService.updateUriHost("https://host.io/some/path?query=pretty#42", "some.new.host"))
+        .isEqualTo("https://some.new.host/some/path?query=pretty#42");
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testUpdateUriHostForNullOrBlank() {
+    assertThat(delegateService.updateUriHost(null, "someNewHost")).isNull();
+    assertThat(delegateService.updateUriHost("", "someNewHost")).isEqualTo("");
+    assertThat(delegateService.updateUriHost("  ", "someNewHost")).isEqualTo("  ");
+  }
+
+  @Test(expected = UnexpectedException.class)
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testUpdateUriHostForInvalidUri() {
+    delegateService.updateUriHost("`", "someNewHost");
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testUpdateUriHostForUriWithoutPort() {
+    assertThat(delegateService.updateUriHost("http://host/xyz", "someNewHost")).isEqualTo("http://someNewHost/xyz");
+    assertThat(delegateService.updateUriHost("https://host/xyz", "someNewHost")).isEqualTo("https://someNewHost/xyz");
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testUpdateUriHostForUriWithDefaultPort() {
+    assertThat(delegateService.updateUriHost("http://host:80/xyz", "someNewHost"))
+        .isEqualTo("http://someNewHost:80/xyz");
+    assertThat(delegateService.updateUriHost("https://host:443/xyz", "someNewHost"))
+        .isEqualTo("https://someNewHost:443/xyz");
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testUpdateUriHostForUriWithNonDefaultPort() {
+    assertThat(delegateService.updateUriHost("http://host:421/xyz", "someNewHost"))
+        .isEqualTo("http://someNewHost:421/xyz");
+  }
+
+  @Test
+  @Owner(developers = JOHANNES)
+  @Category(UnitTests.class)
+  public void testUpdateUriHostForNoPath() {
+    assertThat(delegateService.updateUriHost("http://host", "someNewHost")).isEqualTo("http://someNewHost");
+    assertThat(delegateService.updateUriHost("http://host:80", "someNewHost")).isEqualTo("http://someNewHost:80");
   }
 
   private List<String> setUpDelegatesForInitializationTest() {

@@ -183,6 +183,16 @@ public class DelegateMtlsEndpointServiceImpl implements DelegateMtlsEndpointServ
   }
 
   @Override
+  public DelegateMtlsEndpointDetails getEndpointForAccountOrNull(String accountId) {
+    DelegateMtlsEndpoint endpoint = persistence.createQuery(DelegateMtlsEndpoint.class)
+                                        .field(DelegateMtlsEndpointKeys.accountId)
+                                        .equal(accountId)
+                                        .get();
+
+    return endpoint == null ? null : this.buildEndpointDetails(endpoint);
+  }
+
+  @Override
   public boolean deleteEndpointForAccount(String accountId) {
     log.info("Delete delegate mTLS endpoint for account '{}'.", accountId);
 

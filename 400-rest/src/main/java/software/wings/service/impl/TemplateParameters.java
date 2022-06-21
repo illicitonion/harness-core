@@ -40,4 +40,5 @@ public class TemplateParameters {
   private final K8sPermissionType k8sPermissionsType;
   private final String delegateGroupName;
   private final boolean watcher;
+  private final boolean mtlsEnabled;
 }
