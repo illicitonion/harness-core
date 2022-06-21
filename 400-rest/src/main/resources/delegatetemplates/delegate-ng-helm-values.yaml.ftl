@@ -16,7 +16,7 @@ accountId: ${accountId}
 delegateToken: ${delegateToken}
 
 delegateName: ${delegateName}
-delegateDockerImage: ${delegateDockerImage}
+delegateDockerImage: "harness/delegate-immutable:75275"
 managerEndpoint: ${managerHostAndPort}
 
 # Mention tags that will be used to identify delegate
