@@ -24,7 +24,7 @@ import java.util.HashMap;
 import static io.harness.annotations.dev.HarnessTeam.CI;
 import static io.harness.logging.AutoLogContext.OverrideBehavior.OVERRIDE_ERROR;
 import static io.harness.mongo.iterator.MongoPersistenceIterator.SchedulingType.REGULAR;
-import static io.harness.telemetry.Destination.AMPLITUDE;
+import static io.harness.telemetry.Destination.ALL;
 import static java.time.Duration.ofHours;
 import static java.time.Duration.ofMinutes;
 
@@ -34,7 +34,7 @@ import static java.time.Duration.ofMinutes;
 public class CiTelemetryPublisher implements MongoPersistenceIterator.Handler<Account> {
     private static final String GLOBAL_ACCOUNT_ID = "__GLOBAL_ACCOUNT_ID__";
     private static final String ACCOUNT = "Account";
-    private static final String COUNT_ACTIVE_DEVELOPERS = "Count of Active Developers";
+    private static final String COUNT_ACTIVE_DEVELOPERS = "ci_license_developers_used";
 
     private final PersistenceIteratorFactory persistenceIteratorFactory;
     private final MorphiaPersistenceProvider<Account> persistenceProvider;
@@ -99,7 +99,7 @@ public class CiTelemetryPublisher implements MongoPersistenceIterator.Handler<Ac
         map.put("group_type", ACCOUNT);
         map.put("group_id", accountId);
         map.put(COUNT_ACTIVE_DEVELOPERS, ciOverviewDashboardService.getActiveCommitterCount(accountId));
-        telemetryReporter.sendGroupEvent(accountId, null, map, Collections.singletonMap(AMPLITUDE, true),
+        telemetryReporter.sendGroupEvent(accountId, null, map, Collections.singletonMap(ALL, true),
                 TelemetryOption.builder().sendForCommunity(true).build());
     }
 }
