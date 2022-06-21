@@ -120,14 +120,11 @@ public class CEViewServiceImpl implements CEViewService {
       ceView.setViewState(ViewState.DRAFT);
     }
     if (StringUtils.isEmpty(ceView.getFolderId())) {
-      String defaultFolderId;
-      CEViewFolder defaultFolder = ceViewFolderDao.getDefaultFolder(ceView.getAccountId());
-      if (defaultFolder == null) {
-        defaultFolderId = ceViewFolderDao.createDefaultOrSampleFolder(ceView.getAccountId(), ViewType.DEFAULT);
-      } else {
-        defaultFolderId = defaultFolder.getUuid();
-      }
-      ceView.setFolderId(defaultFolderId);
+      ceView.setFolderId(getDefaultFolderId(ceView.getAccountId()));
+    }
+    CEViewFolder sampleFolder = ceViewFolderDao.getSampleFolder(ceView.getAccountId());
+    if (ceView.getFolderId().equals(sampleFolder.getUuid())) {
+      ceView.setFolderId(getDefaultFolderId(ceView.getAccountId()));
     }
     ceView.setUuid(null);
     ceViewDao.save(ceView);
@@ -507,5 +504,14 @@ public class CEViewServiceImpl implements CEViewService {
       }
     }
     return null;
+  }
+
+  private String getDefaultFolderId(String accountId) {
+    CEViewFolder defaultFolder = ceViewFolderDao.getDefaultFolder(accountId);
+    if (defaultFolder == null) {
+      return ceViewFolderDao.createDefaultOrSampleFolder(accountId, ViewType.DEFAULT);
+    } else {
+      return defaultFolder.getUuid();
+    }
   }
 }
