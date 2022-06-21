@@ -12,6 +12,7 @@ import static io.harness.annotations.dev.HarnessTeam.CDC;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.EmbeddedUser;
 
+import java.util.EnumSet;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -41,6 +42,11 @@ public class ApprovalDetails {
     /** Reject Action */
     REJECT,
     /** Rollback Workflow*/
-    ROLLBACK
+    ROLLBACK,
+    /** Rollback Phases*/
+    ROLLBACK_PROVISIONER_AFTER_PHASES;
+    public boolean isRollbackAction() {
+      return ROLLBACK.equals(this) || ROLLBACK_PROVISIONER_AFTER_PHASES.equals(this);
+    }
   }
 }

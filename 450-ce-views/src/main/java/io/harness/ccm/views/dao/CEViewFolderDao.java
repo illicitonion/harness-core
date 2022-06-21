@@ -56,7 +56,7 @@ public class CEViewFolderDao {
     return hPersistence.createQuery(CEViewFolder.class)
         .field(CEViewFolderKeys.accountId)
         .equal(accountId)
-        .order(Sort.ascending(CEViewFolderKeys.name))
+        .order(Sort.descending(CEViewFolderKeys.pinned), Sort.ascending(CEViewFolderKeys.name))
         .asList();
   }
 
@@ -66,7 +66,7 @@ public class CEViewFolderDao {
         .equal(accountId)
         .field(CEViewFolderKeys.uuid)
         .in(folderIds)
-        .order(Sort.ascending(CEViewFolderKeys.name))
+        .order(Sort.descending(CEViewFolderKeys.pinned), Sort.ascending(CEViewFolderKeys.name))
         .asList();
   }
 
@@ -91,7 +91,7 @@ public class CEViewFolderDao {
   public String createDefaultOrSampleFolder(String accountId, ViewType viewType) {
     CEViewFolder ceViewFolder = CEViewFolder.builder()
                                     .accountId(accountId)
-                                    .name((viewType.equals(ViewType.DEFAULT)) ? "Default" : "Out of the box")
+                                    .name((viewType.equals(ViewType.DEFAULT)) ? "Default" : "By Harness")
                                     .pinned(true)
                                     .viewType(viewType)
                                     .description((viewType.equals(ViewType.DEFAULT))
