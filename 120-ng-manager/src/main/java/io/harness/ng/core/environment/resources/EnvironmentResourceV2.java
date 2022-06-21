@@ -7,6 +7,9 @@
 
 package io.harness.ng.core.environment.resources;
 
+import static io.harness.NGCommonEntityConstants.ACCOUNT_PARAM_MESSAGE;
+import static io.harness.NGCommonEntityConstants.ORG_PARAM_MESSAGE;
+import static io.harness.NGCommonEntityConstants.PROJECT_PARAM_MESSAGE;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.ng.accesscontrol.PlatformPermissions.VIEW_PROJECT_PERMISSION;
@@ -39,6 +42,7 @@ import io.harness.accesscontrol.clients.AccessControlClient;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.data.structure.EmptyPredicate;
+import io.harness.delegate.beans.connector.ConnectorValidationParameterResponse;
 import io.harness.exception.InvalidRequestException;
 import io.harness.exception.WingsException;
 import io.harness.ng.beans.PageResponse;
@@ -68,6 +72,7 @@ import io.harness.ng.core.serviceoverride.yaml.NGServiceOverrideConfig;
 import io.harness.ng.core.utils.CoreCriteriaUtils;
 import io.harness.rbac.CDNGRbacUtility;
 import io.harness.repositories.UpsertOptions;
+import io.harness.security.annotations.InternalApi;
 import io.harness.security.annotations.NextGenManagerAuth;
 import io.harness.utils.PageUtils;
 
@@ -86,6 +91,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.validation.Valid;
@@ -105,11 +111,13 @@ import javax.ws.rs.QueryParam;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.query.Criteria;
+import retrofit2.http.Query;
 
 @NextGenManagerAuth
 @Api("/environmentsV2")
@@ -625,6 +633,20 @@ public class EnvironmentResourceV2 {
     String environmentInputsYaml = serviceOverrideService.createServiceOverrideInputsYaml(
         accountId, projectIdentifier, orgIdentifier, environmentIdentifier, serviceIdentifier);
     return ResponseDTO.newResponse(environmentInputsYaml);
+  }
+
+  @GET
+  @Hidden
+  @Path("{identifier}/attributes")
+  @ApiOperation(hidden = true, value = "Get Environment Attributes")
+  @InternalApi
+  public ResponseDTO<Map<String, String>> getEnvironmentAttributes(
+      @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId,
+      @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
+      @QueryParam(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier,
+      @PathParam(NGCommonEntityConstants.IDENTIFIER_KEY) String environmentIdentifier) {
+    return ResponseDTO.newResponse(environmentService.getAttributes(
+        accountId, orgIdentifier, projectIdentifier, environmentIdentifier));
   }
 
   private void checkForServiceOverrideUpdateAccess(

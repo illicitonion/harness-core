@@ -38,6 +38,7 @@ import io.harness.ng.core.entitysetupusage.dto.EntitySetupUsageDTO;
 import io.harness.ng.core.entitysetupusage.service.EntitySetupUsageService;
 import io.harness.ng.core.environment.beans.Environment;
 import io.harness.ng.core.environment.beans.Environment.EnvironmentKeys;
+import io.harness.ng.core.environment.beans.EnvironmentType;
 import io.harness.ng.core.environment.services.EnvironmentService;
 import io.harness.ng.core.events.EnvironmentCreateEvent;
 import io.harness.ng.core.events.EnvironmentDeleteEvent;
@@ -63,6 +64,7 @@ import com.google.inject.name.Named;
 import com.google.protobuf.StringValue;
 import com.mongodb.client.result.UpdateResult;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -368,6 +370,27 @@ public class EnvironmentServiceImpl implements EnvironmentService {
       return null;
     }
     return YamlPipelineUtils.writeYamlString(yamlInputs);
+  }
+
+  @Override
+  public Map<String, String> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, String environmentIdentifier) {
+    Optional<Environment> environment = get(accountId, orgIdentifier, projectIdentifier, environmentIdentifier, false);
+    Map<String, String> attributes = new HashMap<>();
+    if (environment.isPresent()) {
+      switch (environment.get().getType()) {
+        case PreProduction:
+          attributes.put("type", "PreProduction");
+          break;
+        case Production:
+          attributes.put("type", "Production");
+          break;
+        default:
+          attributes.put("type", "Unknown");
+          break;
+      }
+    }
+
+    return attributes;
   }
 
   public Map<String, Object> createEnvironmentInputsYamlInternal(

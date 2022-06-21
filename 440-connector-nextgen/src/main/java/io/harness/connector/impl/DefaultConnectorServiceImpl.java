@@ -40,6 +40,7 @@ import io.harness.connector.ConnectorCategory;
 import io.harness.connector.ConnectorDTO;
 import io.harness.connector.ConnectorFilterPropertiesDTO;
 import io.harness.connector.ConnectorInfoDTO;
+import io.harness.connector.ConnectorRegistryFactory;
 import io.harness.connector.ConnectorResponseDTO;
 import io.harness.connector.ConnectorValidationResult;
 import io.harness.connector.ConnectorValidationResult.ConnectorValidationResultBuilder;
@@ -579,6 +580,17 @@ public class DefaultConnectorServiceImpl implements ConnectorService {
         connectorDTO.getConnectorInfo().getProjectIdentifier(),
         connectorRepository.update(accountIdentifier, connectorDTO.getConnectorInfo().getOrgIdentifier(),
             connectorDTO.getConnectorInfo().getProjectIdentifier(), criteria, update));
+  }
+
+  @Override
+  public Map<String, String> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, String connectorIdentifier) {
+    Optional<Connector> connector = getInternal(accountId, orgIdentifier, projectIdentifier, connectorIdentifier);
+    Map<String, String> attributes = new HashMap<>();
+    if (connector.isPresent()) {
+      attributes.put("type", ConnectorRegistryFactory.getConnectorCategory(connector.get().getType()).toString());
+    }
+
+    return attributes;
   }
 
   private void deleteTheExistingReferences(

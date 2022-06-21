@@ -8,6 +8,7 @@
 package io.harness.accesscontrol;
 
 import static io.harness.AuthorizationServiceHeader.ACCESS_CONTROL_SERVICE;
+import static io.harness.AuthorizationServiceHeader.RESOUCE_GROUP_SERVICE;
 import static io.harness.accesscontrol.principals.PrincipalType.SERVICE_ACCOUNT;
 import static io.harness.accesscontrol.principals.PrincipalType.USER;
 import static io.harness.accesscontrol.principals.PrincipalType.USER_GROUP;
@@ -88,7 +89,10 @@ import io.harness.annotations.dev.OwnedBy;
 import io.harness.app.PrimaryVersionManagerModule;
 import io.harness.audit.client.remote.AuditClientModule;
 import io.harness.concurrent.HTimeLimiter;
+import io.harness.connector.ConnectorResourceClientModule;
 import io.harness.enforcement.client.EnforcementClientModule;
+import io.harness.envgroup.EnvironmentGroupResourceClientModule;
+import io.harness.environment.EnvironmentResourceClientModule;
 import io.harness.eventsframework.api.Consumer;
 import io.harness.eventsframework.impl.noop.NoOpConsumer;
 import io.harness.eventsframework.impl.redis.RedisConsumer;
@@ -105,6 +109,7 @@ import io.harness.outbox.TransactionOutboxModule;
 import io.harness.outbox.api.OutboxEventHandler;
 import io.harness.project.ProjectClientModule;
 import io.harness.redis.RedisConfig;
+import io.harness.remote.client.ClientMode;
 import io.harness.resourcegroupclient.ResourceGroupClientModule;
 import io.harness.serviceaccount.ServiceAccountClientModule;
 import io.harness.telemetry.AbstractTelemetryModule;
@@ -275,6 +280,14 @@ public class AccessControlModule extends AbstractModule {
         EnforcementClientModule.getInstance(config.getOrganizationClientConfiguration().getOrganizationServiceConfig(),
             config.getOrganizationClientConfiguration().getOrganizationServiceSecret(),
             ACCESS_CONTROL_SERVICE.getServiceId(), config.getEnforcementClientConfiguration()));
+
+    install(new EnvironmentResourceClientModule(config.getNgManagerServiceConfiguration().getNgManagerServiceConfig(),
+        config.getNgManagerServiceConfiguration().getNgManagerServiceSecret(), ACCESS_CONTROL_SERVICE.getServiceId(),
+        ClientMode.PRIVILEGED));
+
+    install(new ConnectorResourceClientModule(config.getNgManagerServiceConfiguration().getNgManagerServiceConfig(),
+        config.getNgManagerServiceConfiguration().getNgManagerServiceSecret(), ACCESS_CONTROL_SERVICE.getServiceId(),
+        ClientMode.PRIVILEGED));
 
     install(new TransactionOutboxModule(config.getOutboxPollConfig(), ACCESS_CONTROL_SERVICE.getServiceId(),
         config.getAggregatorConfiguration().isExportMetricsToStackDriver()));
