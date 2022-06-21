@@ -33,7 +33,6 @@ import io.harness.cvng.core.entities.SideKick;
 import io.harness.cvng.core.services.api.MetricPackService;
 import io.harness.cvng.core.services.api.monitoredService.MonitoredServiceService;
 import io.harness.persistence.HPersistence;
-import io.harness.pms.yaml.ParameterField;
 import io.harness.rule.Owner;
 
 import com.fasterxml.jackson.databind.JsonNode;

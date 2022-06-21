@@ -11,7 +11,6 @@ import io.harness.cvng.cdng.beans.CVNGStepInfo;
 import io.harness.cvng.cdng.beans.MonitoredServiceSpec.MonitoredServiceSpecType;
 import io.harness.cvng.cdng.services.api.VerifyStepMonitoredServiceResolutionService;
 import io.harness.cvng.core.beans.params.ProjectParams;
-import io.harness.cvng.core.services.api.monitoredService.MonitoredServiceService;
 import io.harness.eventsframework.schemas.entity.EntityDetailProtoDTO;
 import io.harness.filters.GenericStepPMSFilterJsonCreator;
 import io.harness.plancreator.steps.StepElementConfig;
