@@ -13,7 +13,6 @@ import static io.harness.persistence.HQuery.excludeValidate;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.cvng.activity.beans.ActivityVerificationSummary;
-import io.harness.cvng.activity.beans.DeploymentActivityResultDTO.DeploymentVerificationJobInstanceSummary;
 import io.harness.cvng.activity.entities.Activity;
 import io.harness.cvng.activity.entities.Activity.ActivityKeys;
 import io.harness.cvng.activity.entities.Activity.ActivityUpdatableEntity;

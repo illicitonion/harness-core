@@ -20,6 +20,7 @@ import io.harness.ng.beans.PageResponse;
 import java.util.List;
 
 public interface LogDashboardService {
+  @Deprecated
   PageResponse<AnalyzedLogDataDTO> getAllLogsData(MonitoredServiceParams monitoredServiceParams,
       TimeRangeParams timeRangeParams, LiveMonitoringLogAnalysisFilter liveMonitoringLogAnalysisFilter,
       PageParams pageParams);
