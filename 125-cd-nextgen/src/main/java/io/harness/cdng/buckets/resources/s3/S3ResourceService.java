@@ -18,7 +18,4 @@ import java.util.Map;
 public interface S3ResourceService {
   Map<String, String> getBuckets(
       IdentifierRef awsConnectorRef, String region, String orgIdentifier, String projectIdentifier);
-
-  Map<String, String> getBucketsV2(
-          IdentifierRef awsConnectorRef, String orgIdentifier, String projectIdentifier);
 }

@@ -59,23 +59,6 @@ public class S3ResourceServiceImpl implements S3ResourceService {
     return awsS3BucketResponse.getBuckets();
   }
 
-  @Override
-  public Map<String, String> getBucketsV2(IdentifierRef awsConnectorRef, String orgIdentifier, String projectIdentifier) {
-    AwsConnectorDTO connector = serviceHelper.getAwsConnector(awsConnectorRef);
-    BaseNGAccess baseNGAccess =
-            serviceHelper.getBaseNGAccess(awsConnectorRef.getAccountIdentifier(), orgIdentifier, projectIdentifier);
-    List<EncryptedDataDetail> encryptionDetails = serviceHelper.getAwsEncryptionDetails(connector, baseNGAccess);
-    AwsTaskParams awsTaskParams = AwsTaskParams.builder()
-            .awsTaskType(AwsTaskType.LIST_S3_BUCKETS)
-            .awsConnector(connector)
-            .encryptionDetails(encryptionDetails)
-            .build();
-
-    AwsS3BucketResponse awsS3BucketResponse =
-            executeSyncTask(awsTaskParams, baseNGAccess, "AWS S3 Get Buckets task failure due to error");
-    return awsS3BucketResponse.getBuckets();
-  }
-
   private AwsS3BucketResponse executeSyncTask(
       AwsTaskParams awsTaskParams, BaseNGAccess ngAccess, String ifFailedMessage) {
     DelegateResponseData responseData =

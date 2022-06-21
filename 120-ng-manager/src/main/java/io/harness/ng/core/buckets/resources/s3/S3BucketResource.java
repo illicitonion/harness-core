@@ -70,15 +70,15 @@ public class S3BucketResource {
   @GET
   @Path("getBucketsV2")
   @ApiOperation(value = "Gets s3 buckets", nickname = "getBucketListForS3")
-  public ResponseDTO<List<String>> getBucketsV2(@NotNull @QueryParam("connectorRef") String awsConnectorIdentifier,
+  public ResponseDTO<List<String>> getBucketsV2(@NotNull @QueryParam("region") String region, @NotNull @QueryParam("connectorRef") String awsConnectorIdentifier,
                                                 @NotNull @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId, @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier, @QueryParam(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier) {
     IdentifierRef connectorRef =
             IdentifierRefHelper.getIdentifierRef(awsConnectorIdentifier, accountId, orgIdentifier, projectIdentifier);
 
     Map<String, String> s3Buckets =
-            s3ResourceService.getBucketsV2(connectorRef, orgIdentifier, projectIdentifier);
+            s3ResourceService.getBuckets(connectorRef, region, orgIdentifier, projectIdentifier);
 
-    List<String> bucketResponse= (List<String>) s3Buckets.keySet();
+    List<String> bucketResponse= new ArrayList<>(s3Buckets.values());
 
     return ResponseDTO.newResponse(bucketResponse);
   }
