@@ -339,7 +339,7 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
     return costCategoriesPostFetchResponseUpdate(
         convertToEntityStatsData(result, costTrendData, startTimeForTrendData, isClusterPerspective,
             queryParams.isUsedByTimeSeriesStats(), queryParams.isSkipRoundOff(), conversionField,
-            queryParams.getAccountId()),
+            queryParams.getAccountId(), groupBy),
         businessMappingId);
   }
 
@@ -1087,14 +1087,15 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
   // Here conversion field is not null if id to name conversion is required for the main group by field
   private QLCEViewGridData convertToEntityStatsData(TableResult result, Map<String, ViewCostData> costTrendData,
       long startTimeForTrend, boolean isClusterPerspective, boolean isUsedByTimeSeriesStats, boolean skipRoundOff,
-      String conversionField, String accountId) {
+      String conversionField, String accountId, List<QLCEViewGroupBy> groupBy) {
     if (isClusterPerspective) {
       return convertToEntityStatsDataForCluster(
-          result, costTrendData, startTimeForTrend, isUsedByTimeSeriesStats, skipRoundOff);
+          result, costTrendData, startTimeForTrend, isUsedByTimeSeriesStats, skipRoundOff, groupBy);
     }
     Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
     List<String> fieldNames = getFieldNames(fields);
+    String fieldName = getEntityGroupByFieldName(groupBy);
     List<String> entityNames = new ArrayList<>();
 
     List<QLCEViewEntityStatsDataPoint> entityStatsDataPoints = new ArrayList<>();
@@ -1106,7 +1107,7 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
       for (Field field : fields) {
         switch (field.getType().getStandardType()) {
           case STRING:
-            name = fetchStringValue(row, field);
+            name = fetchStringValue(row, field, fieldName);
             entityNames.add(name);
             id = getUpdatedId(id, name);
             break;
@@ -1135,11 +1136,12 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
 
   private QLCEViewGridData convertToEntityStatsDataForCluster(TableResult result,
       Map<String, ViewCostData> costTrendData, long startTimeForTrend, boolean isUsedByTimeSeriesStats,
-      boolean skipRoundOff) {
+      boolean skipRoundOff, List<QLCEViewGroupBy> groupBy) {
     Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
 
     List<String> fieldNames = getFieldNames(fields);
+    String fieldName = getEntityGroupByFieldName(groupBy);
     boolean isInstanceDetailsData = fieldNames.contains(INSTANCE_ID);
     List<QLCEViewEntityStatsDataPoint> entityStatsDataPoints = new ArrayList<>();
     Set<String> instanceTypes = new HashSet<>();
@@ -1162,7 +1164,7 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
           if (builderField != null) {
             builderField.setAccessible(true);
             if (builderField.getType().equals(String.class)) {
-              builderField.set(clusterDataBuilder, fetchStringValue(row, field));
+              builderField.set(clusterDataBuilder, fetchStringValue(row, field, fieldName));
             } else {
               builderField.set(clusterDataBuilder, getNumericValue(row, field, skipRoundOff));
             }
@@ -1176,7 +1178,7 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
                 clusterDataBuilder.idleCost(getNumericValue(row, field, skipRoundOff));
                 break;
               case PRICING_SOURCE:
-                pricingSource = fetchStringValue(row, field);
+                pricingSource = fetchStringValue(row, field, fieldName);
                 break;
               default:
                 break;
@@ -1187,7 +1189,7 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
         }
 
         if (field.getType().getStandardType() == StandardSQLTypeName.STRING) {
-          name = fetchStringValue(row, field);
+          name = fetchStringValue(row, field, fieldName);
           entityId = getUpdatedId(entityId, name);
         }
       }
@@ -1353,12 +1355,12 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
     return 0;
   }
 
-  private String fetchStringValue(FieldValueList row, Field field) {
+  private String fetchStringValue(FieldValueList row, Field field, String fieldName) {
     Object value = row.get(field.getName()).getValue();
     if (value != null) {
       return value.toString();
     }
-    return OTHERS;
+    return fieldName;
   }
 
   private String fetchStringValue(FieldValueList row, QLCEViewFieldInput field) {
@@ -1369,9 +1371,11 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
     return null;
   }
 
-  public List<QLCEViewTimeSeriesData> convertToQLViewTimeSeriesData(TableResult result, String accountId) {
+  public List<QLCEViewTimeSeriesData> convertToQLViewTimeSeriesData(
+      TableResult result, String accountId, List<QLCEViewGroupBy> groupBy) {
     Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
+    String fieldName = getEntityGroupByFieldName(groupBy);
 
     Map<Long, List<QLCEViewDataPoint>> timeSeriesDataPointsMap = new HashMap<>();
     Set<String> awsAccounts = new HashSet<>();
@@ -1385,7 +1389,7 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
             startTimeTruncatedTimestamp = row.get(field.getName()).getTimestampValue() / 1000;
             break;
           case STRING:
-            String stringValue = fetchStringValue(row, field);
+            String stringValue = fetchStringValue(row, field, fieldName);
             if (AWS_ACCOUNT_FIELD_ID.equals(field.getName())) {
               awsAccounts.add(stringValue);
             }
@@ -1476,14 +1480,15 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
       Thread.currentThread().interrupt();
       return null;
     }
-    return convertToEntityStatsCostTrendData(result, isClusterTableQuery, queryParams.isSkipRoundOff());
+    return convertToEntityStatsCostTrendData(result, isClusterTableQuery, queryParams.isSkipRoundOff(), groupBy);
   }
 
   private Map<String, ViewCostData> convertToEntityStatsCostTrendData(
-      TableResult result, boolean isClusterTableQuery, boolean skipRoundOff) {
+      TableResult result, boolean isClusterTableQuery, boolean skipRoundOff, List<QLCEViewGroupBy> groupBy) {
     Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
     Map<String, ViewCostData> costTrendData = new HashMap<>();
+    String fieldName = getEntityGroupByFieldName(groupBy);
     for (FieldValueList row : result.iterateAll()) {
       String name = "";
       String id = DEFAULT_STRING_VALUE;
@@ -1491,7 +1496,7 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
       for (Field field : fields) {
         switch (field.getType().getStandardType()) {
           case STRING:
-            name = fetchStringValue(row, field);
+            name = fetchStringValue(row, field, fieldName);
             id = getUpdatedId(id, name);
             break;
           case FLOAT64:
@@ -1795,6 +1800,18 @@ public class ViewsBillingServiceImpl implements ViewsBillingService {
         .operator(QLCEViewFilterOperator.IN)
         .values(values)
         .build();
+  }
+
+  private static String getEntityGroupByFieldName(final List<QLCEViewGroupBy> groupBy) {
+    String entityGroupByFieldName = OTHERS;
+    final Optional<String> groupByFieldName = groupBy.stream()
+                                                  .filter(entry -> Objects.nonNull(entry.getEntityGroupBy()))
+                                                  .map(entry -> entry.getEntityGroupBy().getFieldName())
+                                                  .findFirst();
+    if (groupByFieldName.isPresent()) {
+      entityGroupByFieldName = "No " + groupByFieldName.get();
+    }
+    return entityGroupByFieldName;
   }
 
   private List<QLCEViewFilterWrapper> getModifiedFilters(

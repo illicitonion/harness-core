@@ -60,6 +60,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -70,21 +71,21 @@ import lombok.extern.slf4j.Slf4j;
 public class PerspectiveTimeSeriesHelper {
   @Inject EntityMetadataService entityMetadataService;
   @Inject BusinessMappingService businessMappingService;
-  private static final String nullStringValueConstant = "Others";
   private static final String OTHERS = "Others";
   private static final String UNALLOCATED_COST = "Unallocated";
   private static final long ONE_DAY_SEC = 86400;
   private static final long ONE_HOUR_SEC = 3600;
 
-  public PerspectiveTimeSeriesData fetch(TableResult result, long timePeriod) {
-    return fetch(result, timePeriod, null, null, null);
+  public PerspectiveTimeSeriesData fetch(TableResult result, long timePeriod, List<QLCEViewGroupBy> groupBy) {
+    return fetch(result, timePeriod, null, null, null, groupBy);
   }
 
-  public PerspectiveTimeSeriesData fetch(
-      TableResult result, long timePeriod, String conversionField, String businessMappingId, String accountId) {
+  public PerspectiveTimeSeriesData fetch(TableResult result, long timePeriod, String conversionField,
+      String businessMappingId, String accountId, List<QLCEViewGroupBy> groupBy) {
     BusinessMapping businessMapping = businessMappingService.get(businessMappingId);
     UnallocatedCostStrategy strategy =
         businessMapping != null ? businessMapping.getUnallocatedCost().getStrategy() : null;
+    String fieldName = getEntityGroupByFieldName(groupBy);
 
     Schema schema = result.getSchema();
     FieldList fields = schema.getFields();
@@ -119,7 +120,7 @@ public class PerspectiveTimeSeriesHelper {
             startTimeTruncatedTimestamp = Timestamp.ofTimeMicroseconds(row.get(field.getName()).getTimestampValue());
             break;
           case STRING:
-            stringValue = fetchStringValue(row, field);
+            stringValue = fetchStringValue(row, field, fieldName);
             entityNames.add(stringValue);
             type = field.getName();
             id = getUpdatedId(id, stringValue);
@@ -254,12 +255,12 @@ public class PerspectiveTimeSeriesHelper {
         .collect(Collectors.toList());
   }
 
-  private static String fetchStringValue(FieldValueList row, Field field) {
+  private static String fetchStringValue(FieldValueList row, Field field, String fieldName) {
     Object value = row.get(field.getName()).getValue();
     if (value != null) {
       return value.toString();
     }
-    return nullStringValueConstant;
+    return fieldName;
   }
 
   private double getNumericValue(FieldValueList row, Field field) {
@@ -393,6 +394,18 @@ public class PerspectiveTimeSeriesHelper {
 
   private Reference getReference(String id, String name, String type) {
     return Reference.builder().id(id).name(name).type(type).build();
+  }
+
+  private static String getEntityGroupByFieldName(final List<QLCEViewGroupBy> groupBy) {
+    String entityGroupByFieldName = OTHERS;
+    final Optional<String> groupByFieldName = groupBy.stream()
+                                                  .filter(entry -> Objects.nonNull(entry.getEntityGroupBy()))
+                                                  .map(entry -> entry.getEntityGroupBy().getFieldName())
+                                                  .findFirst();
+    if (groupByFieldName.isPresent()) {
+      entityGroupByFieldName = "No " + groupByFieldName.get();
+    }
+    return entityGroupByFieldName;
   }
 
   public long getTimePeriod(List<QLCEViewGroupBy> groupBy) {

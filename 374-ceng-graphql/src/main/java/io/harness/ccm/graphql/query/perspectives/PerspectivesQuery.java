@@ -198,7 +198,7 @@ public class PerspectivesQuery {
     PerspectiveTimeSeriesData data = perspectiveTimeSeriesHelper.fetch(
         viewsBillingService.getTimeSeriesStatsNg(bigQuery, filters, groupBy, aggregateFunction, sortCriteria,
             cloudProviderTableName, includeOthers, limit, viewQueryParams),
-        timePeriod, conversionField, businessMappingId, accountId);
+        timePeriod, conversionField, businessMappingId, accountId, groupBy);
 
     Map<Long, Double> unallocatedCost = null;
     if (includeUnallocatedCost) {
