@@ -208,8 +208,6 @@ public class CIOverviewDashboardServiceImpl implements CIOverviewDashboardServic
         statement.setLong(2, timestamp);
         statement.setLong(3, timestamp - 30 * DAY_IN_MS);
         resultSet = statement.executeQuery();
-        List<ReferenceDTO> usageReferences = new ArrayList<>();
-        Set<String> uniqueIds = new HashSet<>();
         return resultSet.next() ? resultSet.getLong(1) : 0L;
       } catch (SQLException ex) {
         log.error(ex.getMessage());
