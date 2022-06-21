@@ -60,8 +60,8 @@ public class TemplateSetupUsageHelper {
   }
 
   public void publishSetupUsageEvent(TemplateEntity templateEntity, List<EntityDetailProtoDTO> referredEntities) {
+    deleteExistingSetupUsages(templateEntity);
     if (EmptyPredicate.isEmpty(referredEntities)) {
-      deleteExistingSetupUsages(templateEntity);
       return;
     }
 
