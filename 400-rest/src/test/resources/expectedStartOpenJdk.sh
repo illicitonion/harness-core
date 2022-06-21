@@ -242,7 +242,7 @@ REMOTE_WATCHER_VERSION=$(echo $REMOTE_WATCHER_LATEST | cut -d " " -f1)
 
 if [ ! -e watcher.jar ]; then
   echo "Downloading Watcher $REMOTE_WATCHER_VERSION ..."
-  curl $MANAGER_PROXY_CURL $REMOTE_WATCHER_URL -o watcher.jar
+  curl $MANAGER_PROXY_CURL -# $REMOTE_WATCHER_URL -o watcher.jar
 else
   WATCHER_CURRENT_VERSION=$(jar_app_version watcher.jar)
   if [[ $REMOTE_WATCHER_VERSION != $WATCHER_CURRENT_VERSION ]]; then
@@ -250,7 +250,7 @@ else
     echo "Downloading Watcher $REMOTE_WATCHER_VERSION ..."
     mkdir -p watcherBackup.$WATCHER_CURRENT_VERSION
     cp watcher.jar watcherBackup.$WATCHER_CURRENT_VERSION
-    curl $MANAGER_PROXY_CURL $REMOTE_WATCHER_URL -o watcher.jar
+    curl $MANAGER_PROXY_CURL -# $REMOTE_WATCHER_URL -o watcher.jar
   fi
 fi
 
@@ -263,7 +263,7 @@ DELEGATE_STORAGE_URL=http://localhost:8888
 
   if [ ! -e delegate.jar ]; then
     echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
-    curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
+    curl $MANAGER_PROXY_CURL -# $REMOTE_DELEGATE_URL -o delegate.jar
   else
     DELEGATE_CURRENT_VERSION=$(jar_app_version delegate.jar)
     if [[ $REMOTE_DELEGATE_VERSION != $DELEGATE_CURRENT_VERSION ]]; then
@@ -271,7 +271,7 @@ DELEGATE_STORAGE_URL=http://localhost:8888
       echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
       mkdir -p backup.$DELEGATE_CURRENT_VERSION
       cp delegate.jar backup.$DELEGATE_CURRENT_VERSION
-      curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
+      curl $MANAGER_PROXY_CURL -# $REMOTE_DELEGATE_URL -o delegate.jar
     fi
   fi
 fi

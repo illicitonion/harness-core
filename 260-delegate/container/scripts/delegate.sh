@@ -137,7 +137,7 @@ if [[ $DEPLOY_MODE != "KUBERNETES" ]]; then
 
   if [ ! -e delegate.jar ]; then
     echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
-    curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
+    curl $MANAGER_PROXY_CURL -# $REMOTE_DELEGATE_URL -o delegate.jar
   else
     DELEGATE_CURRENT_VERSION=$(jar_app_version delegate.jar)
     if [[ $REMOTE_DELEGATE_VERSION != $DELEGATE_CURRENT_VERSION ]]; then
@@ -145,7 +145,7 @@ if [[ $DEPLOY_MODE != "KUBERNETES" ]]; then
       echo "Downloading Delegate $REMOTE_DELEGATE_VERSION ..."
       mkdir -p backup.$DELEGATE_CURRENT_VERSION
       cp delegate.jar backup.$DELEGATE_CURRENT_VERSION
-      curl $MANAGER_PROXY_CURL $REMOTE_DELEGATE_URL -o delegate.jar
+      curl $MANAGER_PROXY_CURL -# $REMOTE_DELEGATE_URL -o delegate.jar
     fi
   fi
 fi
