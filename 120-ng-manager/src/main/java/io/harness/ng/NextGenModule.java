@@ -40,8 +40,6 @@ import io.harness.AccessControlClientModule;
 import io.harness.GitopsModule;
 import io.harness.Microservice;
 import io.harness.NgIteratorsConfig;
-import io.harness.OrchestrationModule;
-import io.harness.OrchestrationModuleConfig;
 import io.harness.OrchestrationStepsModule;
 import io.harness.YamlBaseUrlServiceImpl;
 import io.harness.accesscontrol.AccessControlAdminClientConfiguration;
@@ -59,7 +57,6 @@ import io.harness.callback.DelegateCallbackToken;
 import io.harness.callback.MongoDatabase;
 import io.harness.ccm.license.remote.CeLicenseClientModule;
 import io.harness.cdng.NGModule;
-import io.harness.cdng.expressions.CDExpressionEvaluatorProvider;
 import io.harness.cdng.fileservice.FileServiceClient;
 import io.harness.cdng.fileservice.FileServiceClientFactory;
 import io.harness.connector.ConnectorModule;
@@ -223,7 +220,6 @@ import io.harness.outbox.TransactionOutboxModule;
 import io.harness.outbox.api.OutboxEventHandler;
 import io.harness.persistence.UserProvider;
 import io.harness.pipeline.PipelineRemoteClientModule;
-import io.harness.pms.listener.NgOrchestrationNotifyEventListener;
 import io.harness.polling.service.impl.PollingPerpetualTaskServiceImpl;
 import io.harness.polling.service.impl.PollingServiceImpl;
 import io.harness.polling.service.intfc.PollingPerpetualTaskService;
@@ -612,7 +608,6 @@ public class NextGenModule extends AbstractModule {
         return appConfig.getBaseUrls();
       }
     });
-    install(OrchestrationModule.getInstance(getOrchestrationConfig()));
     install(OrchestrationStepsModule.getInstance(null));
     install(EntitySetupUsageModule.getInstance());
     install(PersistentLockModule.getInstance());
@@ -839,15 +834,6 @@ public class NextGenModule extends AbstractModule {
     bind(ServiceAccountService.class).to(ServiceAccountServiceImpl.class);
     bind(OpaService.class).to(OpaServiceImpl.class);
     bind(OpaConnectorService.class).to(OpaConnectorServiceImpl.class);
-  }
-
-  private OrchestrationModuleConfig getOrchestrationConfig() {
-    return OrchestrationModuleConfig.builder()
-        .serviceName("CD_NG")
-        .withPMS(appConfig.getShouldConfigureWithPMS())
-        .expressionEvaluatorProvider(new CDExpressionEvaluatorProvider())
-        .publisherName(NgOrchestrationNotifyEventListener.NG_ORCHESTRATION)
-        .build();
   }
 
   private ValidatorFactory getValidatorFactory() {
