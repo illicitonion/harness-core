@@ -674,18 +674,22 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
           executionData.setStatus(ExecutionStatus.REJECTED);
           throw new InvalidRequestException("Unsupported rollback from pipeline, defaulting to reject.");
         }
-        ExecutionInterrupt.ExecutionInterruptBuilder executionInterrupt =
-            anExecutionInterrupt().executionUuid(workflowExecution.getUuid()).appId(appId);
+        ExecutionInterruptType executionInterruptType = null;
+
         switch (approvalDetails.getAction()) {
           case ROLLBACK_PROVISIONER_AFTER_PHASES:
-            executionInterrupt.executionInterruptType(ExecutionInterruptType.ROLLBACK_PROVISIONER_AFTER_PHASES);
+            executionInterruptType = ExecutionInterruptType.ROLLBACK_PROVISIONER_AFTER_PHASES;
             break;
-          case ROLLBACK:
-            executionInterrupt.executionInterruptType(ExecutionInterruptType.ROLLBACK);
-            break;
+          default:
+            executionInterruptType = ExecutionInterruptType.ROLLBACK;
         }
+        ExecutionInterrupt executionInterrupt = anExecutionInterrupt()
+                                                    .executionUuid(workflowExecution.getUuid())
+                                                    .appId(appId)
+                                                    .executionInterruptType(executionInterruptType)
+                                                    .build();
 
-        triggerExecutionInterrupt(executionInterrupt.build());
+        triggerExecutionInterrupt(executionInterrupt);
       }
 
       executionData.setStatus(ExecutionStatus.REJECTED);
