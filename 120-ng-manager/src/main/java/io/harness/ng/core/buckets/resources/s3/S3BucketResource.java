@@ -23,6 +23,9 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
@@ -62,5 +65,21 @@ public class S3BucketResource {
     Map<String, String> s3Buckets =
         s3ResourceService.getBuckets(connectorRef, region, orgIdentifier, projectIdentifier);
     return ResponseDTO.newResponse(s3Buckets);
+  }
+
+  @GET
+  @Path("getBucketsV2")
+  @ApiOperation(value = "Gets s3 buckets", nickname = "getBucketListForS3")
+  public ResponseDTO<List<String>> getBucketsV2(@NotNull @QueryParam("connectorRef") String awsConnectorIdentifier,
+                                                @NotNull @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId, @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier, @QueryParam(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier) {
+    IdentifierRef connectorRef =
+            IdentifierRefHelper.getIdentifierRef(awsConnectorIdentifier, accountId, orgIdentifier, projectIdentifier);
+
+    Map<String, String> s3Buckets =
+            s3ResourceService.getBucketsV2(connectorRef, orgIdentifier, projectIdentifier);
+
+    List<String> bucketResponse= (List<String>) s3Buckets.keySet();
+
+    return ResponseDTO.newResponse(bucketResponse);
   }
 }
