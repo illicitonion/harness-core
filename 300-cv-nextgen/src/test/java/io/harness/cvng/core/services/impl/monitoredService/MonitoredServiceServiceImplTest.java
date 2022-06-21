@@ -722,7 +722,9 @@ public class MonitoredServiceServiceImplTest extends CvNextGenTestBase {
   @Owner(developers = KANHAIYA)
   @Category(UnitTests.class)
   public void testGet_usingServiceEnvironmentNotPresent() {
-    assertThat(monitoredServiceService.get(builderFactory.getContext().getServiceEnvironmentParams())).isNull();
+    assertThat(monitoredServiceService.getApplicationMonitoredServiceResponse(
+                   builderFactory.getContext().getServiceEnvironmentParams()))
+        .isNull();
   }
 
   @Test
@@ -732,7 +734,9 @@ public class MonitoredServiceServiceImplTest extends CvNextGenTestBase {
     MonitoredServiceDTO monitoredServiceDTO = createMonitoredServiceDTO();
     monitoredServiceService.create(builderFactory.getContext().getAccountId(), monitoredServiceDTO);
     MonitoredServiceDTO getMonitoredServiceDTO =
-        monitoredServiceService.get(builderFactory.getContext().getServiceEnvironmentParams()).getMonitoredServiceDTO();
+        monitoredServiceService
+            .getApplicationMonitoredServiceResponse(builderFactory.getContext().getServiceEnvironmentParams())
+            .getMonitoredServiceDTO();
     assertThat(monitoredServiceDTO).isEqualTo(getMonitoredServiceDTO);
   }
 
