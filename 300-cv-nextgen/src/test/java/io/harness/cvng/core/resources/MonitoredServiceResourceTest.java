@@ -154,13 +154,13 @@ public class MonitoredServiceResourceTest extends CvNextGenTestBase {
         + "  description: description345\n"
         + "  name: <+monitoredService.identifier>\n"
         + "  serviceRef: service1\n"
-        + "  environmentRefList: env1\n"
+        + "  environmentRef: env1\n"
         + "  tags: {}\n"
         + "  sources:\n"
         + "    healthSources:\n"
         + "    changeSources: \n";
     Response updateResponse = RESOURCES.client()
-                                  .target("http://localhost:9998/monitored-service/service1/yaml")
+                                  .target("http://localhost:9998/monitored-service/service1_env1/yaml")
                                   .queryParam("accountId", builderFactory.getContext().getAccountId())
                                   .queryParam("projectIdentifier", builderFactory.getContext().getProjectIdentifier())
                                   .queryParam("orgIdentifier", builderFactory.getContext().getOrgIdentifier())
