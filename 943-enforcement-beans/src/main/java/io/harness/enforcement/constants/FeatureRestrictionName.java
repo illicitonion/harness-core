@@ -71,6 +71,7 @@ public enum FeatureRestrictionName {
   AZURE_TRAFFIC_SHIFT,
   AZURE_SWAP_SLOT,
   AZURE_WEBAPP_ROLLBACK,
+  JENKINS_BUILD,
 
   // STO Features
   SECURITY,
