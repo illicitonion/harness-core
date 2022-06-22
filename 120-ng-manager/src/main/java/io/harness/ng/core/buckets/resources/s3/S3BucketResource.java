@@ -77,10 +77,6 @@ public class S3BucketResource {
     IdentifierRef connectorRef =
             IdentifierRefHelper.getIdentifierRef(awsConnectorIdentifier, accountId, orgIdentifier, projectIdentifier);
 
-    if(EmptyPredicate.isEmpty(region)){
-      region = AWS_DEFAULT_REGION;
-    }
-
     Map<String, String> s3Buckets =
             s3ResourceService.getBuckets(connectorRef, region, orgIdentifier, projectIdentifier);
 
