@@ -56,7 +56,7 @@ public class ManifestVariable extends Variable {
 
   public ManifestInput mapManifestVariableToManifestInput() {
     if (HelmChartInputType.VERSION.equals(inputType)) {
-      ManifestInput.builder().appManifestId(getAppManifestId()).buildNo(getValue()).build();
+      return ManifestInput.builder().appManifestId(getAppManifestId()).buildNo(getValue()).build();
     }
     return null;
   }
