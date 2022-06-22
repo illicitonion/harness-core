@@ -63,7 +63,6 @@ import static io.harness.validation.Validator.notNullCheck;
 
 import static software.wings.beans.ApprovalDetails.Action.APPROVE;
 import static software.wings.beans.ApprovalDetails.Action.REJECT;
-import static software.wings.beans.ApprovalDetails.Action.ROLLBACK;
 import static software.wings.beans.ApprovalDetails.Action.ROLLBACK_PROVISIONER_AFTER_PHASES;
 import static software.wings.beans.CGConstants.GLOBAL_APP_ID;
 import static software.wings.beans.ElementExecutionSummary.ElementExecutionSummaryBuilder.anElementExecutionSummary;
@@ -677,6 +676,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
         ExecutionInterruptType executionInterruptType = null;
 
         switch (approvalDetails.getAction()) {
+
           case ROLLBACK_PROVISIONER_AFTER_PHASES:
             executionInterruptType = ExecutionInterruptType.ROLLBACK_PROVISIONER_AFTER_PHASES;
             break;
