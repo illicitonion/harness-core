@@ -8,6 +8,7 @@
 package software.wings.delegatetasks.helm;
 
 import static io.harness.annotations.dev.HarnessTeam.CDP;
+import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.logging.CommandExecutionStatus.FAILURE;
 import static io.harness.logging.CommandExecutionStatus.SUCCESS;
 
@@ -39,6 +40,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 
@@ -75,7 +78,8 @@ public class HelmCollectChartTask extends AbstractDelegateRunnableTask {
 
       if (taskParams.getCollectionType() == HelmChartCollectionType.SPECIFIC_VERSION) {
         // that specific version is found
-        return HelmCollectChartResponse.builder().commandExecutionStatus(SUCCESS).helmCharts(Collections.singletonList(helmCharts.stream().filter(chart -> chart.getVersion().equals(taskParams.getHelmChartConfigParams().getChartVersion())).findFirst().orElse(null))).build();
+        List<HelmChart> retrievedHelmCharts = helmCharts.stream().filter(chart -> chart.getVersion().equals(taskParams.getHelmChartConfigParams().getChartVersion())).collect(Collectors.toList());
+        return HelmCollectChartResponse.builder().commandExecutionStatus(SUCCESS).helmCharts(isEmpty(retrievedHelmCharts) ? null : retrievedHelmCharts).build();
       } else {
         return HelmCollectChartResponse.builder().commandExecutionStatus(SUCCESS).helmCharts(helmCharts).build();
       }

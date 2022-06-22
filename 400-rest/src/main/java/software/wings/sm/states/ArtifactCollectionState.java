@@ -491,11 +491,11 @@ public class ArtifactCollectionState extends State {
     Integer timeout = getTimeoutMillis();
     DelegateTaskBuilder delegateTaskBuilder;
 
-
     ManifestCollectionParams manifestCollectionParams = manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(
             applicationManifest.getUuid(), applicationManifest.getAppId(), HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION, evaluatedBuildNo);
 
-    delegateTaskBuilder = DelegateTask.builder()
+    delegateTaskBuilder =
+        DelegateTask.builder()
             .accountId(applicationManifest.getAccountId())
             .waitId(waitId)
             .expiry(artifactCollectionUtils.getDelegateQueueTimeout(applicationManifest.getAccountId()))

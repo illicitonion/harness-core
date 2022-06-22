@@ -210,6 +210,13 @@ public class ArtifactCollectLoopState extends State {
     }
     StateExecutionInstance stateExecutionInstance = context.getStateExecutionInstance();
     addHelmChartsToWorkflowExecution(appId, workflowExecutionId, helmCharts);
+    WorkflowStandardParams workflowStandardParams = context.fetchWorkflowStandardParamsFromContext();
+    if (workflowStandardParams != null && workflowStandardParams.getWorkflowElement() != null) {
+      String pipelineWorkflowExecutionId = workflowStandardParams.getWorkflowElement().getPipelineDeploymentUuid();
+      if (!workflowExecutionId.equals(pipelineWorkflowExecutionId)) {
+        addHelmChartsToWorkflowExecution(appId, pipelineWorkflowExecutionId, helmCharts);
+      }
+    }
     addHelmChartsToStateExecutionInstance(appId, stateExecutionInstance, helmCharts);
     // need to add artifact to parent stateExecutionInstance so that it gets transferred to all the other phases in
     // workflow.
