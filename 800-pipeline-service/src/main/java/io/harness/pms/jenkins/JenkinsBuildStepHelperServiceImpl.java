@@ -87,65 +87,59 @@ public class JenkinsBuildStepHelperServiceImpl implements JenkinsBuildStepHelper
   @Override
   public TaskRequest prepareTaskRequest(JenkinsArtifactDelegateRequestBuilder paramsBuilder, Ambiance ambiance,
       String connectorRef, String timeStr, String taskName) {
-    try {
-      NGAccess ngAccess = AmbianceUtils.getNgAccess(ambiance);
-      IdentifierRef identifierRef = IdentifierRefHelper.getIdentifierRef(
-          connectorRef, ngAccess.getAccountIdentifier(), ngAccess.getOrgIdentifier(), ngAccess.getProjectIdentifier());
-      Optional<ConnectorDTO> connectorDTOOptional = NGRestUtils.getResponse(
-          connectorResourceClient.get(identifierRef.getIdentifier(), identifierRef.getAccountIdentifier(),
-              identifierRef.getOrgIdentifier(), identifierRef.getProjectIdentifier()));
-      if (!connectorDTOOptional.isPresent()) {
-        throw new InvalidRequestException(
-            String.format("Connector not found for identifier: [%s]", connectorRef), WingsException.USER);
-      }
+    NGAccess ngAccess = AmbianceUtils.getNgAccess(ambiance);
+    IdentifierRef identifierRef = IdentifierRefHelper.getIdentifierRef(
+        connectorRef, ngAccess.getAccountIdentifier(), ngAccess.getOrgIdentifier(), ngAccess.getProjectIdentifier());
+    Optional<ConnectorDTO> connectorDTOOptional = NGRestUtils.getResponse(
+        connectorResourceClient.get(identifierRef.getIdentifier(), identifierRef.getAccountIdentifier(),
+            identifierRef.getOrgIdentifier(), identifierRef.getProjectIdentifier()));
+    if (!connectorDTOOptional.isPresent()) {
+      throw new InvalidRequestException(
+          String.format("Connector not found for identifier: [%s]", connectorRef), WingsException.USER);
+    }
 
-      ConnectorConfigDTO configDTO = connectorDTOOptional.get().getConnectorInfo().getConnectorConfig();
-      if (!(configDTO instanceof JenkinsConnectorDTO)) {
-        throw new InvalidRequestException(
-            String.format("Connector [%s] is not a jenkins connector", connectorRef), WingsException.USER);
-      }
+    ConnectorConfigDTO configDTO = connectorDTOOptional.get().getConnectorInfo().getConnectorConfig();
+    if (!(configDTO instanceof JenkinsConnectorDTO)) {
+      throw new InvalidRequestException(
+          String.format("Connector [%s] is not a jenkins connector", connectorRef), WingsException.USER);
+    }
 
-      JenkinsConnectorDTO connectorDTO = (JenkinsConnectorDTO) configDTO;
-      BaseNGAccess baseNGAccess = getBaseNGAccess(
-          identifierRef.getAccountIdentifier(), identifierRef.getOrgIdentifier(), identifierRef.getProjectIdentifier());
-      paramsBuilder.jenkinsConnectorDTO(connectorDTO);
-      paramsBuilder.encryptedDataDetails(
-          secretManagerClientService.getEncryptionDetails(ngAccess, connectorDTO.getAuth().getCredentials()));
-      JenkinsArtifactDelegateRequest params = paramsBuilder.build();
-      ArtifactTaskExecutionResponse artifactTaskExecutionResponse = executeSyncTask(
-          params, ArtifactTaskType.JENKINS_BUILD, baseNGAccess, ambiance, "Jenkins Get Job task failure due to error");
+    JenkinsConnectorDTO connectorDTO = (JenkinsConnectorDTO) configDTO;
+    BaseNGAccess baseNGAccess = getBaseNGAccess(
+        identifierRef.getAccountIdentifier(), identifierRef.getOrgIdentifier(), identifierRef.getProjectIdentifier());
+    paramsBuilder.jenkinsConnectorDTO(connectorDTO);
+    paramsBuilder.encryptedDataDetails(
+        secretManagerClientService.getEncryptionDetails(ngAccess, connectorDTO.getAuth().getCredentials()));
+    JenkinsArtifactDelegateRequest params = paramsBuilder.build();
+    ArtifactTaskExecutionResponse artifactTaskExecutionResponse = executeSyncTask(
+        params, ArtifactTaskType.JENKINS_BUILD, baseNGAccess, ambiance, "Jenkins Get Job task failure due to error");
 
-      if (isNotEmpty(artifactTaskExecutionResponse.getJenkinsBuildTaskNGResponse().getQueuedBuildUrl())) {
-        paramsBuilder.queuedBuildUrl(artifactTaskExecutionResponse.getJenkinsBuildTaskNGResponse().getQueuedBuildUrl());
-        params = paramsBuilder.build();
-        ArtifactTaskParameters artifactTaskParameters = ArtifactTaskParameters.builder()
-                                                            .accountId(ngAccess.getAccountIdentifier())
-                                                            .artifactTaskType(ArtifactTaskType.JENKINS_POLL_TASK)
-                                                            .attributes(params)
-                                                            .build();
-        TaskData taskData = TaskData.builder()
-                                .async(true)
-                                .timeout(NGTimeConversionHelper.convertTimeStringToMilliseconds(timeStr))
-                                .taskType(NGTaskType.JENKINS_ARTIFACT_TASK_NG.name())
-                                .parameters(new Object[] {artifactTaskParameters})
-                                .build();
-        return StepUtils.prepareTaskRequest(ambiance, taskData, kryoSerializer, TaskCategory.DELEGATE_TASK_V2,
-            Collections.singletonList(COMMAND_UNIT), true, taskName,
-            params.getDelegateSelectors()
-                .stream()
-                .map(s -> TaskSelector.newBuilder().setSelector(s).build())
-                .collect(Collectors.toList()),
-            Scope.PROJECT, EnvironmentType.ALL);
-      } else {
-        ILogStreamingStepClient logStreamingStepClient =
-            logStreamingStepClientFactory.getLogStreamingStepClient(ambiance);
-        logStreamingStepClient.closeStream(COMMAND_UNIT);
-        throw new RuntimeException("Jenkins Queued Build URL is empty and could not start POLL_TASK");
-      }
-    } catch (InvalidRequestException e) {
-      throw new InvalidRequestException(e.getMessage());
-    } catch (RuntimeException e) {
-      throw new RuntimeException(e.getMessage());
+    if (isNotEmpty(artifactTaskExecutionResponse.getJenkinsBuildTaskNGResponse().getQueuedBuildUrl())) {
+      paramsBuilder.queuedBuildUrl(artifactTaskExecutionResponse.getJenkinsBuildTaskNGResponse().getQueuedBuildUrl());
+      params = paramsBuilder.build();
+      ArtifactTaskParameters artifactTaskParameters = ArtifactTaskParameters.builder()
+                                                          .accountId(ngAccess.getAccountIdentifier())
+                                                          .artifactTaskType(ArtifactTaskType.JENKINS_POLL_TASK)
+                                                          .attributes(params)
+                                                          .build();
+      TaskData taskData = TaskData.builder()
+                              .async(true)
+                              .timeout(NGTimeConversionHelper.convertTimeStringToMilliseconds(timeStr))
+                              .taskType(NGTaskType.JENKINS_ARTIFACT_TASK_NG.name())
+                              .parameters(new Object[] {artifactTaskParameters})
+                              .build();
+      return StepUtils.prepareTaskRequest(ambiance, taskData, kryoSerializer, TaskCategory.DELEGATE_TASK_V2,
+          Collections.singletonList(COMMAND_UNIT), true, taskName,
+          params.getDelegateSelectors()
+              .stream()
+              .map(s -> TaskSelector.newBuilder().setSelector(s).build())
+              .collect(Collectors.toList()),
+          Scope.PROJECT, EnvironmentType.ALL);
+    } else {
+      ILogStreamingStepClient logStreamingStepClient =
+          logStreamingStepClientFactory.getLogStreamingStepClient(ambiance);
+      logStreamingStepClient.closeStream(COMMAND_UNIT);
+      throw new RuntimeException("Jenkins Queued Build URL is empty and could not start POLL_TASK");
     }
   }
 

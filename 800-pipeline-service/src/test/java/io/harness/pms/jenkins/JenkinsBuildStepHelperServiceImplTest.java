@@ -11,8 +11,10 @@ import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
 import static io.harness.rule.OwnerRule.SHIVAM;
 
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.powermock.api.mockito.PowerMockito.mock;
+import static org.powermock.api.mockito.PowerMockito.when;
 
 import io.harness.CategoryTest;
 import io.harness.annotations.dev.OwnedBy;
@@ -25,13 +27,18 @@ import io.harness.delegate.beans.connector.docker.DockerConnectorDTO;
 import io.harness.delegate.beans.connector.jenkins.JenkinsConnectorDTO;
 import io.harness.delegate.task.artifacts.jenkins.JenkinsArtifactDelegateRequest;
 import io.harness.delegate.task.artifacts.response.ArtifactTaskExecutionResponse;
+import io.harness.delegate.task.artifacts.response.ArtifactTaskResponse;
+import io.harness.delegate.task.jenkins.JenkinsBuildTaskNGResponse;
 import io.harness.exception.InvalidRequestException;
 import io.harness.pms.contracts.ambiance.Ambiance;
+import io.harness.pms.contracts.execution.Status;
+import io.harness.pms.sdk.core.steps.io.StepResponse;
 import io.harness.remote.client.NGRestUtils;
 import io.harness.rule.Owner;
 import io.harness.secretmanagerclient.services.api.SecretManagerClientService;
 import io.harness.serializer.KryoSerializer;
 import io.harness.steps.StepUtils;
+import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildOutcome;
 
 import java.util.Optional;
 import org.junit.Test;
@@ -92,14 +99,4 @@ public class JenkinsBuildStepHelperServiceImplTest extends CategoryTest {
                            JenkinsArtifactDelegateRequest.builder(), ambiance, "connectorref", "time", "task"))
         .isInstanceOf(RuntimeException.class);
   }
-
-  //    @Test
-  //    @Owner(developers = BRIJESH)
-  //    @Category(UnitTests.class)
-  //    public void testPrepareStepResponse() throws Exception {
-  //        StepResponse stepResponse =
-  //                jiraStepHelperService.prepareStepResponse(() -> JiraTaskNGResponse.builder().issue(new
-  //                JiraIssueNG()).build());
-  //        assertEquals(stepResponse.getStatus(), Status.SUCCEEDED);
-  //    }
 }
