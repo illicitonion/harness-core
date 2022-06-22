@@ -22,6 +22,7 @@ import io.harness.tasks.ResponseData;
 
 import software.wings.api.ForkElement;
 import software.wings.beans.ArtifactCollectLoopParams;
+import software.wings.beans.ManifestCollectLoopParams;
 import software.wings.beans.WorkflowExecution;
 import software.wings.beans.WorkflowExecution.WorkflowExecutionKeys;
 import software.wings.beans.appmanifest.HelmChart;
@@ -173,9 +174,9 @@ public class ArtifactCollectLoopState extends State {
         .build();
   }
 
-  private ArtifactCollectLoopParams getLoopStateParamsForManifest(ManifestInput manifestInput, String name) {
-    return ArtifactCollectLoopParams.builder()
-        .artifactStreamId(manifestInput.getAppManifestId())
+  private ManifestCollectLoopParams getLoopStateParamsForManifest(ManifestInput manifestInput, String name) {
+    return ManifestCollectLoopParams.builder()
+        .appManifestId(manifestInput.getAppManifestId())
         .buildNo(manifestInput.getBuildNo())
         .stepName(name)
         .build();
