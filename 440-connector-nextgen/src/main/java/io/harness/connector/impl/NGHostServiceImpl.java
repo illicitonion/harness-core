@@ -52,8 +52,8 @@ public class NGHostServiceImpl implements NGHostService {
 
   @Override
   public Page<HostDTO> filterHostsByConnector(String accountIdentifier, String orgIdentifier, String projectIdentifier,
-      String connectorIdentifier, HostFilterDTO filter, PageRequest pageRequest) {
-    Connector connector = getConnector(accountIdentifier, orgIdentifier, projectIdentifier, connectorIdentifier);
+      String scopedConnectorIdentifier, HostFilterDTO filter, PageRequest pageRequest) {
+    Connector connector = getConnector(accountIdentifier, orgIdentifier, projectIdentifier, scopedConnectorIdentifier);
 
     if (!ConnectorType.PDC.equals(connector.getType())) {
       throw new InvalidRequestException("Filtering of hosts is supported only for PDC type.");
@@ -73,9 +73,9 @@ public class NGHostServiceImpl implements NGHostService {
   }
 
   private Connector getConnector(
-      String accountIdentifier, String orgIdentifier, String projectIdentifier, String connectorIdentifier) {
-    IdentifierRef connectorIdentifierRef =
-        IdentifierRefHelper.getIdentifierRef(connectorIdentifier, accountIdentifier, orgIdentifier, projectIdentifier);
+      String accountIdentifier, String orgIdentifier, String projectIdentifier, String scopedConnectorIdentifier) {
+    IdentifierRef connectorIdentifierRef = IdentifierRefHelper.getIdentifierRef(
+        scopedConnectorIdentifier, accountIdentifier, orgIdentifier, projectIdentifier);
     String fullyQualifiedIdentifier = FullyQualifiedIdentifierHelper.getFullyQualifiedIdentifier(
         connectorIdentifierRef.getAccountIdentifier(), connectorIdentifierRef.getOrgIdentifier(),
         connectorIdentifierRef.getProjectIdentifier(), connectorIdentifierRef.getIdentifier());
@@ -85,7 +85,7 @@ public class NGHostServiceImpl implements NGHostService {
             fullyQualifiedIdentifier, projectIdentifier, orgIdentifier, accountIdentifier, true)
         .orElseThrow(()
                          -> new InvalidRequestException(connectorErrorMessagesHelper.createConnectorNotFoundMessage(
-                             accountIdentifier, orgIdentifier, projectIdentifier, connectorIdentifier)));
+                             accountIdentifier, orgIdentifier, projectIdentifier, scopedConnectorIdentifier)));
   }
 
   private List<HostDTO> applyFilter(List<HostDTO> hosts, HostFilterDTO filter) {
