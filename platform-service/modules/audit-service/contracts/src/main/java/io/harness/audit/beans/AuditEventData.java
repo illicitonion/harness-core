@@ -8,7 +8,13 @@
 package io.harness.audit.beans;
 
 import static io.harness.annotations.dev.HarnessTeam.PL;
-import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.*;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.ADD_COLLABORATOR_AUDIT_EVENT_DATA;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.CHAOS_AUDIT_EVENT_DATA;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.OPA_AUDIT_EVENT_DATA;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.TEMPLATE_AUDIT_EVENT_DATA;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.USER_INVITATION_AUDIT_EVENT_DATA;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.USER_INVITE;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.USER_MEMBERSHIP;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.audit.beans.custom.chaos.ChaosAuditEventData;
