@@ -59,7 +59,7 @@ public class YamlSchemaMergeHelper {
         switch (templateEntityType){
             case STAGE_TEMPLATE:
             case STEP_TEMPLATE:
-                return new HashSet<>(Arrays.asList("name", "identifier", "description", "orgIdentifier", "projectIdentifier", "template"));
+                return new HashSet<>(Arrays.asList("name", "identifier", "description", "orgIdentifier", "projectIdentifier"));
             case PIPELINE_TEMPLATE:
                 return new HashSet<>(Arrays.asList("name", "identifier", "description", "type", "tags", "orgIdentifier", "projectIdentifier", "template"));
         }

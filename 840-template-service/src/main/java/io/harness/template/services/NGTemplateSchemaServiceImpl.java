@@ -52,6 +52,7 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
         //TODO: add a handler here to fetch for schemas that we can't get from pipeline as discussed. and refactor
         JsonNode specSchema = NGRestUtils
                 .getResponse(yamlSchemaServiceClient.getYamlSchema(accountIdentifier, orgIdentifier, projectIdentifier, yamlGroup, entityType, scope)).getSchema();
+        //TODO: owner of TemplateEntityGroup pipeline we can map yamlGroup
 
         YamlSchemaMergeHelper.mergeYamlSchema(templateSchema, specSchema, entityType, templateEntityType);
         return templateSchema;
@@ -59,13 +60,12 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
 
     private boolean schemaValidationSupported(TemplateEntityType templateEntityType){
         switch (templateEntityType){
-            case MONITORED_SERVICE_TEMPLATE:
-                return false;
             case PIPELINE_TEMPLATE:
             case STEP_TEMPLATE:
             case STAGE_TEMPLATE:
                 return true;
+            default:
+                return false;
         }
-        return false;
     }
 }
