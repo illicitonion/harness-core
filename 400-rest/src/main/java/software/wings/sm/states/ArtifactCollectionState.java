@@ -37,6 +37,7 @@ import io.harness.beans.FeatureName;
 import io.harness.delay.DelayEventHelper;
 import io.harness.delegate.beans.DelegateResponseData;
 import io.harness.delegate.beans.TaskData;
+import io.harness.delegate.task.manifests.request.ManifestCollectionParams;
 import io.harness.exception.ExceptionUtils;
 import io.harness.exception.InvalidRequestException;
 import io.harness.exception.WingsException;
@@ -490,17 +491,20 @@ public class ArtifactCollectionState extends State {
     Integer timeout = getTimeoutMillis();
     DelegateTaskBuilder delegateTaskBuilder;
 
-    delegateTaskBuilder =
-        DelegateTask.builder()
+
+    ManifestCollectionParams manifestCollectionParams = manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(
+            applicationManifest.getUuid(), applicationManifest.getAppId(), HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION, evaluatedBuildNo);
+    HelmChartCollectionParams helmChartCollectionParams = (HelmChartCollectionParams)(manifestCollectionParams);
+    helmChartCollectionParams.getHelmChartConfigParams().setBypassHelmFetch(false);
+
+    delegateTaskBuilder = DelegateTask.builder()
             .accountId(applicationManifest.getAccountId())
             .waitId(waitId)
             .expiry(artifactCollectionUtils.getDelegateQueueTimeout(applicationManifest.getAccountId()))
             .data(TaskData.builder()
                       .async(true)
                       .taskType(TaskType.HELM_COLLECT_CHART.name())
-                      .parameters(new Object[] {manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(
-                          applicationManifest.getUuid(), applicationManifest.getAppId(),
-                          HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION, evaluatedBuildNo)})
+                      .parameters(new Object[] {helmChartCollectionParams})
                       .timeout(timeout)
                       .build());
 
