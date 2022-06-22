@@ -344,22 +344,13 @@ public class NGSecretServiceV2Impl implements NGSecretServiceV2 {
     List<ResourceScopeAndIdentifierDTO> secrets = secretRepository.findAllWithScopeAndIdentifierOnly(criteria);
     Criteria permittedCriteria = new Criteria().orOperator(Streams.stream(Iterables.partition(secrets, 1000))
                                                                .map(this::checkAccess)
-                                                               .flatMap(List<ResourceScopeAndIdentifierDTO>::stream)
-                                                               .map(secret
-                                                                   -> Criteria.where(SecretKeys.identifier)
-                                                                          .is(secret.getIdentifier())
-                                                                          .and(SecretKeys.accountIdentifier)
-                                                                          .is(secret.getAccountIdentifier())
-                                                                          .and(SecretKeys.orgIdentifier)
-                                                                          .is(secret.getOrgIdentifier())
-                                                                          .and(SecretKeys.projectIdentifier)
-                                                                          .is(secret.getProjectIdentifier()))
+                                                               .flatMap(List<Criteria>::stream)
                                                                .toArray(Criteria[] ::new));
     return secretRepository.findAll(permittedCriteria,
         PageUtils.getPageRequest(page, size, Collections.singletonList(SecretKeys.createdAt + ",desc")));
   }
 
-  private List<ResourceScopeAndIdentifierDTO> checkAccess(List<ResourceScopeAndIdentifierDTO> secrets) {
+  private List<Criteria> checkAccess(List<ResourceScopeAndIdentifierDTO> secrets) {
     // owner of secret is null, so skipping checks in secretPermissionValidator
     List<PermissionCheckDTO> permissionChecks =
         secrets.stream()
@@ -377,12 +368,14 @@ public class NGSecretServiceV2Impl implements NGSecretServiceV2 {
         .stream()
         .filter(AccessControlDTO::isPermitted)
         .map(accessControlDTO
-            -> ResourceScopeAndIdentifierDTO.builder()
-                   .accountIdentifier(accessControlDTO.getResourceScope().getAccountIdentifier())
-                   .orgIdentifier(accessControlDTO.getResourceScope().getOrgIdentifier())
-                   .projectIdentifier(accessControlDTO.getResourceScope().getProjectIdentifier())
-                   .identifier(accessControlDTO.getResourceIdentifier())
-                   .build())
+            -> Criteria.where(SecretKeys.identifier)
+                   .is(accessControlDTO.getResourceIdentifier())
+                   .and(SecretKeys.accountIdentifier)
+                   .is(accessControlDTO.getResourceScope().getAccountIdentifier())
+                   .and(SecretKeys.orgIdentifier)
+                   .is(accessControlDTO.getResourceScope().getOrgIdentifier())
+                   .and(SecretKeys.projectIdentifier)
+                   .is(accessControlDTO.getResourceScope().getProjectIdentifier()))
         .collect(Collectors.toList());
   }
 
