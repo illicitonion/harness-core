@@ -5,12 +5,15 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.k8s.steadystate.statuschecker;
+package io.harness.k8s.steadystate.model;
 
-import io.harness.k8s.model.KubernetesRolloutStatusDTO;
+import lombok.Builder;
+import lombok.Data;
 
-import io.kubernetes.client.openapi.ApiClient;
-
-public interface AbstractSteadyStateChecker {
-  boolean rolloutStatus(KubernetesRolloutStatusDTO kubernetesRolloutStatusDTO, ApiClient apiClient) throws Exception;
+@Builder
+@Data
+public class K8ApiResponseDTO {
+  String message;
+  boolean isDone;
+  boolean isFailed;
 }

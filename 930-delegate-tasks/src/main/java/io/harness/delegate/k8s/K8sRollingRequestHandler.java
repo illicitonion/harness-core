@@ -43,13 +43,16 @@ import io.harness.delegate.task.k8s.K8sDeployResponse;
 import io.harness.delegate.task.k8s.K8sRollingDeployRequest;
 import io.harness.delegate.task.k8s.K8sRollingDeployResponse;
 import io.harness.delegate.task.k8s.K8sTaskHelperBase;
+import io.harness.delegate.task.k8s.client.KubernetesApiClient;
+import io.harness.delegate.task.k8s.client.KubernetesCliClient;
+import io.harness.delegate.task.k8s.client.KubernetesClient;
 import io.harness.exception.InvalidArgumentsException;
 import io.harness.k8s.KubernetesContainerService;
-import io.harness.k8s.KubernetesSteadyStateService;
 import io.harness.k8s.kubectl.Kubectl;
 import io.harness.k8s.manifest.ManifestHelper;
 import io.harness.k8s.model.K8sDelegateTaskParams;
 import io.harness.k8s.model.K8sPod;
+import io.harness.k8s.model.K8sSteadyStateDTO;
 import io.harness.k8s.model.KubernetesConfig;
 import io.harness.k8s.model.KubernetesResource;
 import io.harness.k8s.model.KubernetesResourceId;
@@ -82,7 +85,8 @@ public class K8sRollingRequestHandler extends K8sRequestHandler {
   @Inject private K8sTaskHelperBase k8sTaskHelperBase;
   @Inject K8sRollingBaseHandler k8sRollingBaseHandler;
   @Inject private ContainerDeploymentDelegateBaseHelper containerDeploymentDelegateBaseHelper;
-  @Inject private KubernetesSteadyStateService kubernetesSteadyStateService;
+  @Inject private KubernetesCliClient kubernetesCliClient;
+  @Inject private KubernetesApiClient kubernetesApiClient;
 
   private KubernetesConfig kubernetesConfig;
   private Kubectl client;
@@ -149,14 +153,20 @@ public class K8sRollingRequestHandler extends K8sRequestHandler {
           k8sTaskHelperBase.getLogCallback(logStreamingTaskClient, WaitForSteadyState, true, commandUnitsProgress);
 
       try {
-        if (k8sRollingDeployRequest.isUseK8sApiForSteadyStateCheck()) {
-          kubernetesSteadyStateService.performSteadyStateCheck(kubernetesConfig, managedWorkloadKubernetesResourceIds,
-              kubernetesConfig.getNamespace(), waitForeSteadyStateLogCallback, steadyStateTimeoutInMillis);
-        } else {
-          k8sTaskHelperBase.doStatusCheckForAllResources(client, managedWorkloadKubernetesResourceIds,
-              k8sDelegateTaskParams, kubernetesConfig.getNamespace(), waitForeSteadyStateLogCallback,
-              customWorkloads.isEmpty(), true);
-        }
+        K8sSteadyStateDTO k8sSteadyStateDTO = K8sSteadyStateDTO.builder()
+                                                  .request(k8sDeployRequest)
+                                                  .resourceIds(managedWorkloadKubernetesResourceIds)
+                                                  .executionLogCallback(waitForeSteadyStateLogCallback)
+                                                  .k8sDelegateTaskParams(k8sDelegateTaskParams)
+                                                  .namespace(kubernetesConfig.getNamespace())
+                                                  .denoteOverallSuccess(true)
+                                                  .isErrorFrameworkEnabled(true)
+                                                  .build();
+
+        KubernetesClient kubernetesClient =
+            getKubernetesClient(k8sRollingDeployRequest.isUseK8sApiForSteadyStateCheck());
+        kubernetesClient.performSteadyStateCheck(k8sSteadyStateDTO);
+
         k8sTaskHelperBase.doStatusCheckForAllCustomResources(client, customWorkloads, k8sDelegateTaskParams,
             waitForeSteadyStateLogCallback, true, steadyStateTimeoutInMillis, true);
       } finally {
@@ -188,6 +198,13 @@ public class K8sRollingRequestHandler extends K8sRequestHandler {
         .commandExecutionStatus(CommandExecutionStatus.SUCCESS)
         .k8sNGTaskResponse(rollingSetupResponse)
         .build();
+  }
+
+  private KubernetesClient getKubernetesClient(boolean useK8sApiForSteadyStateCheck) {
+    if (useK8sApiForSteadyStateCheck) {
+      return kubernetesApiClient;
+    }
+    return kubernetesCliClient;
   }
 
   @Override

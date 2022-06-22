@@ -7,12 +7,21 @@
 
 package io.harness.k8s.model;
 
+import io.harness.delegate.task.k8s.K8sDeployRequest;
+import io.harness.logging.LogCallback;
+
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
 @Builder
 @Data
-public class KubernetesStatusResponse {
-  String message;
-  boolean isDone;
+public class K8sSteadyStateDTO {
+  K8sDeployRequest request;
+  K8sDelegateTaskParams k8sDelegateTaskParams;
+  List<KubernetesResourceId> resourceIds;
+  LogCallback executionLogCallback;
+  String namespace;
+  boolean denoteOverallSuccess;
+  boolean isErrorFrameworkEnabled;
 }

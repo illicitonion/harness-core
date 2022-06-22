@@ -5,14 +5,18 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.k8s.steadystate.statuschecker;
+package io.harness.k8s.steadystate.watcher.workload;
 
+import io.harness.exception.ExceptionUtils;
 import io.harness.exception.InvalidRequestException;
-import io.harness.k8s.KubernetesHelperService;
+import io.harness.exception.KubernetesTaskException;
+import io.harness.exception.sanitizer.ExceptionMessageSanitizer;
 import io.harness.k8s.model.KubernetesResourceId;
-import io.harness.k8s.model.KubernetesRolloutStatusDTO;
-import io.harness.k8s.model.KubernetesStatusResponse;
+import io.harness.k8s.steadystate.model.K8ApiResponseDTO;
+import io.harness.k8s.steadystate.model.K8sRolloutStatusDTO;
+import io.harness.k8s.steadystate.statusviewer.DeploymentStatusViewer;
 import io.harness.logging.LogCallback;
+import io.harness.logging.LogLevel;
 
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
@@ -24,22 +28,22 @@ import io.kubernetes.client.openapi.models.V1Deployment;
 import io.kubernetes.client.openapi.models.V1ObjectMeta;
 import io.kubernetes.client.util.Watch;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
 
 @Singleton
-public class DeploymentSteadyStateChecker implements AbstractSteadyStateChecker {
-  @Inject private KubernetesHelperService kubernetesHelperService;
-  @Inject private DeploymentStatusViewer deploymentStatusViewer;
+@Slf4j
+public class DeploymentApiWatcher implements WorkloadWatcher {
+  @Inject private DeploymentStatusViewer statusViewer;
 
   @Override
-  public boolean rolloutStatus(KubernetesRolloutStatusDTO kubernetesRolloutStatusDTO, ApiClient apiClient)
-      throws Exception {
-    KubernetesResourceId workload = kubernetesRolloutStatusDTO.getWorkload();
-    LogCallback executionLogCallback = kubernetesRolloutStatusDTO.getLogCallback();
-    return watchDeployment(apiClient, workload, executionLogCallback);
+  public boolean watchRolloutStatus(K8sRolloutStatusDTO k8sRolloutStatusDTO, KubernetesResourceId workload,
+      LogCallback executionLogCallback) throws Exception {
+    return watchDeployment(k8sRolloutStatusDTO.getApiClient(), workload, executionLogCallback,
+        k8sRolloutStatusDTO.isErrorFrameworkEnabled());
   }
 
-  private boolean watchDeployment(
-      ApiClient apiClient, KubernetesResourceId deploymentResource, LogCallback executionLogCallback) {
+  private boolean watchDeployment(ApiClient apiClient, KubernetesResourceId deploymentResource,
+      LogCallback executionLogCallback, boolean errorFrameworkEnabled) throws Exception {
     AppsV1Api appsV1Api = new AppsV1Api(apiClient);
     while (true) {
       try (Watch<V1Deployment> watch = Watch.createWatch(apiClient,
@@ -55,8 +59,14 @@ public class DeploymentSteadyStateChecker implements AbstractSteadyStateChecker 
           switch (event.type) {
             case "ADDED":
             case "MODIFIED":
-              KubernetesStatusResponse rolloutStatus = deploymentStatusViewer.extractRolloutStatus(deployment);
+              K8ApiResponseDTO rolloutStatus = statusViewer.extractRolloutStatus(deployment);
               executionLogCallback.saveExecutionLog(rolloutStatus.getMessage());
+              if (rolloutStatus.isFailed()) {
+                if (errorFrameworkEnabled) {
+                  throw new KubernetesTaskException(rolloutStatus.getMessage());
+                }
+                return false;
+              }
               if (rolloutStatus.isDone()) {
                 return true;
               }
@@ -67,8 +77,16 @@ public class DeploymentSteadyStateChecker implements AbstractSteadyStateChecker 
               throw new InvalidRequestException(String.format("unexpected k8s event %s", event.type));
           }
         }
-      } catch (IOException | ApiException e) {
-        throw new InvalidRequestException("failed to do status check.", e);
+      } catch (IOException e) {
+        throw new InvalidRequestException("Failed to close Kubernetes watch.", e);
+      } catch (ApiException e) {
+        ApiException ex = ExceptionMessageSanitizer.sanitizeException(e);
+        log.error("Failed to watch deployment rollout status.", ex);
+        executionLogCallback.saveExecutionLog(ExceptionUtils.getMessage(ex), LogLevel.ERROR);
+        if (errorFrameworkEnabled) {
+          throw ex;
+        }
+        return false;
       }
     }
   }

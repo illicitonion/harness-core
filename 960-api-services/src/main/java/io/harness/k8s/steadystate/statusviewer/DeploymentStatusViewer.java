@@ -5,7 +5,7 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.k8s.steadystate.statuschecker;
+package io.harness.k8s.steadystate.statusviewer;
 
 import io.harness.exception.InvalidRequestException;
 import io.harness.k8s.model.KubernetesStatusResponse;
@@ -38,8 +38,10 @@ public class DeploymentStatusViewer {
           V1DeploymentCondition deploymentCondition = deploymentConditionOptional.get();
           if (deploymentCondition.getReason() != null
               && deploymentCondition.getReason().equalsIgnoreCase("ProgressDeadlineExceeded")) {
-            throw new InvalidRequestException(
-                String.format("deployment %s exceeded its progress deadline", meta.getName()));
+            return KubernetesStatusResponse.builder()
+                .isFailed(true)
+                .message(String.format("deployment %s exceeded its progress deadline", meta.getName()))
+                .build();
           }
         }
       }

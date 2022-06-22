@@ -7,18 +7,14 @@
 
 package io.harness.k8s.model;
 
-import io.harness.logging.LogCallback;
-
-import java.util.Set;
+import java.util.concurrent.Future;
 import lombok.Builder;
 import lombok.Data;
+import org.zeroturnaround.exec.StartedProcess;
 
-@Data
 @Builder
-public class KubernetesNamespaceEventWatchDTO {
-  LogCallback executionLogCallback;
-  String eventInfoFormat;
-  String eventErrorFormat;
-  Set<String> workloadNames;
-  long timeoutInMillis;
+@Data
+public class K8sEventWatchRef {
+  StartedProcess startedProcess;
+  Future<?> threadFuture;
 }
