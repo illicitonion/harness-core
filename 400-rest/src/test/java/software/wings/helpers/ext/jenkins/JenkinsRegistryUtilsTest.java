@@ -33,7 +33,6 @@ import io.harness.artifacts.jenkins.client.JenkinsClient;
 import io.harness.artifacts.jenkins.client.JenkinsCustomServer;
 import io.harness.artifacts.jenkins.service.JenkinsRegistryUtils;
 import io.harness.category.element.UnitTests;
-import io.harness.data.structure.UUIDGenerator;
 import io.harness.delegate.beans.artifact.ArtifactFileMetadata;
 import io.harness.exception.ArtifactServerException;
 import io.harness.logging.LoggingInitializer;
@@ -66,12 +65,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.apache.http.client.HttpResponseException;
-import org.joor.Reflect;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 
 /**

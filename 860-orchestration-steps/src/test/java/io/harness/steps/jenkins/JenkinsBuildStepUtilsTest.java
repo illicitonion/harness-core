@@ -19,7 +19,6 @@ import io.harness.category.element.UnitTests;
 import io.harness.pms.yaml.ParameterField;
 import io.harness.rule.Owner;
 import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepUtils;
-import io.harness.steps.jira.JiraStepUtils;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;
