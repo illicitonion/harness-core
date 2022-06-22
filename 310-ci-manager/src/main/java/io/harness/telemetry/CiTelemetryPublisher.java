@@ -77,18 +77,18 @@ public class CiTelemetryPublisher implements MongoPersistenceIterator.Handler<Ac
     public void handle(Account account) {
         try (AutoLogContext ignore0 = new AccountLogContext(account.getUuid(), OVERRIDE_ERROR)) {
             String accountId = account.getUuid();
-            log.info("DelegateTelemetryPublisher recordTelemetry execute started for account {}.", accountId);
+            log.info("CiTelemetryPublisher recordTelemetry execute started for account {}.", accountId);
             try {
                 if (EmptyPredicate.isNotEmpty(accountId) && !accountId.equals(GLOBAL_ACCOUNT_ID)) {
                     sendTelemetryGroupEvents(accountId);
-                    log.info("Scheduled DelegateTelemetryPublisher event sent for account {} !", accountId);
+                    log.info("Scheduled CiTelemetryPublisher event sent for account {} !", accountId);
                 } else {
-                    log.info("There is no Account found!. Can not send scheduled DelegateTelemetryPublisher event.");
+                    log.info("There is no Account found!. Can not send scheduled CiTelemetryPublisher event.");
                 }
             } catch (Exception e) {
-                log.error("DelegateTelemetryPublisher recordTelemetry execute failed for account {} .", accountId, e);
+                log.error("CiTelemetryPublisher recordTelemetry execute failed for account {} .", accountId, e);
             } finally {
-                log.info("DelegateTelemetryPublisher recordTelemetry execute finished for account {} .", accountId);
+                log.info("CiTelemetryPublisher recordTelemetry execute finished for account {} .", accountId);
             }
         }
     }
