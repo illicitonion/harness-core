@@ -2096,7 +2096,7 @@ public class WorkflowExecutionServiceTest extends WingsBaseTest {
         Collections.singletonList(ArtifactInput.builder().buildNo("build1").artifactStreamId("id").build());
 
     OrchestrationWorkflow orchestrationWorkflow =
-        workflowExecutionServiceSpy.updateWorkflowWithArtifactCollectionSteps(workflow, artifactInputs);
+        workflowExecutionServiceSpy.updateWorkflowWithArtifactCollectionSteps(workflow, artifactInputs, null);
     assertThat(orchestrationWorkflow).isNotNull().isInstanceOf(CanaryOrchestrationWorkflow.class);
     CanaryOrchestrationWorkflow canaryOrchestrationWorkflow = (CanaryOrchestrationWorkflow) orchestrationWorkflow;
     PhaseStep preDeploymentSteps = canaryOrchestrationWorkflow.getPreDeploymentSteps();
