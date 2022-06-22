@@ -13,7 +13,7 @@ import software.wings.service.intfc.WorkflowService;
 import software.wings.sm.State;
 import software.wings.sm.StateType;
 import software.wings.sm.StateTypeDescriptor;
-import software.wings.sm.states.ArtifactCollectionState;
+import software.wings.sm.states.ArtifactCollectionState.ArtifactCollectionStateKeys;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -34,10 +34,10 @@ public class ManifestCollectLoopParams implements LoopParams {
 
     State state = stateTypeDesc.newInstance(stepName);
     Map<String, Object> properties = new HashMap<>();
-    properties.put(ArtifactCollectionState.ArtifactCollectionStateKeys.appManifestId, appManifestId);
-    properties.put(ArtifactCollectionState.ArtifactCollectionStateKeys.buildNo, buildNo);
-    properties.put(ArtifactCollectionState.ArtifactCollectionStateKeys.regex, false);
-    properties.put(ArtifactCollectionState.ArtifactCollectionStateKeys.sourceType, MANIFEST);
+    properties.put(ArtifactCollectionStateKeys.appManifestId, appManifestId);
+    properties.put(ArtifactCollectionStateKeys.buildNo, buildNo);
+    properties.put(ArtifactCollectionStateKeys.regex, false);
+    properties.put(ArtifactCollectionStateKeys.sourceType, MANIFEST);
     state.parseProperties(properties);
     state.resolveProperties();
     return state;
