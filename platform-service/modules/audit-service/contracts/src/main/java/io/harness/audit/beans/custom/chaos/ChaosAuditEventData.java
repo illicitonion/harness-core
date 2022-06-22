@@ -7,17 +7,18 @@
 
 package io.harness.audit.beans.custom.chaos;
 
-import com.fasterxml.jackson.annotation.JsonTypeName;
+import static io.harness.annotations.dev.HarnessTeam.CHAOS;
+import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.CHAOS_AUDIT_EVENT_DATA;
+
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.audit.beans.AuditEventData;
+
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.TypeAlias;
-
-import static io.harness.annotations.dev.HarnessTeam.CHAOS;
-import static io.harness.audit.beans.custom.AuditEventDataTypeConstants.CHAOS_AUDIT_EVENT_DATA;
 
 @OwnedBy(CHAOS)
 @Data
