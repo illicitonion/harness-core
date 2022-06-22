@@ -428,6 +428,7 @@ public class HelmTaskHelper {
     }
     OciHelmRepoConfig repoConfig = (OciHelmRepoConfig) helmChartConfigParams.getHelmRepoConfig();
     try {
+      loginOciRegistry(repoConfig, HelmVersion.V380, timeoutInMillis, chartDirectory);
       String repoName = String.format(REGISTRY_URL_PREFIX, Paths.get(repoConfig.getChartRepoUrl()).normalize());
       helmTaskHelperBase.fetchChartFromRepo(repoName, helmChartConfigParams.getRepoDisplayName(),
           helmChartConfigParams.getChartName(), helmChartConfigParams.getChartVersion(), chartDirectory,
@@ -628,6 +629,7 @@ public class HelmTaskHelper {
       }
     } finally {
       // We do remove repo only when the useFlags FF is on.
+      deleteDirectoryAndItsContentIfExists(workingDirectory + "/helm");
       if (useRepoFlags) {
         deleteQuietlyWithErrorLog(tempDir);
       }
