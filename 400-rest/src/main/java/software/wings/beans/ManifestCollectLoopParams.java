@@ -13,7 +13,6 @@ import software.wings.service.intfc.WorkflowService;
 import software.wings.sm.State;
 import software.wings.sm.StateType;
 import software.wings.sm.StateTypeDescriptor;
-import software.wings.sm.states.ArtifactCollectionState;
 import software.wings.sm.states.ArtifactCollectionState.ArtifactCollectionStateKeys;
 
 import java.util.HashMap;
