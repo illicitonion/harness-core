@@ -3350,12 +3350,15 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
 
   private void populateManifestVariablesFromHelmCharts(ExecutionArgs executionArgs) {
     if (isNotEmpty(executionArgs.getHelmCharts()) && isEmpty(executionArgs.getManifestVariables())) {
-      List<ManifestVariable> manifestVariables = executionArgs.getHelmCharts().stream().map(helmChart
-          -> ManifestVariable.builder()
-                 .appManifestId(helmChart.getApplicationManifestId())
-                 .value(helmChart.getVersion())
-                 .inputType(HelmChartInputType.VERSION)
-                 .build());
+      List<ManifestVariable> manifestVariables = executionArgs.getHelmCharts()
+                                                     .stream()
+                                                     .map(helmChart
+                                                         -> ManifestVariable.builder()
+                                                                .appManifestId(helmChart.getApplicationManifestId())
+                                                                .value(helmChart.getVersion())
+                                                                .inputType(HelmChartInputType.VERSION)
+                                                                .build())
+                                                     .collect(toList());
       executionArgs.setManifestVariables(manifestVariables);
       executionArgs.setHelmCharts(new ArrayList<>());
     }
