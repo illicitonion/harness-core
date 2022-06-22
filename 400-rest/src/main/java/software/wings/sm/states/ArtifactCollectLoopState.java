@@ -58,6 +58,8 @@ import org.mongodb.morphia.query.UpdateOperations;
 
 @OwnedBy(HarnessTeam.CDC)
 public class ArtifactCollectLoopState extends State {
+  private static final String ARTIFACT_COLLECTION_NAME = "Artifact Collection";
+  private static final String MANIFEST_COLLECTION_NAME = "Manifest Collection";
   @Getter @Setter private List<ArtifactInput> artifactInputList;
   @Getter @Setter private List<ManifestInput> manifestInputList;
 
@@ -106,7 +108,7 @@ public class ArtifactCollectLoopState extends State {
     forkStateExecutionData.setElements(new ArrayList<>());
     int i = 1;
     for (ArtifactInput artifactInput : artifactInputList) {
-      String stateName = getName() + "_" + i;
+      String stateName = ARTIFACT_COLLECTION_NAME + "_" + i;
       forkStateNames.add(stateName);
       ForkElement element =
           ForkElement.builder().stateName(stateName).parentId(stateExecutionInstance.getUuid()).build();
@@ -141,7 +143,7 @@ public class ArtifactCollectLoopState extends State {
     forkStateExecutionData.setElements(new ArrayList<>());
     int i = 1;
     for (ManifestInput manifestInput : manifestInputList) {
-      String stateName = getName() + "_" + i;
+      String stateName = MANIFEST_COLLECTION_NAME + "_" + i;
       forkStateNames.add(stateName);
       ForkElement element =
           ForkElement.builder().stateName(stateName).parentId(stateExecutionInstance.getUuid()).build();

@@ -1826,7 +1826,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
 
     return GraphNode.builder()
         .type(ARTIFACT_COLLECT_LOOP_STATE.getType())
-        .name("Artifact Collection")
+        .name("Artifact/Manifest Collection")
         .properties(ImmutableMap.<String, Object>builder()
                         .put(ArtifactCollectLoopStateKeys.artifactInputList, artifactInputs)
                         .put(ArtifactCollectLoopStateKeys.manifestInputList, manifestInputs)
@@ -3869,7 +3869,6 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
     // cannot be overridden once provided, even from runtime inputs screen.
     addParameterizedArtifactVariableToContext(executionArgs.getArtifactVariables(), workflowStandardParams);
     addArtifactInputsToContext(executionArgs.getArtifactVariables(), workflowStandardParams);
-    addManifestInputsToContext(executionArgs.getManifestVariables(), workflowStandardParams);
 
     LinkedList<ContextElement> contextElements = stateExecutionInstance.getContextElements();
 
@@ -3938,19 +3937,6 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
       return;
     }
     workflowStandardParams.setArtifactInputs(artifactInputsFromArtifactVariables);
-  }
-
-  void addManifestInputsToContext(
-      List<ManifestVariable> manifestVariables, WorkflowStandardParams workflowStandardParams) {
-    List<ManifestInput> manifestInputsFromManifestVariables =
-        manifestVariables.stream()
-            .filter(manifestVariable -> HelmChartInputType.VERSION.equals(manifestVariable.getInputType()))
-            .map(ManifestVariable::mapManifestVariableToManifestInput)
-            .collect(toList());
-    if (isEmpty(manifestInputsFromManifestVariables)) {
-      return;
-    }
-    workflowStandardParams.setManifestInputs(manifestInputsFromManifestVariables);
   }
 
   @VisibleForTesting

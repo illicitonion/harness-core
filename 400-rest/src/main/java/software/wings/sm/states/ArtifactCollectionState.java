@@ -421,7 +421,7 @@ public class ArtifactCollectionState extends State {
     String evaluatedBuildNo;
     HelmChart lastCollectedHelmChart;
     evaluatedBuildNo = getEvaluatedBuildNo(context);
-    if(shouldCollectManifest(context)){
+    if (shouldCollectManifest(context)) {
       return collectManifest(context, applicationManifest, evaluatedBuildNo);
     }
 
@@ -449,7 +449,8 @@ public class ArtifactCollectionState extends State {
         .build();
   }
 
-  private ExecutionResponse prepareExecutionResponseForLastCollectedHelmChart(ExecutionContext context, ApplicationManifest applicationManifest, HelmChart lastCollectedHelmChart) {
+  private ExecutionResponse prepareExecutionResponseForLastCollectedHelmChart(
+      ExecutionContext context, ApplicationManifest applicationManifest, HelmChart lastCollectedHelmChart) {
     AppManifestCollectionExecutionData appManifestCollectionData =
         AppManifestCollectionExecutionData.builder().appManifestId(appManifestId).build();
     if (getTimeoutMillis() != null) {
@@ -466,19 +467,21 @@ public class ArtifactCollectionState extends State {
 
     addBuildExecutionSummary(context, appManifestCollectionData, applicationManifest);
     return ExecutionResponse.builder()
-            .executionStatus(ExecutionStatus.SUCCESS)
-            .stateExecutionData(appManifestCollectionData)
-            .errorMessage("Collected chart [" + lastCollectedHelmChart.getVersion() + "] for manifest source ["
-                    + applicationManifest.getName() + "]")
-            .build();
+        .executionStatus(ExecutionStatus.SUCCESS)
+        .stateExecutionData(appManifestCollectionData)
+        .errorMessage("Collected chart [" + lastCollectedHelmChart.getVersion() + "] for manifest source ["
+            + applicationManifest.getName() + "]")
+        .build();
   }
 
-  private ExecutionResponse collectManifest(ExecutionContext context, ApplicationManifest applicationManifest, String evaluatedBuildNo) {
+  private ExecutionResponse collectManifest(
+      ExecutionContext context, ApplicationManifest applicationManifest, String evaluatedBuildNo) {
     String waitId = generateUuid();
 
     // if collection enabled and buildno is empty, get last collected artifact from db and return.
     if (!Boolean.FALSE.equals(applicationManifest.getEnableCollection()) && isBlank(evaluatedBuildNo)) {
-      HelmChart lastCollectHelmChart = helmChartService.getLastCollectedManifest(context.getAccountId(), applicationManifest.getUuid());
+      HelmChart lastCollectHelmChart =
+          helmChartService.getLastCollectedManifest(context.getAccountId(), applicationManifest.getUuid());
       if (lastCollectHelmChart != null) {
         return prepareExecutionResponseForLastCollectedHelmChart(context, applicationManifest, lastCollectHelmChart);
       }
@@ -487,33 +490,35 @@ public class ArtifactCollectionState extends State {
     Integer timeout = getTimeoutMillis();
     DelegateTaskBuilder delegateTaskBuilder;
 
-    delegateTaskBuilder = DelegateTask.builder()
+    delegateTaskBuilder =
+        DelegateTask.builder()
             .accountId(applicationManifest.getAccountId())
             .waitId(waitId)
             .expiry(artifactCollectionUtils.getDelegateQueueTimeout(applicationManifest.getAccountId()))
             .data(TaskData.builder()
-                    .async(true)
-                    .taskType(TaskType.HELM_COLLECT_CHART.name())
-                    .parameters(new Object[] {    manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(
-                            applicationManifest.getUuid(), applicationManifest.getAppId(), HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION, evaluatedBuildNo)})
-                    .timeout(timeout)
-                    .build());
+                      .async(true)
+                      .taskType(TaskType.HELM_COLLECT_CHART.name())
+                      .parameters(new Object[] {manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(
+                          applicationManifest.getUuid(), applicationManifest.getAppId(),
+                          HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION, evaluatedBuildNo)})
+                      .timeout(timeout)
+                      .build());
 
     String delegateTaskId = delegateService.queueTask(delegateTaskBuilder.build());
 
     AppManifestCollectionExecutionData appManifestCollectionExecutionData =
-            AppManifestCollectionExecutionData.builder()
-                    .timeout(valueOf(timeout))
-                    .appManifestName(applicationManifest.getName())
-                    .buildNo(evaluatedBuildNo)
-                    .build();
+        AppManifestCollectionExecutionData.builder()
+            .timeout(valueOf(timeout))
+            .appManifestName(applicationManifest.getName())
+            .buildNo(evaluatedBuildNo)
+            .build();
 
     return ExecutionResponse.builder()
-            .async(true)
-            .correlationIds(singletonList(waitId))
-            .stateExecutionData(appManifestCollectionExecutionData)
-            .delegateTaskId(delegateTaskId)
-            .build();
+        .async(true)
+        .correlationIds(singletonList(waitId))
+        .stateExecutionData(appManifestCollectionExecutionData)
+        .delegateTaskId(delegateTaskId)
+        .build();
   }
 
   private ExecutionResponse executeInternal(ExecutionContext context) {
@@ -705,47 +710,48 @@ public class ArtifactCollectionState extends State {
         .build();
   }
 
-  private ExecutionResponse handleManifestCollectionResponse(ExecutionContext context, Map<String, ResponseData> response, ApplicationManifest applicationManifest, String evaluatedBuildNo) {
+  private ExecutionResponse handleManifestCollectionResponse(ExecutionContext context,
+      Map<String, ResponseData> response, ApplicationManifest applicationManifest, String evaluatedBuildNo) {
     DelegateResponseData notifyResponseData = (DelegateResponseData) response.values().iterator().next();
     if (notifyResponseData instanceof HelmCollectChartResponse) {
       HelmCollectChartResponse helmCollectChartResponse = (HelmCollectChartResponse) notifyResponseData;
       if (CommandExecutionStatus.SUCCESS.equals(helmCollectChartResponse.getCommandExecutionStatus())
-              && helmCollectChartResponse != null && isNotEmpty(helmCollectChartResponse.getHelmCharts())) {
+          && isNotEmpty(helmCollectChartResponse.getHelmCharts())) {
         HelmChart helmChart = helmCollectChartResponse.getHelmCharts().get(0);
         HelmChart savedHelmChart = helmChartService.createOrUpdateAppVersion(helmChart);
         AppManifestCollectionExecutionData appManifestCollectionExecutionData =
-                AppManifestCollectionExecutionData.builder()
-                        .appManifestId(appManifestId)
-                        .buildNo(helmChart.getVersion())
-                        .version(helmChart.getVersion())
-                        .appManifestName(applicationManifest.getName())
-                        .chartId(savedHelmChart.getUuid())
-                        .build();
+            AppManifestCollectionExecutionData.builder()
+                .appManifestId(appManifestId)
+                .buildNo(helmChart.getVersion())
+                .version(helmChart.getVersion())
+                .appManifestName(applicationManifest.getName())
+                .chartId(savedHelmChart.getUuid())
+                .build();
 
         addBuildExecutionSummary(context, appManifestCollectionExecutionData, applicationManifest);
         return ExecutionResponse.builder()
-                .stateExecutionData(appManifestCollectionExecutionData)
-                .executionStatus(SUCCESS)
-                .build();
+            .stateExecutionData(appManifestCollectionExecutionData)
+            .executionStatus(SUCCESS)
+            .build();
       } else {
         String errorMessage = helmCollectChartResponse.getErrorMessage();
         return ExecutionResponse.builder()
-                .executionStatus(FAILED)
-                .errorMessage(isEmpty(errorMessage)
-                        ? String.format("Failed to collect build version %s for manifest source %s", evaluatedBuildNo,
+            .executionStatus(FAILED)
+            .errorMessage(isEmpty(errorMessage)
+                    ? String.format("Failed to collect build version %s for manifest source %s", evaluatedBuildNo,
                         applicationManifest.getName())
-                        : errorMessage)
-                .build();
+                    : errorMessage)
+            .build();
       }
     } else {
       log.error("Unhandled DelegateResponseData class " + notifyResponseData.getClass().getCanonicalName(),
-              new Exception(""));
+          new Exception(""));
     }
     return ExecutionResponse.builder()
-            .executionStatus(FAILED)
-            .errorMessage(String.format(
-                    "Failed to collect build version %s for manifest source %s", evaluatedBuildNo, applicationManifest.getName()))
-            .build();
+        .executionStatus(FAILED)
+        .errorMessage(String.format("Failed to collect build version %s for manifest source %s", evaluatedBuildNo,
+            applicationManifest.getName()))
+        .build();
   }
 
   @Override
