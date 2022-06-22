@@ -39,7 +39,7 @@ public class YamlAuthHandler {
   @Inject TemplateAuthHandler templateAuthHandler;
   @Inject DefaultsAuthHandler defaultsAuthHandler;
   @Inject AuthHandler authHandler;
-  private AuthService authService;
+  @Inject AuthService authService;
   @Inject YamlService yamlService;
   @Inject YamlHelper yamlHelper;
 
