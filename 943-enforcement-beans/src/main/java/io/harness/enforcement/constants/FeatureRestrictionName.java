@@ -78,5 +78,6 @@ public enum FeatureRestrictionName {
 
   // FF Features
   DEVELOPERS,
-  MONTHLY_ACTIVE_USERS;
+  MONTHLY_ACTIVE_USERS,
+  JENKINS_ARTIFACT;
 }

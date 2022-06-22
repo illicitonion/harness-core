@@ -145,9 +145,9 @@ public class CommonStepInfo {
       StepInfo.newBuilder()
           .setName("Jenkins Build")
           .setType(StepSpecTypeConstants.JENKINS_BUILD)
-          .setStepMetaData(StepMetaData.newBuilder().addCategory("Jenkins").addFolderPaths("Jenkins").build())
-          .setFeatureRestrictionName(FeatureRestrictionName.JENKINS_BUILD.name())
-          .setFeatureFlag(FeatureName.JENKINS_BUILD.name())
+          .setStepMetaData(StepMetaData.newBuilder().addCategory("Builds").addFolderPaths("Builds").build())
+          .setFeatureRestrictionName(FeatureRestrictionName.JENKINS_ARTIFACT.name())
+          .setFeatureFlag(FeatureName.JENKINS_ARTIFACT.name())
           .build();
 
   public List<StepInfo> getCommonSteps(String category) {
