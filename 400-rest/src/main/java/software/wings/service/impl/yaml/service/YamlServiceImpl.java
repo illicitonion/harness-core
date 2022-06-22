@@ -1119,8 +1119,8 @@ public class YamlServiceImpl<Y extends BaseYaml, B extends Base> implements Yaml
                       if (isEmpty(unauthorizedFiles)) {
                         return prepareSuccessfulYAMLOperationResponse(processedChangeList, originalChanges);
                       } else {
-                        return prepareFailedYAMLOperationResponse(
-                            "", new HashMap<>(), new ArrayList<>(), new ArrayList<>(), unauthorizedFiles);
+                        return prepareFailedYAMLOperationResponse("Unable to process few files", new HashMap<>(),
+                            new ArrayList<>(), new ArrayList<>(), unauthorizedFiles);
                       }
                     } catch (YamlProcessingException ex) {
                       log.warn(format("Unable to process uploaded zip file for account %s, error: %s", accountId, ex));
