@@ -112,6 +112,7 @@ func NewRunTestsTask(step *pb.UnitStep, tmpFilePath string, log *zap.SugaredLogg
 		language:             r.GetLanguage(),
 		buildTool:            r.GetBuildTool(),
 		packages:             r.GetPackages(),
+		namespaces:           r.GetNamespaces(),
 		annotations:          r.GetTestAnnotations(),
 		runOnlySelectedTests: r.GetRunOnlySelectedTests(),
 		envVarOutputs:        r.GetEnvVarOutputs(),
@@ -206,7 +207,7 @@ instrPackages: %s`, dir, r.packages)
 	if r.annotations != "" {
 		data = data + "\n" + fmt.Sprintf("testAnnotations: %s", r.annotations)
 	}
-	iniFile := fmt.Sprintf("%s/config.ini", r.tmpFilePath)
+	iniFile := filepath.Join(r.tmpFilePath, "%sconfig.ini")
 	r.log.Infow(fmt.Sprintf("attempting to write %s to %s", data, iniFile))
 	f, err := r.fs.Create(iniFile)
 	if err != nil {
