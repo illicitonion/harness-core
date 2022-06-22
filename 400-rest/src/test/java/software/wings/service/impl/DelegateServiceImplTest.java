@@ -1466,7 +1466,8 @@ public class DelegateServiceImplTest extends WingsBaseTest {
         FeatureFlag.builder().uuid("21").name(USE_IMMUTABLE_DELEGATE.name()).enabled(true).obsolete(false).build());
 
     final String accountId = "abc21";
-    this.persistence.save(DelegateMtlsEndpoint.builder().accountId(accountId).fqdn("delegate.ut.harness.io").build());
+    this.persistence.save(
+        DelegateMtlsEndpoint.builder().accountId(accountId).fqdn("customer.delegate.ut.harness.io").build());
 
     TemplateParameters templateParameters = delegateService.finalizeTemplateParametersWithMtlsIfRequired(
         TemplateParameters.builder()
@@ -1477,9 +1478,11 @@ public class DelegateServiceImplTest extends WingsBaseTest {
             .delegateType(KUBERNETES));
 
     assertThat(templateParameters.isMtlsEnabled()).isTrue();
-    assertThat(templateParameters.getManagerHost()).isEqualTo("https://delegate.ut.harness.io");
-    assertThat(templateParameters.getLogStreamingServiceBaseUrl()).isEqualTo("https://delegate.ut.harness.io:443");
-    assertThat(templateParameters.getVerificationHost()).isEqualTo("http://delegate.ut.harness.io:4210/and/a/path");
+    assertThat(templateParameters.getManagerHost()).isEqualTo("https://customer.delegate.ut.harness.io");
+    assertThat(templateParameters.getLogStreamingServiceBaseUrl())
+        .isEqualTo("https://customer.delegate.ut.harness.io:443");
+    assertThat(templateParameters.getVerificationHost())
+        .isEqualTo("http://customer.delegate.ut.harness.io:4210/and/a/path");
   }
 
   @Test
@@ -1487,7 +1490,8 @@ public class DelegateServiceImplTest extends WingsBaseTest {
   @Category(UnitTests.class)
   public void testFinalizeTemplateParametersWithMtlsIfRequiredForNonImmutable() {
     final String accountId = "abc21";
-    this.persistence.save(DelegateMtlsEndpoint.builder().accountId(accountId).fqdn("delegate.ut.harness.io").build());
+    this.persistence.save(
+        DelegateMtlsEndpoint.builder().accountId(accountId).fqdn("customer.delegate.ut.harness.io").build());
 
     TemplateParameters templateParameters =
         delegateService.finalizeTemplateParametersWithMtlsIfRequired(TemplateParameters.builder().accountId(accountId));
