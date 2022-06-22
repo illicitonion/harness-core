@@ -8,7 +8,9 @@
 package software.wings.service.impl.trigger;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
-import static io.harness.beans.FeatureName.*;
+import static io.harness.beans.FeatureName.ADD_MANIFEST_COLLECTION_STEP;
+import static io.harness.beans.FeatureName.BYPASS_HELM_FETCH;
+import static io.harness.beans.FeatureName.GITHUB_WEBHOOK_AUTHENTICATION;
 import static io.harness.beans.OrchestrationWorkflowType.BUILD;
 import static io.harness.beans.WorkflowType.ORCHESTRATION;
 import static io.harness.beans.WorkflowType.PIPELINE;
