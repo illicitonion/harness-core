@@ -1526,32 +1526,55 @@ public class DelegateServiceImpl implements DelegateService {
     // immutable delegate with mTLS enabled on account - update template parameters accordingly
     templateParametersBuilder.mtlsEnabled(true);
 
-    // Modify all URLs with FQDN of mTLS endpoint.
+    /*
+     * Update all URIs that are used by the immutable delegate (manager & log-service)
+     * Assumption: managerHost is the base URI of the harness cluster (e.g. "https://app.harness.io")
+     */
+    String baseUri = original.getManagerHost();
+
     templateParametersBuilder.managerHost(
-        this.updateUriHost(original.getManagerHost(), delegateMtlsEndpoint.getFqdn()));
-    templateParametersBuilder.verificationHost(
-        this.updateUriHost(original.getVerificationHost(), delegateMtlsEndpoint.getFqdn()));
-    templateParametersBuilder.logStreamingServiceBaseUrl(
-        this.updateUriHost(original.getLogStreamingServiceBaseUrl(), delegateMtlsEndpoint.getFqdn()));
+        this.updateUriToTargetMtlsEndpoint(original.getManagerHost(), baseUri, delegateMtlsEndpoint.getFqdn()));
+    templateParametersBuilder.logStreamingServiceBaseUrl(this.updateUriToTargetMtlsEndpoint(
+        original.getLogStreamingServiceBaseUrl(), baseUri, delegateMtlsEndpoint.getFqdn()));
 
     return templateParametersBuilder.build();
   }
 
+  /**
+   * Updates an external Harness URI to point to the mTLS endpoint instead.
+   *
+   * Assumption:
+   *    - Delegate Gateway is always receiving traffic on port 443 (and doesn't require a base path)
+   *    - All external Harness URIs are under the same base uri of the cluster
+   *      (e.g. "https://app.harness.io", "https://pr.harness.io/del-42")
+   *
+   * @param originalUri the URI to update
+   * @param baseUri the base URI of the harness cluster
+   * @param mtlsEndpointFqdn the fqdn of the mTLS endpoint
+   * @return the updated URI
+   */
   @VisibleForTesting
-  public String updateUriHost(String originalUrl, String newHost) {
-    if (isBlank(originalUrl)) {
-      return originalUrl;
+  public String updateUriToTargetMtlsEndpoint(String originalUri, String baseUri, String mtlsEndpointFqdn) {
+    // In case anything is missing - log an error and continue.
+    // Worst case it has to be changed in artifacts manually, better than failing the download completely.
+    if (isBlank(originalUri) || isBlank(baseUri) || isBlank(mtlsEndpointFqdn)) {
+      log.error("Unexpected blank input when updating URI: originalUri '{}', baseUri '{}', mtlsEndpointFqdn '{}'",
+          originalUri, baseUri, mtlsEndpointFqdn);
+      return originalUri;
     }
 
     try {
-      URI uri = new URI(originalUrl);
+      String originalPath = new URI(originalUri).getPath();
+      String basePath = new URI(baseUri).getPath();
 
-      return new URI(
-          uri.getScheme(), uri.getUserInfo(), newHost, uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment())
-          .toString();
+      String newPath =
+          isNotBlank(basePath) && isNotBlank(originalPath) ? originalPath.replace(basePath, "") : originalPath;
+
+      return new URI("https", mtlsEndpointFqdn, newPath, null, null).toString();
     } catch (Exception ex) {
-      log.error("Failed to update the host of URL '{}' to '{}': {}", originalUrl, newHost, ex);
-      throw new UnexpectedException("Failed to update the host of the URL.", ex);
+      log.error("Failed to update URL '{}' with FQDN of mTLS endpoint '{}' using base '{}': {}", originalUri,
+          mtlsEndpointFqdn, baseUri, ex);
+      throw new UnexpectedException("Failed to update the URL to target the mTLS endpoint.", ex);
     }
   }
 

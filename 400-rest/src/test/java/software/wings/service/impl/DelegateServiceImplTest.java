@@ -1472,17 +1472,14 @@ public class DelegateServiceImplTest extends WingsBaseTest {
     TemplateParameters templateParameters = delegateService.finalizeTemplateParametersWithMtlsIfRequired(
         TemplateParameters.builder()
             .accountId(accountId)
-            .managerHost("https://someHost")
-            .logStreamingServiceBaseUrl("https://someOtherHost:443")
-            .verificationHost("http://someVerificationHost:4210/and/a/path")
+            .managerHost("https://app.harness.io")
+            .logStreamingServiceBaseUrl("https://app.harness.io/log-service")
             .delegateType(KUBERNETES));
 
     assertThat(templateParameters.isMtlsEnabled()).isTrue();
     assertThat(templateParameters.getManagerHost()).isEqualTo("https://customer.delegate.ut.harness.io");
     assertThat(templateParameters.getLogStreamingServiceBaseUrl())
-        .isEqualTo("https://customer.delegate.ut.harness.io:443");
-    assertThat(templateParameters.getVerificationHost())
-        .isEqualTo("http://customer.delegate.ut.harness.io:4210/and/a/path");
+        .isEqualTo("https://customer.delegate.ut.harness.io/log-service");
   }
 
   @Test
@@ -1516,59 +1513,51 @@ public class DelegateServiceImplTest extends WingsBaseTest {
   @Test
   @Owner(developers = JOHANNES)
   @Category(UnitTests.class)
-  public void testUpdateUriHostSmokeTest() {
-    assertThat(delegateService.updateUriHost("https://host.io/some/path?query=pretty#42", "some.new.host"))
-        .isEqualTo("https://some.new.host/some/path?query=pretty#42");
+  public void testUpdateUriToTargetMtlsEndpointForProd() {
+    String managerUri = this.delegateService.updateUriToTargetMtlsEndpoint(
+        "https://app.harness.io", "https://app.harness.io", "customer.delegate.harness.io");
+
+    assertThat(managerUri).isEqualTo("https://customer.delegate.harness.io");
+
+    String logServiceUri = this.delegateService.updateUriToTargetMtlsEndpoint(
+        "https://app.harness.io/log-service", "https://app.harness.io", "customer.delegate.harness.io");
+
+    assertThat(logServiceUri).isEqualTo("https://customer.delegate.harness.io/log-service");
   }
 
   @Test
   @Owner(developers = JOHANNES)
   @Category(UnitTests.class)
-  public void testUpdateUriHostForNullOrBlank() {
-    assertThat(delegateService.updateUriHost(null, "someNewHost")).isNull();
-    assertThat(delegateService.updateUriHost("", "someNewHost")).isEqualTo("");
-    assertThat(delegateService.updateUriHost("  ", "someNewHost")).isEqualTo("  ");
-  }
+  public void testUpdateUriToTargetMtlsEndpointForPr() {
+    String managerUri = this.delegateService.updateUriToTargetMtlsEndpoint(
+        "https://pr.harness.io/del-42", "https://pr.harness.io/del-42", "customer.delegate.pr.harness.io");
 
-  @Test(expected = UnexpectedException.class)
-  @Owner(developers = JOHANNES)
-  @Category(UnitTests.class)
-  public void testUpdateUriHostForInvalidUri() {
-    delegateService.updateUriHost("`", "someNewHost");
-  }
+    assertThat(managerUri).isEqualTo("https://customer.delegate.pr.harness.io");
 
-  @Test
-  @Owner(developers = JOHANNES)
-  @Category(UnitTests.class)
-  public void testUpdateUriHostForUriWithoutPort() {
-    assertThat(delegateService.updateUriHost("http://host/xyz", "someNewHost")).isEqualTo("http://someNewHost/xyz");
-    assertThat(delegateService.updateUriHost("https://host/xyz", "someNewHost")).isEqualTo("https://someNewHost/xyz");
+    String logServiceUri = this.delegateService.updateUriToTargetMtlsEndpoint(
+        "https://pr.harness.io/del-42/log-service", "https://pr.harness.io/del-42", "customer.delegate.pr.harness.io");
+
+    assertThat(logServiceUri).isEqualTo("https://customer.delegate.pr.harness.io/log-service");
   }
 
   @Test
   @Owner(developers = JOHANNES)
   @Category(UnitTests.class)
-  public void testUpdateUriHostForUriWithDefaultPort() {
-    assertThat(delegateService.updateUriHost("http://host:80/xyz", "someNewHost"))
-        .isEqualTo("http://someNewHost:80/xyz");
-    assertThat(delegateService.updateUriHost("https://host:443/xyz", "someNewHost"))
-        .isEqualTo("https://someNewHost:443/xyz");
+  public void testUpdateUriToTargetMtlsEndpointIgnoresProtocol() {
+    String output = this.delegateService.updateUriToTargetMtlsEndpoint(
+        "sftp://qa.harness.io", "http://qa.harness.io", "customer.delegate.qa.harness.io");
+
+    assertThat(output).isEqualTo("https://customer.qa.delegate.harness.io");
   }
 
   @Test
   @Owner(developers = JOHANNES)
   @Category(UnitTests.class)
-  public void testUpdateUriHostForUriWithNonDefaultPort() {
-    assertThat(delegateService.updateUriHost("http://host:421/xyz", "someNewHost"))
-        .isEqualTo("http://someNewHost:421/xyz");
-  }
+  public void testUpdateUriToTargetMtlsEndpointIgnoresPort() {
+    String output = this.delegateService.updateUriToTargetMtlsEndpoint(
+        "http://app.harness.io:9876", "https://app.harness.io:9090", "customer.delegate.harness.io");
 
-  @Test
-  @Owner(developers = JOHANNES)
-  @Category(UnitTests.class)
-  public void testUpdateUriHostForNoPath() {
-    assertThat(delegateService.updateUriHost("http://host", "someNewHost")).isEqualTo("http://someNewHost");
-    assertThat(delegateService.updateUriHost("http://host:80", "someNewHost")).isEqualTo("http://someNewHost:80");
+    assertThat(output).isEqualTo("https://customer.delegate.harness.io");
   }
 
   private List<String> setUpDelegatesForInitializationTest() {
