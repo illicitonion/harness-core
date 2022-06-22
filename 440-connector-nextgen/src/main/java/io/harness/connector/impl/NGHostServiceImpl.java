@@ -14,6 +14,7 @@ import static java.util.stream.Collectors.toList;
 
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.beans.IdentifierRef;
 import io.harness.connector.entities.Connector;
 import io.harness.connector.expression.HostFilterFunctor;
 import io.harness.connector.mappers.ConnectorMapper;
@@ -27,6 +28,7 @@ import io.harness.exception.InvalidRequestException;
 import io.harness.ng.beans.PageRequest;
 import io.harness.repositories.ConnectorRepository;
 import io.harness.utils.FullyQualifiedIdentifierHelper;
+import io.harness.utils.IdentifierRefHelper;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -72,8 +74,12 @@ public class NGHostServiceImpl implements NGHostService {
 
   private Connector getConnector(
       String accountIdentifier, String orgIdentifier, String projectIdentifier, String connectorIdentifier) {
+    IdentifierRef connectorIdentifierRef =
+        IdentifierRefHelper.getIdentifierRef(connectorIdentifier, accountIdentifier, orgIdentifier, projectIdentifier);
     String fullyQualifiedIdentifier = FullyQualifiedIdentifierHelper.getFullyQualifiedIdentifier(
-        accountIdentifier, orgIdentifier, projectIdentifier, connectorIdentifier);
+        connectorIdentifierRef.getAccountIdentifier(), connectorIdentifierRef.getOrgIdentifier(),
+        connectorIdentifierRef.getProjectIdentifier(), connectorIdentifierRef.getIdentifier());
+
     return connectorRepository
         .findByFullyQualifiedIdentifierAndDeletedNot(
             fullyQualifiedIdentifier, projectIdentifier, orgIdentifier, accountIdentifier, true)
