@@ -42,8 +42,8 @@ public class YamlAuthHandler {
   @Inject AuthService authService;
   @Inject YamlService yamlService;
   @Inject YamlHelper yamlHelper;
-
   @Inject FeatureFlagService featureFlagService;
+
   public void authorizeUpsert(String filePath, String accountId) {
     authorize(filePath, Action.CREATE, accountId);
   }
