@@ -12,7 +12,6 @@ import static io.harness.annotations.dev.HarnessTeam.CDC;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.EmbeddedUser;
 
-import java.util.EnumSet;
 import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
