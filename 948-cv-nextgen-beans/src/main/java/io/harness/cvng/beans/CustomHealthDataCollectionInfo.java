@@ -67,6 +67,9 @@ public class CustomHealthDataCollectionInfo extends TimeSeriesDataCollectionInfo
     List<String> timestampJSONPaths = new ArrayList<>();
     List<String> metricValueJSONPaths = new ArrayList<>();
     List<String> serviceInstanceJSONPaths = new ArrayList<>();
+    List<String> metricJsonPaths = new ArrayList<>();
+    List<String> relativeMetricValueJsonPaths = new ArrayList<>();
+    List<String> relativeTimestampJsonPaths = new ArrayList<>();
 
     getMetricInfoList().forEach(metricInfo -> {
       metricNames.add(metricInfo.getMetricName());
@@ -82,6 +85,9 @@ public class CustomHealthDataCollectionInfo extends TimeSeriesDataCollectionInfo
       MetricResponseMappingDTO responseMapping = metricInfo.getResponseMapping();
       timestampJSONPaths.add(responseMapping.getTimestampJsonPath());
       metricValueJSONPaths.add(responseMapping.getMetricValueJsonPath());
+      metricJsonPaths.add(responseMapping.getMetricJsonPath());
+      relativeMetricValueJsonPaths.add(responseMapping.getRelativeMetricValueJsonPath());
+      relativeTimestampJsonPaths.add(responseMapping.getRelativeTimestampJsonPath());
       serviceInstanceJSONPaths.add(
           isEmpty(responseMapping.getServiceInstanceJsonPath()) ? null : responseMapping.getServiceInstanceJsonPath());
     });
@@ -100,6 +106,9 @@ public class CustomHealthDataCollectionInfo extends TimeSeriesDataCollectionInfo
     envVars.put("serviceInstanceJSONPaths", serviceInstanceJSONPaths);
     envVars.put("groupName", groupName);
     envVars.put("bodies", bodies);
+    envVars.put("metricJsonPaths", metricJsonPaths);
+    envVars.put("relativeMetricValueJsonPaths", relativeMetricValueJsonPaths);
+    envVars.put("relativeTimestampJsonPaths", relativeTimestampJsonPaths);
     return envVars;
   }
 

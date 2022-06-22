@@ -7,8 +7,11 @@
 
 package io.harness.cvng.core.beans.monitoredService.healthSouceSpec;
 
+import static io.harness.cvng.beans.MetricResponseMappingDTO.CUSTOM_HEALTH_SRC_PATH_ARRAY_DELIMITER;
+
 import io.harness.cvng.beans.MetricResponseMappingDTO;
 
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,6 +26,9 @@ public class MetricResponseMapping {
   String metricValueJsonPath;
   String timestampJsonPath;
   String serviceInstanceJsonPath;
+  String metricJsonPath;
+  String relativeTimestampJsonPath;
+  String relativeMetricValueJsonPath;
   String timestampFormat;
 
   public MetricResponseMappingDTO toDto() {
@@ -31,6 +37,24 @@ public class MetricResponseMapping {
         .serviceInstanceJsonPath(serviceInstanceJsonPath)
         .timestampJsonPath(timestampJsonPath)
         .timestampFormat(timestampFormat)
+        .metricJsonPath(metricJsonPath)
+        .relativeMetricValueJsonPath(relativeMetricValueJsonPath)
+        .relativeTimestampJsonPath(relativeTimestampJsonPath)
         .build();
+  }
+  public String getMetricValueJsonPath() {
+    if (Objects.isNull(metricJsonPath) || Objects.isNull(relativeMetricValueJsonPath)) {
+      return metricValueJsonPath;
+    } else {
+      return metricJsonPath + CUSTOM_HEALTH_SRC_PATH_ARRAY_DELIMITER + relativeMetricValueJsonPath;
+    }
+  }
+
+  public String getTimestampJsonPath() {
+    if (Objects.isNull(metricJsonPath) || Objects.isNull(relativeTimestampJsonPath)) {
+      return timestampJsonPath;
+    } else {
+      return metricJsonPath + CUSTOM_HEALTH_SRC_PATH_ARRAY_DELIMITER + relativeTimestampJsonPath;
+    }
   }
 }

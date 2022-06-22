@@ -560,6 +560,45 @@ public class BuilderFactory {
         .build();
   }
 
+  public CustomHealthMetricCVConfig customHealthMetricCVConfigBuilderForAppd(String metricName,
+      boolean isDeploymentEnabled, boolean isLiveMonitoringEnabled, boolean isSliEnabled,
+      MetricResponseMapping responseMapping, String group, HealthSourceQueryType queryType, CustomHealthMethod method,
+      CVMonitoringCategory category, String requestBody) {
+    CustomHealthMetricCVConfig.CustomHealthCVConfigMetricDefinition metricDefinition =
+        CustomHealthMetricCVConfig.CustomHealthCVConfigMetricDefinition.builder()
+            .metricName(metricName)
+            .identifier(metricName)
+            .sli(AnalysisInfo.SLI.builder().enabled(isSliEnabled).build())
+            .deploymentVerification(AnalysisInfo.DeploymentVerification.builder().enabled(isDeploymentEnabled).build())
+            .liveMonitoring(AnalysisInfo.LiveMonitoring.builder().enabled(isLiveMonitoringEnabled).build())
+            .metricResponseMapping(responseMapping)
+            .requestDefinition(
+                CustomHealthRequestDefinition.builder()
+                    .startTimeInfo(TimestampInfo.builder()
+                                       .placeholder("start_time")
+                                       .timestampFormat(TimestampInfo.TimestampFormat.MILLISECONDS)
+                                       .build())
+                    .endTimeInfo(TimestampInfo.builder()
+                                     .placeholder("end_time")
+                                     .timestampFormat(TimestampInfo.TimestampFormat.MILLISECONDS)
+                                     .build())
+                    .method(method)
+                    .urlPath(
+                        "rest/applications/cv-app/metric-data?metric-path=Overall Application Performance|docker-tier|Individual Nodes|*|Errors per Minute&time-range-type=BETWEEN_TIMES&start-time=start_time&end-time=end_time&rollup=false&output=json")
+                    .requestBody(requestBody)
+                    .build())
+            .build();
+
+    return CustomHealthMetricCVConfig.builder()
+        .metricDefinitions(new ArrayList<CustomHealthMetricCVConfig.CustomHealthCVConfigMetricDefinition>() {
+          { add(metricDefinition); }
+        })
+        .groupName(group)
+        .queryType(queryType)
+        .category(category)
+        .build();
+  }
+
   public CustomHealthSourceLogSpec customHealthLogSourceSpecBuilder(
       String queryName, String queryValueJSONPath, String urlPath, String timestampValueJSONPath) {
     List<CustomHealthLogDefinition> customHealthLogDefinitions = new ArrayList<>();

@@ -7,6 +7,7 @@
 
 package io.harness.cvng.beans;
 
+import java.util.Objects;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,8 +19,29 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class MetricResponseMappingDTO {
+  public static final String CUSTOM_HEALTH_SRC_PATH_ARRAY_DELIMITER = ".[*].";
+
   String metricValueJsonPath;
   String timestampJsonPath;
   String serviceInstanceJsonPath;
   String timestampFormat;
+  String metricJsonPath;
+  String relativeTimestampJsonPath;
+  String relativeMetricValueJsonPath;
+
+  public String getMetricValueJsonPath() {
+    if (Objects.isNull(metricJsonPath) || Objects.isNull(relativeMetricValueJsonPath)) {
+      return metricValueJsonPath;
+    } else {
+      return metricJsonPath + CUSTOM_HEALTH_SRC_PATH_ARRAY_DELIMITER + relativeMetricValueJsonPath;
+    }
+  }
+
+  public String getTimestampJsonPath() {
+    if (Objects.isNull(metricJsonPath) || Objects.isNull(relativeTimestampJsonPath)) {
+      return timestampJsonPath;
+    } else {
+      return metricJsonPath + CUSTOM_HEALTH_SRC_PATH_ARRAY_DELIMITER + relativeTimestampJsonPath;
+    }
+  }
 }

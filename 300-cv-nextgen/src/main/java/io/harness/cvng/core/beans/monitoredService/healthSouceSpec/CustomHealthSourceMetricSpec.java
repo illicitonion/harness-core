@@ -118,6 +118,12 @@ public class CustomHealthSourceMetricSpec extends MetricHealthSourceSpec {
                                                                                     : new ArrayList<>();
 
       MetricResponseMapping metricResponseMapping = metricDefinition.getMetricResponseMapping();
+      String metricJsonPath = getMetricPath(metricResponseMapping);
+      metricResponseMapping.setMetricJsonPath(metricJsonPath);
+      metricResponseMapping.setRelativeMetricValueJsonPath(
+          getRelativeMetricValueJsonPath(metricJsonPath, metricResponseMapping));
+      metricResponseMapping.setRelativeTimestampJsonPath(
+          getRelativeTimestampJsonPath(metricJsonPath, metricResponseMapping));
       cvConfigMetricDefinitions.add(
           CustomHealthMetricCVConfig.CustomHealthCVConfigMetricDefinition.builder()
               .metricName(metricDefinition.getMetricName())
@@ -156,5 +162,27 @@ public class CustomHealthSourceMetricSpec extends MetricHealthSourceSpec {
     });
 
     return cvConfigMap;
+  }
+
+  private String getMetricPath(MetricResponseMapping metricResponseMapping) {
+    String metricValueJsonPath = metricResponseMapping.getMetricValueJsonPath();
+    String timestampJsonPath = metricResponseMapping.getTimestampJsonPath();
+    int index = -1;
+    for (int i = 0; i < metricValueJsonPath.length() && i < timestampJsonPath.length(); ++i) {
+      if (metricValueJsonPath.charAt(i) == timestampJsonPath.charAt(i)) {
+        index++;
+      } else {
+        break;
+      }
+    }
+    return metricValueJsonPath.substring(0, index - 5);
+  }
+
+  private String getRelativeTimestampJsonPath(String metricPath, MetricResponseMapping metricResponseMapping) {
+    return metricResponseMapping.getTimestampJsonPath().substring(metricPath.length());
+  }
+
+  private String getRelativeMetricValueJsonPath(String metricPath, MetricResponseMapping metricResponseMapping) {
+    return metricResponseMapping.getMetricValueJsonPath().substring(metricPath.length());
   }
 }
