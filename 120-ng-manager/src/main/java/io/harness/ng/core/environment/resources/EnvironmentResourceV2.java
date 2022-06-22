@@ -44,6 +44,7 @@ import io.harness.exception.WingsException;
 import io.harness.ng.beans.PageResponse;
 import io.harness.ng.core.EnvironmentValidationHelper;
 import io.harness.ng.core.OrgAndProjectValidationHelper;
+import io.harness.ng.core.beans.NGEntityTemplateResponseDTO;
 import io.harness.ng.core.dto.ErrorDTO;
 import io.harness.ng.core.dto.FailureDTO;
 import io.harness.ng.core.dto.ResponseDTO;
@@ -67,6 +68,7 @@ import io.harness.ng.core.serviceoverride.services.ServiceOverrideService;
 import io.harness.ng.core.serviceoverride.yaml.NGServiceOverrideConfig;
 import io.harness.ng.core.utils.CoreCriteriaUtils;
 import io.harness.rbac.CDNGRbacUtility;
+import io.harness.repositories.UpsertOptions;
 import io.harness.security.annotations.NextGenManagerAuth;
 import io.harness.utils.PageUtils;
 
@@ -293,7 +295,7 @@ public class EnvironmentResourceV2 {
     requestEnvironment.setVersion(isNumeric(ifMatch) ? parseLong(ifMatch) : null);
     orgAndProjectValidationHelper.checkThatTheOrganizationAndProjectExists(requestEnvironment.getOrgIdentifier(),
         requestEnvironment.getProjectIdentifier(), requestEnvironment.getAccountId());
-    Environment upsertEnvironment = environmentService.upsert(requestEnvironment);
+    Environment upsertEnvironment = environmentService.upsert(requestEnvironment, UpsertOptions.DEFAULT);
     return ResponseDTO.newResponse(
         upsertEnvironment.getVersion().toString(), EnvironmentMapper.toResponseWrapper(upsertEnvironment));
   }
@@ -592,7 +594,7 @@ public class EnvironmentResourceV2 {
   @Path("/runtimeInputs")
   @ApiOperation(value = "This api returns Environment inputs YAML", nickname = "getEnvironmentInputs")
   @Hidden
-  public ResponseDTO<String> getEnvironmentInputs(
+  public ResponseDTO<NGEntityTemplateResponseDTO> getEnvironmentInputs(
       @Parameter(description = ENVIRONMENT_PARAM_MESSAGE) @NotNull @QueryParam(
           "environmentIdentifier") @ResourceIdentifier String environmentIdentifier,
       @Parameter(description = NGCommonEntityConstants.ACCOUNT_PARAM_MESSAGE) @NotNull @QueryParam(
@@ -603,14 +605,16 @@ public class EnvironmentResourceV2 {
           NGCommonEntityConstants.PROJECT_KEY) @ProjectIdentifier String projectIdentifier) {
     String environmentInputsYaml = environmentService.createEnvironmentInputsYaml(
         accountId, projectIdentifier, orgIdentifier, environmentIdentifier);
-    return ResponseDTO.newResponse(environmentInputsYaml);
+
+    return ResponseDTO.newResponse(
+        NGEntityTemplateResponseDTO.builder().inputSetTemplateYaml(environmentInputsYaml).build());
   }
 
   @GET
   @Path("/serviceOverrides/runtimeInputs")
   @ApiOperation(value = "This api returns Service Override inputs YAML", nickname = "getServiceOverrideInputs")
   @Hidden
-  public ResponseDTO<String> getServiceOverrideInputs(
+  public ResponseDTO<NGEntityTemplateResponseDTO> getServiceOverrideInputs(
       @Parameter(description = ENVIRONMENT_PARAM_MESSAGE) @NotNull @QueryParam(
           NGCommonEntityConstants.ENVIRONMENT_IDENTIFIER_KEY) @ResourceIdentifier String environmentIdentifier,
       @Parameter(description = NGCommonEntityConstants.ACCOUNT_PARAM_MESSAGE) @NotNull @QueryParam(
@@ -621,9 +625,10 @@ public class EnvironmentResourceV2 {
           NGCommonEntityConstants.PROJECT_KEY) @ProjectIdentifier String projectIdentifier,
       @Parameter(description = NGCommonEntityConstants.SERVICE_PARAM_MESSAGE) @NotNull @QueryParam(
           NGCommonEntityConstants.SERVICE_IDENTIFIER_KEY) @ResourceIdentifier String serviceIdentifier) {
-    String environmentInputsYaml = serviceOverrideService.createServiceOverrideInputsYaml(
+    String serviceOverrideInputsYaml = serviceOverrideService.createServiceOverrideInputsYaml(
         accountId, projectIdentifier, orgIdentifier, environmentIdentifier, serviceIdentifier);
-    return ResponseDTO.newResponse(environmentInputsYaml);
+    return ResponseDTO.newResponse(
+        NGEntityTemplateResponseDTO.builder().inputSetTemplateYaml(serviceOverrideInputsYaml).build());
   }
 
   private void checkForServiceOverrideUpdateAccess(
