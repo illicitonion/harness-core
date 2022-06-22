@@ -65,7 +65,7 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
   private ResourceGroupChangeConsumerImpl resourceGroupChangeConsumer;
   private int randomCount;
   private String id = randomAlphabetic(10);
-  private ResourceGroupDBO resourceGroupDBO = getResourceGroupDBO(id, true);
+  private ResourceGroupDBO resourceGroupDBO = getResourceGroupDBO(id);
 
   @Before
   public void setup() {
@@ -82,7 +82,7 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
     aclRepository.cleanCollection();
     randomCount = ThreadLocalRandom.current().nextInt(1, 10);
     id = randomAlphabetic(10);
-    resourceGroupDBO = getResourceGroupDBO(id, true);
+    resourceGroupDBO = getResourceGroupDBO(id);
   }
 
   private List<RoleAssignmentDBO> getRoleAssignments(ResourceGroupDBO resourceGroupDBO, PrincipalType principalType) {
@@ -109,13 +109,12 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
     return randomStrings;
   }
 
-  private ResourceGroupDBO getResourceGroupDBO(String id, boolean fullScopeSelected) {
+  private ResourceGroupDBO getResourceGroupDBO(String id) {
     return ResourceGroupDBO.builder()
         .id(id)
         .scopeIdentifier(randomAlphabetic(10))
         .identifier(randomAlphabetic(10))
         .name(randomAlphabetic(10))
-        .fullScopeSelected(fullScopeSelected)
         .build();
   }
 
@@ -173,7 +172,7 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
   @Owner(developers = KARAN)
   @Category(UnitTests.class)
   public void testResourceGroupUpdateNoResourceSelectors() {
-    resourceGroupDBO = getResourceGroupDBO(id, false);
+    resourceGroupDBO = getResourceGroupDBO(id);
     List<RoleAssignmentDBO> roleAssignmentDBOs = getRoleAssignments(resourceGroupDBO, PrincipalType.USER);
 
     preResourceGroupUpdate(resourceGroupDBO, roleAssignmentDBOs);
@@ -207,7 +206,6 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
                                                .scopeIdentifier(resourceGroupDBO.getScopeIdentifier())
                                                .identifier(resourceGroupDBO.getIdentifier())
                                                .name(resourceGroupDBO.getName())
-                                               .fullScopeSelected(false)
                                                .build();
 
     List<RoleAssignmentDBO> roleAssignmentDBOs = getRoleAssignments(oldResourceGroupDBO, PrincipalType.USER);

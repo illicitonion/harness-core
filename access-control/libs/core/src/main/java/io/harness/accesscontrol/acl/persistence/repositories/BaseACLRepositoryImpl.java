@@ -14,6 +14,7 @@ import static org.springframework.data.mongodb.util.MongoDbErrorCodes.isDuplicat
 
 import io.harness.accesscontrol.acl.persistence.ACL;
 import io.harness.accesscontrol.acl.persistence.ACL.ACLKeys;
+import io.harness.accesscontrol.resources.resourcegroups.ResourceSelector;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.mongo.index.MongoIndex;
 
@@ -25,6 +26,7 @@ import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.RenameCollectionOptions;
+import com.mongodb.client.result.DeleteResult;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -84,23 +86,40 @@ public abstract class BaseACLRepositoryImpl implements ACLRepository {
   }
 
   @Override
-  public List<String> getDistinctResourceSelectorsInACLs(String roleAssignmentId) {
+  public Set<ResourceSelector> getDistinctResourceSelectorsInACLs(String roleAssignmentId) {
     Criteria criteria = Criteria.where(ACLKeys.roleAssignmentId).is(roleAssignmentId);
     Query query = new Query();
     query.addCriteria(criteria);
-    return mongoTemplate.findDistinct(query, ACLKeys.resourceSelector, getCollectionName(), ACL.class, String.class);
+    List<ACL> acls = mongoTemplate.find(query, ACL.class, getCollectionName());
+    return acls.stream()
+        .map(acl
+            -> ResourceSelector.builder()
+                   .selector(acl.getResourceSelector())
+                   .conditional(acl.isConditional())
+                   .condition(acl.getJexlCondition())
+                   .build())
+        .collect(Collectors.toSet());
   }
 
   @Override
   public long deleteByRoleAssignmentIdAndResourceSelectors(
-      String roleAssignmentId, Set<String> resourceSelectorsToDelete) {
-    return mongoTemplate
-        .remove(new Query(Criteria.where(ACLKeys.roleAssignmentId)
-                              .is(roleAssignmentId)
-                              .and(ACLKeys.resourceSelector)
-                              .in(resourceSelectorsToDelete)),
-            ACL.class, getCollectionName())
-        .getDeletedCount();
+      String roleAssignmentId, Set<ResourceSelector> resourceSelectorsToDelete) {
+    Criteria criteria = Criteria.where(ACLKeys.roleAssignmentId).is(roleAssignmentId);
+    Query query = new Query();
+    query.addCriteria(criteria);
+    return mongoTemplate.find(query, ACL.class, getCollectionName())
+        .stream()
+        .filter(acl -> {
+          ResourceSelector resourceSelector = ResourceSelector.builder()
+                                                  .selector(acl.getResourceSelector())
+                                                  .conditional(acl.isConditional())
+                                                  .condition(acl.getJexlCondition())
+                                                  .build();
+          return resourceSelectorsToDelete.contains(resourceSelector);
+        })
+        .map(acl -> mongoTemplate.remove(acl, getCollectionName()))
+        .mapToLong(DeleteResult::getDeletedCount)
+        .sum();
   }
 
   @Override
