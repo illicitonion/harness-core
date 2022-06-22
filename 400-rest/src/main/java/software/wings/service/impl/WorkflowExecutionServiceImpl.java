@@ -1877,6 +1877,7 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
                                -> HelmChartInputType.VERSION.equals(manifestVariable.getInputType())
                                    && appManifestIds.contains(manifestVariable.getAppManifestId()))
                            .map(ManifestVariable::mapManifestVariableToManifestInput)
+                           .filter(Objects::nonNull)
                            .collect(Collectors.toList());
     }
     return manifestInputs;

@@ -422,6 +422,7 @@ public class ArtifactCollectionState extends State {
     String evaluatedBuildNo;
     HelmChart lastCollectedHelmChart;
     evaluatedBuildNo = getEvaluatedBuildNo(context);
+
     if (shouldCollectManifest(context)) {
       return collectManifest(context, applicationManifest, evaluatedBuildNo);
     }
@@ -489,12 +490,15 @@ public class ArtifactCollectionState extends State {
     }
 
     Integer timeout = getTimeoutMillis();
-    DelegateTaskBuilder delegateTaskBuilder;
 
-    ManifestCollectionParams manifestCollectionParams = manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(
-            applicationManifest.getUuid(), applicationManifest.getAppId(), HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION, evaluatedBuildNo);
+    ManifestCollectionParams manifestCollectionParams =
+        manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(applicationManifest.getUuid(),
+            applicationManifest.getAppId(), HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION,
+            evaluatedBuildNo);
+    HelmChartCollectionParams helmChartCollectionParams = (HelmChartCollectionParams) manifestCollectionParams;
+    helmChartCollectionParams.setRegex(isRegex());
 
-    delegateTaskBuilder =
+    DelegateTaskBuilder delegateTaskBuilder =
         DelegateTask.builder()
             .accountId(applicationManifest.getAccountId())
             .waitId(waitId)
