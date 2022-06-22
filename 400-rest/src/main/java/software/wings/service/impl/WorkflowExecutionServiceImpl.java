@@ -3304,7 +3304,11 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
 
     setArtifactsFromArtifactVariables(executionArgs);
 
-    setManifestsFromManifestVariables(appId, executionArgs, accountId);
+    if (!featureFlagService.isEnabled(ADD_MANIFEST_COLLECTION_STEP, accountId)) {
+      setManifestsFromManifestVariables(appId, executionArgs, accountId);
+    } else {
+      populateManifestVariablesFromHelmCharts(executionArgs);
+    }
 
     switch (executionArgs.getWorkflowType()) {
       case PIPELINE: {
@@ -3338,11 +3342,22 @@ public class WorkflowExecutionServiceImpl implements WorkflowExecutionService {
               .filter(manifestVariable -> HelmChartInputType.ID.equals(manifestVariable.getInputType()))
               .map(manifestVariable -> HelmChart.builder().uuid(manifestVariable.getValue()).build())
               .collect(toList());
-      if (!featureFlagService.isEnabled(ADD_MANIFEST_COLLECTION_STEP, accountId)) {
-        manifests.addAll(
-            getHelmChartsForVersionManifestVariables(appId, executionArgs.getManifestVariables(), accountId));
-      }
+      manifests.addAll(
+          getHelmChartsForVersionManifestVariables(appId, executionArgs.getManifestVariables(), accountId));
       executionArgs.setHelmCharts(manifests);
+    }
+  }
+
+  private void populateManifestVariablesFromHelmCharts(ExecutionArgs executionArgs) {
+    if (isNotEmpty(executionArgs.getHelmCharts()) && isEmpty(executionArgs.getManifestVariables())) {
+      List<ManifestVariable> manifestVariables = executionArgs.getHelmCharts().stream().map(helmChart
+          -> ManifestVariable.builder()
+                 .appManifestId(helmChart.getApplicationManifestId())
+                 .value(helmChart.getVersion())
+                 .inputType(HelmChartInputType.VERSION)
+                 .build());
+      executionArgs.setManifestVariables(manifestVariables);
+      executionArgs.setHelmCharts(new ArrayList<>());
     }
   }
 

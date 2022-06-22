@@ -2270,6 +2270,10 @@ public class TriggerServiceImpl implements TriggerService {
       String appId, String appManifestId, String versionNumber) {
     ApplicationManifest appManifest = applicationManifestService.getById(appId, appManifestId);
     notNullCheck("Application Manifest doesn't exist", appManifest, USER);
+    if (featureFlagService.isEnabled(FeatureName.ADD_MANIFEST_COLLECTION_STEP, appManifest.getAccountId())) {
+      return HelmChart.builder().applicationManifestId(appManifestId).version(versionNumber).build();
+    }
+
     HelmChart helmChart =
         helmChartService.getManifestByVersionNumber(appManifest.getAccountId(), appManifestId, versionNumber);
 
