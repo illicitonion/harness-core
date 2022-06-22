@@ -8,8 +8,7 @@
 package software.wings.service.impl.trigger;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
-import static io.harness.beans.FeatureName.BYPASS_HELM_FETCH;
-import static io.harness.beans.FeatureName.GITHUB_WEBHOOK_AUTHENTICATION;
+import static io.harness.beans.FeatureName.*;
 import static io.harness.beans.OrchestrationWorkflowType.BUILD;
 import static io.harness.beans.WorkflowType.ORCHESTRATION;
 import static io.harness.beans.WorkflowType.PIPELINE;
@@ -54,6 +53,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import io.harness.annotations.dev.HarnessModule;
 import io.harness.annotations.dev.OwnedBy;
@@ -2356,6 +2356,7 @@ public class TriggerServiceImpl implements TriggerService {
     if (isEmpty(trigger.getManifestSelections())) {
       return;
     }
+    boolean manifestCollectionStepEnabled = featureFlagService.isEnabled(ADD_MANIFEST_COLLECTION_STEP, trigger.getAppId());
 
     trigger.getManifestSelections()
         .stream()
@@ -2365,12 +2366,20 @@ public class TriggerServiceImpl implements TriggerService {
             throw new InvalidRequestException(
                 "Service " + manifestSelection.getServiceId() + " requires manifests", USER);
           }
+          String requiredAppManifestId = manifestSelection.getAppManifestId();
+          String appManifestNameInPayload = serviceManifestMapping.get(manifestSelection.getServiceId()).getAppManifestName();
+          if(manifestCollectionStepEnabled && isNotBlank(appManifestNameInPayload)){
+            //TODO: remove code during ff cleanup if behavior is undesirable
+            ApplicationManifest applicationManifest = applicationManifestService.getAppManifestByName(trigger.getAppId(),  null, manifestSelection.getServiceId(), appManifestNameInPayload);
+            notNullCheck("Application manifest with name " + appManifestNameInPayload + "doesn't belong to service in payload", applicationManifest);
+            requiredAppManifestId = applicationManifest.getUuid();
+          }
           String versionNo = serviceManifestMapping.get(manifestSelection.getServiceId()).getVersionNo();
           if (isBlank(versionNo)) {
             throw new InvalidRequestException("Version Number is Mandatory", USER);
           }
           helmCharts.add(getAlreadyCollectedHelmChartOrCollectNewForVersionNumber(
-              trigger.getAppId(), manifestSelection.getAppManifestId(), versionNo));
+              trigger.getAppId(), requiredAppManifestId, versionNo));
         });
   }
 
