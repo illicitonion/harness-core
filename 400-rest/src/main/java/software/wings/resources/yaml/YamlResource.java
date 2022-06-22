@@ -63,6 +63,7 @@ import software.wings.beans.template.Template;
 import software.wings.beans.yaml.EntityInformation;
 import software.wings.exception.YamlProcessingException;
 import software.wings.infra.InfrastructureDefinition;
+import software.wings.security.PermissionAttribute;
 import software.wings.security.PermissionAttribute.Action;
 import software.wings.security.UserThreadLocal;
 import software.wings.security.annotations.ApiKeyAuthorized;
@@ -97,6 +98,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import javax.ws.rs.Consumes;
@@ -163,7 +165,6 @@ public class YamlResource {
     this.yamlArtifactStreamService = yamlArtifactStreamService;
     this.yamlService = yamlService;
     this.yamlGitService = yamlGitSyncService;
-    this.authService = authService;
     this.harnessUserGroupService = harnessUserGroupService;
   }
 
@@ -210,7 +211,6 @@ public class YamlResource {
   public RestResponse<Template> updateTemplate(@QueryParam("accountId") String accountId,
       @DefaultValue(GLOBAL_APP_ID) @QueryParam("appId") String appId, YamlPayload yamlPayload,
       @PathParam("templateId") String templateId) {
-    templateAuthHandler.authorizeUpdate(appId, templateId);
     return yamlService.update(yamlPayload, accountId, templateId);
   }
 
@@ -645,6 +645,8 @@ public class YamlResource {
   @AuthRule(permissionType = SERVICE, action = Action.UPDATE)
   public RestResponse<Service> updateService(@QueryParam("accountId") String accountId,
       @QueryParam("appId") String appId, YamlPayload yamlPayload, @PathParam("serviceId") String serviceId) {
+    authService.authorize(accountId, appId, serviceId, UserThreadLocal.get(),
+        Collections.singletonList(new PermissionAttribute(SERVICE, Action.UPDATE)));
     return yamlService.update(yamlPayload, accountId, serviceId);
   }
 
@@ -1296,8 +1298,6 @@ public class YamlResource {
   @Consumes(MULTIPART_FORM_DATA)
   @Timed
   @ExceptionMetered
-  @AuthRule(permissionType = ACCOUNT_MANAGEMENT)
-  @ApiKeyAuthorized(permissionType = ACCOUNT_MANAGEMENT)
   public RestResponse<YamlOperationResponse> upsertYAMLEntities(@QueryParam("accountId") @NotEmpty String accountId,
       @FormDataParam("file") InputStream uploadedInputStream) throws IOException {
     return new RestResponse<>(yamlService.upsertYAMLFilesAsZip(accountId,
@@ -1309,8 +1309,6 @@ public class YamlResource {
   @Consumes(MULTIPART_FORM_DATA)
   @Timed
   @ExceptionMetered
-  @AuthRule(permissionType = ACCOUNT_MANAGEMENT)
-  @ApiKeyAuthorized(permissionType = ACCOUNT_MANAGEMENT)
   public RestResponse<FileOperationStatus> upsertYAMLEntity(@QueryParam("accountId") @NotEmpty String accountId,
       @QueryParam("yamlFilePath") @NotEmpty String yamlFilePath, @FormDataParam("yamlContent") String yamlContent) {
     return new RestResponse<>(yamlService.upsertYAMLFile(accountId, yamlFilePath, yamlContent));
@@ -1320,8 +1318,6 @@ public class YamlResource {
   @Path("delete-entities")
   @Timed
   @ExceptionMetered
-  @AuthRule(permissionType = ACCOUNT_MANAGEMENT)
-  @ApiKeyAuthorized(permissionType = ACCOUNT_MANAGEMENT)
   public RestResponse<YamlOperationResponse> deleteYAMLEntities(
       @QueryParam("accountId") @NotEmpty String accountId, @QueryParam("filePaths") @NotEmpty List<String> filePaths) {
     return new RestResponse<>(yamlService.deleteYAMLByPaths(accountId, filePaths));
@@ -1331,8 +1327,6 @@ public class YamlResource {
   @Path("delete-entities-v2")
   @Timed
   @ExceptionMetered
-  @AuthRule(permissionType = ACCOUNT_MANAGEMENT)
-  @ApiKeyAuthorized(permissionType = ACCOUNT_MANAGEMENT)
   public RestResponse<YamlOperationResponse> deleteYAMLEntitiesV2(
       @QueryParam("accountId") @NotEmpty String accountId, @NotEmpty List<EntityInformation> entityInformations) {
     return new RestResponse<>(yamlService.deleteYAMLByPathsV2(accountId, entityInformations));
