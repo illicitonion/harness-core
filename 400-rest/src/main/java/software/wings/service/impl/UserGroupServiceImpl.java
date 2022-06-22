@@ -277,9 +277,17 @@ public class UserGroupServiceImpl implements UserGroupService {
   }
 
   private Set<String> getApplicationsMatchingTheSearchTerm(String accountId, String searchTerm) {
+    PageResponse<Application> applicationList = getAllApplicationsStartingWithSearchTerm(accountId, searchTerm);
+    if (applicationList == null && applicationList.isEmpty()) {
+      return Collections.emptySet();
+    }
+    return applicationList.stream().map(Base::getUuid).collect(Collectors.toSet());
+  }
+
+  private PageResponse<Application> getAllApplicationsStartingWithSearchTerm(String accountId, String searchTerm) {
     SearchFilter applicationSearchFilter = SearchFilter.builder()
                                                .fieldName(Application.ApplicationKeys.name)
-                                               .op(Operator.CONTAINS)
+                                               .op(Operator.STARTS_WITH)
                                                .fieldValues(new Object[] {searchTerm})
                                                .build();
     PageRequest<Application> applicationPageRequest =
@@ -287,11 +295,7 @@ public class UserGroupServiceImpl implements UserGroupService {
             .addFilter(Application.ApplicationKeys.accountId, EQ, accountId)
             .addFilter(applicationSearchFilter)
             .build();
-    PageResponse<Application> applicationList = appService.list(applicationPageRequest);
-    if (applicationList == null && applicationList.isEmpty()) {
-      return Collections.emptySet();
-    }
-    return applicationList.stream().map(Base::getUuid).collect(Collectors.toSet());
+    return appService.list(applicationPageRequest);
   }
 
   private void populateAppIdFilter(PageRequest<UserGroup> req, Set<String> applicationIds) {
