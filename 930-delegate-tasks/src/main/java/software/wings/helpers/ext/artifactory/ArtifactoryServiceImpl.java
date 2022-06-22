@@ -13,6 +13,7 @@ import static io.harness.artifactory.ArtifactoryClientImpl.getBaseUrl;
 import static io.harness.artifactory.ArtifactoryClientImpl.handleAndRethrow;
 import static io.harness.artifactory.ArtifactoryClientImpl.handleErrorResponse;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
+import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.eraro.ErrorCode.ARTIFACT_SERVER_ERROR;
 import static io.harness.exception.WingsException.USER;
 
@@ -301,7 +302,7 @@ public class ArtifactoryServiceImpl implements ArtifactoryService {
 
   @Override
   public List<HelmChart> getHelmCharts(
-      ArtifactoryConfigRequest artifactoryConfig, String repositoryName, String chartName, int maxVersions) {
+      ArtifactoryConfigRequest artifactoryConfig, String repositoryName, String chartName, int maxVersions, String version) {
     log.info("Retrieving helm charts for repositoryName {} chartName {}", repositoryName, chartName);
     Artifactory artifactory = getArtifactoryClient(artifactoryConfig);
     try {
@@ -309,7 +310,12 @@ public class ArtifactoryServiceImpl implements ArtifactoryService {
         throw new ArtifactoryServerException("Chart name can not be empty");
       }
       String aclQuery = "api/search/aql";
-      List<String> helmChartNames = getHelmChartNames(artifactory, aclQuery, repositoryName, chartName, maxVersions);
+      List<String> helmChartNames;
+      if(isNotEmpty(version)){
+        helmChartNames = getHelmChartNamesForVersion(artifactory, aclQuery, repositoryName, chartName, version);
+      } else{
+        helmChartNames = getHelmChartNames(artifactory, aclQuery, repositoryName, chartName, maxVersions);
+      }
       if (isEmpty(helmChartNames)) {
         return new ArrayList<>();
       }
@@ -320,6 +326,27 @@ public class ArtifactoryServiceImpl implements ArtifactoryService {
       handleAndRethrow(e, USER);
     }
     return new ArrayList<>();
+  }
+
+  private List<String> getHelmChartNamesForVersion(Artifactory artifactory, String aclQuery, String repositoryName, String chartName, String version) throws IOException {
+    List<String> helmChartNames = new ArrayList<>();
+    if (chartName.charAt(0) == '/') {
+      chartName = chartName.substring(1);
+    }
+    String requestBody = "items.find({\"repo\":\"" + repositoryName + "\"}, {\"@chart.name\": \"" + chartName
+            + "\"}, {\"@chart.version\": \"" + version
+            + "\"})" + ".include(\"name\", \"repo\", \"created\", \"path\").sort({\"$desc\" : [\"created\"]})";
+
+    ArtifactoryResponse artifactoryResponse = getArtifactoryResponse(artifactory, aclQuery, requestBody);
+    Map<String, List> response = artifactoryResponse.parseBody(Map.class);
+    if (response != null) {
+      List<Map<String, Object>> results = response.get(RESULTS);
+      for (Map<String, Object> item : results) {
+        String name = (String) item.get("name");
+        helmChartNames.add(name);
+      }
+    }
+    return helmChartNames;
   }
 
   private List<HelmChart> getHelmChartsVersionsForChartNames(

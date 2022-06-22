@@ -494,8 +494,6 @@ public class ArtifactCollectionState extends State {
 
     ManifestCollectionParams manifestCollectionParams = manifestCollectionUtils.prepareCollectTaskParamsWithChartVersion(
             applicationManifest.getUuid(), applicationManifest.getAppId(), HelmChartCollectionParams.HelmChartCollectionType.SPECIFIC_VERSION, evaluatedBuildNo);
-    HelmChartCollectionParams helmChartCollectionParams = (HelmChartCollectionParams)(manifestCollectionParams);
-    helmChartCollectionParams.getHelmChartConfigParams().setBypassHelmFetch(false);
 
     delegateTaskBuilder = DelegateTask.builder()
             .accountId(applicationManifest.getAccountId())
@@ -504,7 +502,7 @@ public class ArtifactCollectionState extends State {
             .data(TaskData.builder()
                       .async(true)
                       .taskType(TaskType.HELM_COLLECT_CHART.name())
-                      .parameters(new Object[] {helmChartCollectionParams})
+                      .parameters(new Object[] {manifestCollectionParams})
                       .timeout(timeout)
                       .build());
 

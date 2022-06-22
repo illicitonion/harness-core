@@ -34,6 +34,8 @@ import software.wings.helpers.ext.helm.response.HelmCollectChartResponse;
 
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
@@ -73,12 +75,7 @@ public class HelmCollectChartTask extends AbstractDelegateRunnableTask {
 
       if (taskParams.getCollectionType() == HelmChartCollectionType.SPECIFIC_VERSION) {
         // that specific version is found
-        if (helmCharts.size() == 1
-            && helmCharts.get(0).getVersion().equals(taskParams.getHelmChartConfigParams().getChartVersion())) {
-          return HelmCollectChartResponse.builder().commandExecutionStatus(SUCCESS).helmCharts(helmCharts).build();
-        } else {
-          return HelmCollectChartResponse.builder().commandExecutionStatus(SUCCESS).helmCharts(null).build();
-        }
+        return HelmCollectChartResponse.builder().commandExecutionStatus(SUCCESS).helmCharts(Collections.singletonList(helmCharts.stream().filter(chart -> chart.getVersion().equals(taskParams.getHelmChartConfigParams().getChartVersion())).findFirst().orElse(null))).build();
       } else {
         return HelmCollectChartResponse.builder().commandExecutionStatus(SUCCESS).helmCharts(helmCharts).build();
       }

@@ -85,5 +85,5 @@ public interface ArtifactoryService {
   Long getFileSize(ArtifactoryConfigRequest artifactoryConfig, Map<String, String> metadata);
 
   List<HelmChart> getHelmCharts(
-      ArtifactoryConfigRequest artifactoryConfig, String repositoryName, String chartName, int maxVersions);
+      ArtifactoryConfigRequest artifactoryConfig, String repositoryName, String chartName, int maxVersions, String version);
 }
