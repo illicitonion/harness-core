@@ -71,7 +71,7 @@ public class S3BucketResource {
 
   @GET
   @Path("getBucketsV2")
-  @ApiOperation(value = "Gets s3 buckets", nickname = "getBucketListForS3")
+  @ApiOperation(value = "Gets s3 buckets", nickname = "getV2BucketListForS3")
   public ResponseDTO<List<String>> getBucketsV2(@QueryParam("region") String region, @NotNull @QueryParam("connectorRef") String awsConnectorIdentifier,
                                                 @NotNull @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId, @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier, @QueryParam(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier) {
     IdentifierRef connectorRef =
