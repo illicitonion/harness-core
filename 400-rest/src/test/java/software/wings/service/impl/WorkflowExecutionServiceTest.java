@@ -2105,7 +2105,7 @@ public class WorkflowExecutionServiceTest extends WingsBaseTest {
 
     GraphNode graphNode = preDeploymentSteps.getSteps().get(0);
     assertThat(graphNode.getType()).isEqualTo(ARTIFACT_COLLECT_LOOP_STATE.getType());
-    assertThat(graphNode.getName()).isEqualTo("Artifact Collection");
+    assertThat(graphNode.getName()).isEqualTo("Artifact/Manifest Collection");
     assertThat(graphNode.getProperties()).isNotNull().isNotEmpty();
     assertThat(graphNode.getProperties().get(ArtifactCollectLoopStateKeys.artifactInputList)).isEqualTo(artifactInputs);
   }
