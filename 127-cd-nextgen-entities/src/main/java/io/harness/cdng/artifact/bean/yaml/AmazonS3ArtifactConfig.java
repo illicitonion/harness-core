@@ -64,10 +64,7 @@ public class AmazonS3ArtifactConfig implements ArtifactConfig, Visitable, WithCo
   /**
    * Artifact FilePaths
    */
-  @NotNull
-  @ApiModelProperty(dataType = SwaggerConstants.STRING_CLASSPATH)
-  @Wither
-  ParameterField<String> filePath;
+  @NotNull @ApiModelProperty(dataType = SwaggerConstants.STRING_CLASSPATH) @Wither ParameterField<String> filePath;
 
   /**
    * Identifier for artifact.
