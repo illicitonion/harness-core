@@ -20,6 +20,7 @@ import io.harness.cdng.infra.steps.EnvironmentStep;
 import io.harness.cdng.infra.yaml.InfraStructureDefinitionYaml;
 import io.harness.cdng.infra.yaml.InfrastructureConfig;
 import io.harness.cdng.visitor.YamlTypes;
+import io.harness.data.structure.EmptyPredicate;
 import io.harness.exception.InvalidRequestException;
 import io.harness.ng.core.environment.beans.Environment;
 import io.harness.ng.core.environment.services.EnvironmentService;
@@ -50,6 +51,7 @@ import io.harness.serializer.KryoSerializer;
 import io.harness.utils.YamlPipelineUtils;
 import io.harness.yaml.core.variables.NGServiceOverrides;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.protobuf.ByteString;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -107,10 +109,20 @@ public class EnvironmentPlanCreatorHelper {
         accountIdentifier, orgIdentifier, projectIdentifier, environmentV2.getEnvironmentRef().getValue(), serviceRef);
     NGServiceOverrides serviceOverride = getNgServiceOverrides(environmentV2, serviceOverridesOptional);
 
-    String mergedEnvYaml = environment.get().getYaml();
+    String originalEnvYaml = environment.get().getYaml();
 
+    // TODO: need to remove this once we have the migration for old env
+    if (EmptyPredicate.isEmpty(originalEnvYaml)) {
+      try {
+        originalEnvYaml = YamlPipelineUtils.getYamlString(environment.get());
+      } catch (JsonProcessingException e) {
+        throw new InvalidRequestException("Unable to convert environment to yaml");
+      }
+    }
+
+    String mergedEnvYaml = originalEnvYaml;
     if (isNotEmpty(environmentV2.getEnvironmentInputs())) {
-      mergedEnvYaml = mergeEnvironmentInputs(environment.get().getYaml(), environmentV2.getEnvironmentInputs());
+      mergedEnvYaml = mergeEnvironmentInputs(originalEnvYaml, environmentV2.getEnvironmentInputs());
     }
 
     if (!gitOpsEnabled) {
@@ -162,7 +174,7 @@ public class EnvironmentPlanCreatorHelper {
     List<InfrastructureEntity> infrastructureEntityList;
     Map<String, Map<String, Object>> refToInputMap = new HashMap<>();
     String envIdentifier = environmentV2.getEnvironmentRef().getValue();
-    if (!environmentV2.getDeployToAll()) {
+    if (!environmentV2.isDeployToAll()) {
       List<String> infraIdentifierList = new ArrayList<>();
 
       for (InfraStructureDefinitionYaml infraYaml : environmentV2.getInfrastructureDefinitions()) {
@@ -200,8 +212,8 @@ public class EnvironmentPlanCreatorHelper {
     }
   }
 
-  public static Map<String, ByteString> prepareMetadata(String serviceSpecNodeId, String infraSectionUuid,
-      String environmentUuid, boolean gitOpsEnabled, KryoSerializer kryoSerializer) {
+  public static Map<String, ByteString> prepareMetadata(String environmentUuid, String infraSectionUuid,
+      String serviceSpecNodeId, boolean gitOpsEnabled, KryoSerializer kryoSerializer) {
     Map<String, ByteString> metadataDependency = new HashMap<>();
 
     metadataDependency.put(YamlTypes.NEXT_UUID, ByteString.copyFrom(kryoSerializer.asDeflatedBytes(serviceSpecNodeId)));
