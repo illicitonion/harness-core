@@ -63,7 +63,6 @@ import software.wings.beans.template.Template;
 import software.wings.beans.yaml.EntityInformation;
 import software.wings.exception.YamlProcessingException;
 import software.wings.infra.InfrastructureDefinition;
-import software.wings.security.PermissionAttribute;
 import software.wings.security.PermissionAttribute.Action;
 import software.wings.security.UserThreadLocal;
 import software.wings.security.annotations.ApiKeyAuthorized;
@@ -98,7 +97,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import javax.ws.rs.Consumes;
@@ -166,6 +164,7 @@ public class YamlResource {
     this.yamlService = yamlService;
     this.yamlGitService = yamlGitSyncService;
     this.harnessUserGroupService = harnessUserGroupService;
+    this.authService = authService;
   }
 
   /**
@@ -211,6 +210,7 @@ public class YamlResource {
   public RestResponse<Template> updateTemplate(@QueryParam("accountId") String accountId,
       @DefaultValue(GLOBAL_APP_ID) @QueryParam("appId") String appId, YamlPayload yamlPayload,
       @PathParam("templateId") String templateId) {
+    templateAuthHandler.authorizeUpdate(appId, templateId);
     return yamlService.update(yamlPayload, accountId, templateId);
   }
 
@@ -645,8 +645,6 @@ public class YamlResource {
   @AuthRule(permissionType = SERVICE, action = Action.UPDATE)
   public RestResponse<Service> updateService(@QueryParam("accountId") String accountId,
       @QueryParam("appId") String appId, YamlPayload yamlPayload, @PathParam("serviceId") String serviceId) {
-    authService.authorize(accountId, appId, serviceId, UserThreadLocal.get(),
-        Collections.singletonList(new PermissionAttribute(SERVICE, Action.UPDATE)));
     return yamlService.update(yamlPayload, accountId, serviceId);
   }
 
