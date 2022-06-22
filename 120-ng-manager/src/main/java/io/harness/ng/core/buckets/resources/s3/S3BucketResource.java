@@ -8,11 +8,13 @@
 package io.harness.ng.core.buckets.resources.s3;
 
 import static io.harness.annotations.dev.HarnessTeam.CDP;
+import static software.wings.service.impl.aws.model.AwsConstants.AWS_DEFAULT_REGION;
 
 import io.harness.NGCommonEntityConstants;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.IdentifierRef;
 import io.harness.cdng.buckets.resources.s3.S3ResourceService;
+import io.harness.data.structure.EmptyPredicate;
 import io.harness.ng.core.dto.ErrorDTO;
 import io.harness.ng.core.dto.FailureDTO;
 import io.harness.ng.core.dto.ResponseDTO;
@@ -70,10 +72,14 @@ public class S3BucketResource {
   @GET
   @Path("getBucketsV2")
   @ApiOperation(value = "Gets s3 buckets", nickname = "getBucketListForS3")
-  public ResponseDTO<List<String>> getBucketsV2(@NotNull @QueryParam("region") String region, @NotNull @QueryParam("connectorRef") String awsConnectorIdentifier,
+  public ResponseDTO<List<String>> getBucketsV2(@QueryParam("region") String region, @NotNull @QueryParam("connectorRef") String awsConnectorIdentifier,
                                                 @NotNull @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId, @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier, @QueryParam(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier) {
     IdentifierRef connectorRef =
             IdentifierRefHelper.getIdentifierRef(awsConnectorIdentifier, accountId, orgIdentifier, projectIdentifier);
+
+    if(EmptyPredicate.isEmpty(region)){
+      region = AWS_DEFAULT_REGION;
+    }
 
     Map<String, String> s3Buckets =
             s3ResourceService.getBuckets(connectorRef, region, orgIdentifier, projectIdentifier);
