@@ -71,7 +71,6 @@ public class ServerlessAwsLambdaDeployCommandTaskHandlerTest extends CategoryTes
   @Mock private LogCallback configureCredsLogCallback;
   @Mock private LogCallback pluginLogCallback;
   @Mock private LogCallback prepareRollbackLogCallback;
-  @Mock private LogCallback logCallback;
 
   @InjectMocks private ServerlessAwsLambdaDeployCommandTaskHandler serverlessAwsLambdaDeployCommandTaskHandler;
 
