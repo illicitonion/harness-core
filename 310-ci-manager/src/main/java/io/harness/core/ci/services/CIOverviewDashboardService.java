@@ -34,7 +34,7 @@ public interface CIOverviewDashboardService {
   DashboardBuildRepositoryInfo getDashboardBuildRepository(String accountId, String orgId, String projectId,
       long startInterval, long endInterval, long previousStartInterval);
 
-  public long getActiveCommitterCount(String accountId);
+  long getActiveCommitterCount(String accountId);
 
   UsageDataDTO getActiveCommitter(String accountId, long timestamp);
 

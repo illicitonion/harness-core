@@ -14,6 +14,7 @@ import io.harness.mongo.iterator.provider.MorphiaPersistenceProvider;
 import io.harness.workers.background.AccountLevelEntityProcessController;
 import lombok.extern.slf4j.Slf4j;
 import software.wings.beans.Account;
+import software.wings.beans.Account.AccountKeys;
 import software.wings.service.intfc.AccountService;
 
 import java.util.Collections;
@@ -61,7 +62,7 @@ public class CiTelemetryPublisher implements MongoPersistenceIterator.Handler<Ac
                 CiTelemetryPublisher.class,
                 MongoPersistenceIterator.<Account, MorphiaFilterExpander<Account>>builder()
                         .clazz(Account.class)
-                        .fieldName(Account.AccountKeys.ciTelemetryPublisherIteration)
+                        .fieldName(AccountKeys.ciTelemetryPublisherIteration)
                         .targetInterval(ofHours(24))
                         .acceptableNoAlertDelay(ofMinutes(4))
                         .acceptableExecutionTime(ofMinutes(2))
