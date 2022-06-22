@@ -142,7 +142,9 @@ public class JenkinsBuildStepHelperServiceImpl implements JenkinsBuildStepHelper
         logStreamingStepClient.closeStream(COMMAND_UNIT);
         throw new RuntimeException("Jenkins Queued Build URL is empty and could not start POLL_TASK");
       }
-    } catch (Exception e) {
+    } catch (InvalidRequestException e) {
+      throw new InvalidRequestException(e.getMessage());
+    } catch (RuntimeException e) {
       throw new RuntimeException(e.getMessage());
     }
   }
@@ -165,7 +167,7 @@ public class JenkinsBuildStepHelperServiceImpl implements JenkinsBuildStepHelper
         .build();
   }
 
-  private ArtifactTaskExecutionResponse executeSyncTask(JenkinsArtifactDelegateRequest jenkinsRequest,
+  public ArtifactTaskExecutionResponse executeSyncTask(JenkinsArtifactDelegateRequest jenkinsRequest,
       ArtifactTaskType taskType, BaseNGAccess ngAccess, Ambiance ambiance, String ifFailedMessage) {
     DelegateResponseData responseData = getResponseData(ngAccess, jenkinsRequest, taskType, ambiance);
     return getTaskExecutionResponse(responseData, ifFailedMessage);
