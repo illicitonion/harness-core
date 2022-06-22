@@ -8,13 +8,11 @@
 package io.harness.ng.core.buckets.resources.s3;
 
 import static io.harness.annotations.dev.HarnessTeam.CDP;
-import static software.wings.service.impl.aws.model.AwsConstants.AWS_DEFAULT_REGION;
 
 import io.harness.NGCommonEntityConstants;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.IdentifierRef;
 import io.harness.cdng.buckets.resources.s3.S3ResourceService;
-import io.harness.data.structure.EmptyPredicate;
 import io.harness.ng.core.dto.ErrorDTO;
 import io.harness.ng.core.dto.FailureDTO;
 import io.harness.ng.core.dto.ResponseDTO;
