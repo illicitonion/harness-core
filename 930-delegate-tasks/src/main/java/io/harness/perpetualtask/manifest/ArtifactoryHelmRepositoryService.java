@@ -64,6 +64,7 @@ public class ArtifactoryHelmRepositoryService implements ManifestRepositoryServi
                    .name(helmChartCollectionParams.getHelmChartConfigParams().getChartName())
                    .version(helmChart.getVersion())
                    .displayName(helmChart.getDisplayName())
+                .appVersion(helmChart.getAppVersion())
                    .build())
         .collect(Collectors.toList());
   }
