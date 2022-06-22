@@ -205,6 +205,7 @@ import software.wings.helpers.ext.url.SubdomainUrlHelperIntfc;
 import software.wings.jre.JreConfig;
 import software.wings.licensing.LicenseService;
 import software.wings.service.impl.EventEmitter.Channel;
+import software.wings.service.impl.TemplateParameters.TemplateParametersBuilder;
 import software.wings.service.impl.infra.InfraDownloadService;
 import software.wings.service.intfc.AccountService;
 import software.wings.service.intfc.AlertService;
@@ -1508,7 +1509,7 @@ public class DelegateServiceImpl implements DelegateService {
 
   @VisibleForTesting
   public TemplateParameters finalizeTemplateParametersWithMtlsIfRequired(
-      TemplateParameters.TemplateParametersBuilder templateParametersBuilder) {
+      TemplateParametersBuilder templateParametersBuilder) {
     // build to retrieve current state of builder
     TemplateParameters original = templateParametersBuilder.build();
 
@@ -1527,7 +1528,7 @@ public class DelegateServiceImpl implements DelegateService {
     templateParametersBuilder.mtlsEnabled(true);
 
     /*
-     * Update all URIs that are used by the immutable delegate (manager & log-service)
+     * Update all URIs that are used by the immutable delegate yaml files (manager & log-service)
      * Assumption: managerHost is the base URI of the harness cluster (e.g. "https://app.harness.io")
      */
     String baseUri = original.getManagerHost();

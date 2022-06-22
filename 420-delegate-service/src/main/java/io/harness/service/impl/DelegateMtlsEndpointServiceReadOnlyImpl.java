@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
  *    an unconfigured or default `delegateMtlsSubdomain` can lead to potential issues.
  *    Additionally, when generating kubernetes yaml files (or verifying mTLS on datapath)
  *    it is necessary to verify if an mTLS endpoint exists for the account.
- *    Furthermore, we don't want a missconfiguration break existing mTLS setups.
+ *    Furthermore, we don't want a future misconfiguration break existing mTLS setups.
  *    This class was added to solve these issues by allowing read but no write operations.
  */
 @Singleton
@@ -41,8 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DelegateMtlsEndpointServiceReadOnlyImpl implements DelegateMtlsEndpointService {
   protected static final String ERROR_ENDPOINT_FOR_ACCOUNT_NOT_FOUND_FORMAT =
       "Delegate mTLS endpoint for account '%s' was not found.";
-  protected static final String ERROR_NOT_CONFIGURED =
-      "Environment is missing required configuration to execute this operation.";
+  protected static final String ERROR_NOT_AVAILABLE = "The requested feature is not available.";
 
   protected final HPersistence persistence;
 
@@ -58,19 +57,19 @@ public class DelegateMtlsEndpointServiceReadOnlyImpl implements DelegateMtlsEndp
   @Override
   public DelegateMtlsEndpointDetails createEndpointForAccount(
       String accountId, DelegateMtlsEndpointRequest endpointRequest) {
-    throw new UnavailableFeatureException(ERROR_NOT_CONFIGURED);
+    throw new UnavailableFeatureException(ERROR_NOT_AVAILABLE);
   }
 
   @Override
   public DelegateMtlsEndpointDetails updateEndpointForAccount(
       String accountId, DelegateMtlsEndpointRequest endpointRequest) {
-    throw new UnavailableFeatureException(ERROR_NOT_CONFIGURED);
+    throw new UnavailableFeatureException(ERROR_NOT_AVAILABLE);
   }
 
   @Override
   public DelegateMtlsEndpointDetails patchEndpointForAccount(
       String accountId, DelegateMtlsEndpointRequest patchRequest) {
-    throw new UnavailableFeatureException(ERROR_NOT_CONFIGURED);
+    throw new UnavailableFeatureException(ERROR_NOT_AVAILABLE);
   }
 
   @Override
@@ -81,7 +80,7 @@ public class DelegateMtlsEndpointServiceReadOnlyImpl implements DelegateMtlsEndp
                                         .get();
 
     if (endpoint == null) {
-      throw new EntityNotFoundException(String.format(ERROR_NOT_CONFIGURED, accountId));
+      throw new EntityNotFoundException(String.format(ERROR_NOT_AVAILABLE, accountId));
     }
 
     return this.buildEndpointDetails(endpoint);
@@ -99,12 +98,12 @@ public class DelegateMtlsEndpointServiceReadOnlyImpl implements DelegateMtlsEndp
 
   @Override
   public boolean deleteEndpointForAccount(String accountId) {
-    throw new UnavailableFeatureException(ERROR_NOT_CONFIGURED);
+    throw new UnavailableFeatureException(ERROR_NOT_AVAILABLE);
   }
 
   @Override
   public boolean isDomainPrefixAvailable(String domainPrefix) {
-    throw new UnavailableFeatureException(ERROR_NOT_CONFIGURED);
+    throw new UnavailableFeatureException(ERROR_NOT_AVAILABLE);
   }
 
   protected DelegateMtlsEndpointDetails buildEndpointDetails(DelegateMtlsEndpoint endpoint) {

@@ -94,7 +94,6 @@ import io.harness.delegate.events.DelegateUnregisterEvent;
 import io.harness.delegate.service.DelegateVersionService;
 import io.harness.delegate.task.http.HttpTaskParameters;
 import io.harness.exception.InvalidRequestException;
-import io.harness.exception.UnexpectedException;
 import io.harness.k8s.model.response.CEK8sDelegatePrerequisite;
 import io.harness.ng.core.ProjectScope;
 import io.harness.ng.core.Resource;
