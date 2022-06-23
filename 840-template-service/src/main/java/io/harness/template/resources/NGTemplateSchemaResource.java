@@ -87,11 +87,10 @@ public class NGTemplateSchemaResource {
     public ResponseDTO<JsonNode>
     getTemplateSchema(@QueryParam("templateEntityType") @NotNull TemplateEntityType templateEntityType,
                       @QueryParam(PROJECT_KEY) String projectIdentifier, @QueryParam(ORG_KEY) String orgIdentifier,
-                      @QueryParam("scope") Scope scope, @QueryParam(IDENTIFIER_KEY) String identifier,
-                      @NotNull @QueryParam(ACCOUNT_KEY) String accountIdentifier, @QueryParam(ENTITY_TYPE) @NotNull EntityType entityType,
-                      @NotNull @QueryParam("yamlGroup")String yamlGroup) {
+                      @QueryParam("scope") Scope scope, @NotNull @QueryParam(ACCOUNT_KEY) String accountIdentifier,
+                      @QueryParam(ENTITY_TYPE) @NotNull EntityType entityType) {
         JsonNode schema = null;
-        schema = ngTemplateSchemaService.getTemplateSchema(accountIdentifier, projectIdentifier, orgIdentifier, yamlGroup, scope, entityType, templateEntityType);
+        schema = ngTemplateSchemaService.getTemplateSchema(accountIdentifier, projectIdentifier, orgIdentifier, scope, entityType, templateEntityType);
         return ResponseDTO.newResponse(schema);
     }
 }

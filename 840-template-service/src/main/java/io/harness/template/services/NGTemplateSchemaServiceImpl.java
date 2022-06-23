@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.harness.EntityType;
+import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.encryption.Scope;
 import io.harness.exception.JsonSchemaException;
@@ -20,6 +21,7 @@ import io.harness.remote.client.NGRestUtils;
 import io.harness.template.helpers.YamlSchemaMergeHelper;
 import io.harness.yaml.schema.YamlSchemaProvider;
 import lombok.extern.slf4j.Slf4j;
+import software.wings.beans.template.Template;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
@@ -31,16 +33,16 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
     @Inject private YamlSchemaProvider yamlSchemaProvider;
 
     @Override
-    public JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, String yamlGroup, Scope scope, EntityType entityType, TemplateEntityType templateEntityType) {
+    public JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, EntityType entityType, TemplateEntityType templateEntityType) {
         try {
-            return getTemplateYamlSchemaInternal(accountIdentifier, projectIdentifier, orgIdentifier, yamlGroup, scope, entityType, templateEntityType);
+            return getTemplateYamlSchemaInternal(accountIdentifier, projectIdentifier, orgIdentifier, scope, entityType, templateEntityType);
         } catch (Exception e) {
             log.error("[Template] Failed to get pipeline yaml schema", e);
             throw new JsonSchemaException(e.getMessage());
         }
     }
 
-    private JsonNode getTemplateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, String yamlGroup, Scope scope, EntityType entityType, TemplateEntityType templateEntityType) {
+    private JsonNode getTemplateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, EntityType entityType, TemplateEntityType templateEntityType) {
 
         if(!schemaValidationSupported(templateEntityType)){
             return null;
@@ -49,6 +51,7 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
         JsonNode templateSchema =
                 yamlSchemaProvider.getYamlSchema(EntityType.TEMPLATE, orgIdentifier, projectIdentifier, scope);
 
+        String yamlGroup = getYamlGroup(templateEntityType);
         //TODO: add a handler here to fetch for schemas that we can't get from pipeline as discussed. and refactor
         JsonNode specSchema = NGRestUtils
                 .getResponse(yamlSchemaServiceClient.getYamlSchema(accountIdentifier, orgIdentifier, projectIdentifier, yamlGroup, entityType, scope)).getSchema();
@@ -56,6 +59,22 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
 
         YamlSchemaMergeHelper.mergeYamlSchema(templateSchema, specSchema, entityType, templateEntityType);
         return templateSchema;
+    }
+
+    private String getYamlGroup(TemplateEntityType templateEntityType) {
+        if(HarnessTeam.PIPELINE.equals(templateEntityType.getOwnerTeam())){
+            switch (templateEntityType){
+                case PIPELINE_TEMPLATE:
+                    return "PIPELINE";
+                case STAGE_TEMPLATE:
+                    return "STAGE";
+                case STEP_TEMPLATE:
+                    return "STEP";
+                default:
+                    return null;
+            }
+        }
+        return null;
     }
 
     private boolean schemaValidationSupported(TemplateEntityType templateEntityType){
