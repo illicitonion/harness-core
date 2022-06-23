@@ -35,10 +35,10 @@ public interface EnvironmentResourceClient {
       @Query(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier,
       @Query("envIdentifiers") List<String> envIdentifiers, @Query("sort") List<String> sort);
 
-  @GET(ENVIRONMENT_API + "/{identifier}/attributes")
+  @GET(ENVIRONMENT_API + "/{environmentIdentifier}/attributes")
   Call<ResponseDTO<Map<String, String>>> getEnvironmentAttributes(
       @Query(NGCommonEntityConstants.ACCOUNT_KEY) String accountId,
       @Query(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
       @Query(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier,
-      @Path(NGCommonEntityConstants.IDENTIFIER_KEY) String environmentIdentifier);
+      @Path(NGCommonEntityConstants.ENVIRONMENT_IDENTIFIER_KEY) String environmentIdentifier);
 }

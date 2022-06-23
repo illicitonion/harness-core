@@ -11,7 +11,6 @@ import static io.harness.accesscontrol.permissions.PermissionStatus.EXPERIMENTAL
 import static io.harness.accesscontrol.permissions.PermissionStatus.INACTIVE;
 import static io.harness.accesscontrol.permissions.PermissionStatus.STAGING;
 import static io.harness.annotations.dev.HarnessTeam.PL;
-import static io.harness.data.structure.EmptyPredicate.isEmpty;
 
 import io.harness.accesscontrol.acl.api.Principal;
 import io.harness.accesscontrol.acl.conditions.ACLExpressionEvaluator;
@@ -27,8 +26,6 @@ import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

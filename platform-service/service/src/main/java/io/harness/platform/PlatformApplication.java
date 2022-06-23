@@ -87,7 +87,7 @@ import org.glassfish.jersey.server.model.Resource;
 
 @Slf4j
 @OwnedBy(PL)
-public class PlatformApplication extends Application<PlatformConfiguration> {
+public class  PlatformApplication extends Application<PlatformConfiguration> {
   private static final String APPLICATION_NAME = "Platform Microservice";
   public static final String PLATFORM_SERVICE = "PlatformService";
 
