@@ -105,7 +105,7 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
             .stream()
             .map(e -> e.getClass())
             .collect(Collectors.toSet());
-    assertThat(planCreatorClasses).hasSize(26);
+    assertThat(planCreatorClasses).hasSize(27);
     assertThat(planCreatorClasses.contains(NGPipelinePlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(StagesPlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(ParallelPlanCreator.class)).isTrue();
@@ -165,7 +165,7 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
             .stream()
             .map(e -> e.getClass())
             .collect(Collectors.toSet());
-    assertThat(variableCreatorClasses).hasSize(16);
+    assertThat(variableCreatorClasses).hasSize(17);
     assertThat(variableCreatorClasses.contains(PipelineVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(HTTPStepVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(StepGroupVariableCreator.class)).isTrue();

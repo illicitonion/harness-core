@@ -2003,10 +2003,19 @@
               "type": "string"
             },
             "jobParameter": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/JenkinsParameterField"
-              }
+              "oneOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/JenkinsParameterField"
+                  }
+                },
+                {
+                  "type": "string",
+                  "pattern": "^<\\+input>(\\.(allowedValues|regex)\\(.+?\\))*$",
+                  "minLength": 1
+                }
+              ]
             },
             "unstableStatusAsSuccess": {
               "type": "boolean"
