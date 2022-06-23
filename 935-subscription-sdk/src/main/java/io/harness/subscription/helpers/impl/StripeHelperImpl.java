@@ -110,7 +110,6 @@ public class StripeHelperImpl implements StripeHelper {
 
   @Override
   public CustomerDetailDTO updateBilling(BillingParams billingParams) {
-
     CustomerUpdateParams.Builder paramsBuilder = CustomerUpdateParams.builder();
     CustomerUpdateParams.Address.Builder newAddress = new CustomerUpdateParams.Address.Builder();
 
@@ -329,6 +328,11 @@ public class StripeHelperImpl implements StripeHelper {
 
     return toInvoiceDetailDTO(stripeHandler.previewInvoice(
         subscriptionParams.getCustomerId(), subscriptionParams.getSubscriptionId(), upcomingParamBuilder.build()));
+  }
+
+  @Override
+  public void payInvoice(String invoiceId) {
+    stripeHandler.payInvoice(invoiceId);
   }
 
   @Override
