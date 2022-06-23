@@ -14,6 +14,7 @@ import static software.wings.beans.yaml.YamlConstants.SERVICES_FOLDER;
 import static software.wings.security.PermissionAttribute.Action;
 
 import io.harness.beans.FeatureName;
+import io.harness.exception.GeneralException;
 import io.harness.ff.FeatureFlagService;
 
 import software.wings.beans.InfrastructureProvisioner;
@@ -33,8 +34,10 @@ import software.wings.service.intfc.yaml.sync.YamlService;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.util.Collections;
+import lombok.extern.slf4j.Slf4j;
 
 @Singleton
+@Slf4j
 public class YamlAuthHandler {
   @Inject TemplateAuthHandler templateAuthHandler;
   @Inject DefaultsAuthHandler defaultsAuthHandler;
@@ -61,8 +64,10 @@ public class YamlAuthHandler {
     String appId;
     try {
       appId = yamlHelper.getAppId(accountId, filePath);
-    } catch (Exception e) {
+    } catch (GeneralException e) {
       appId = GLOBAL_APP_ID;
+    } catch (Exception e) {
+      log.error("Error in appId fetching hence returning", e);
     }
     switch (yamlType) {
       case APPLICATION_TEMPLATE_LIBRARY:

@@ -1100,7 +1100,8 @@ public class YamlServiceImpl<Y extends BaseYaml, B extends Base> implements Yaml
                       List changeList = getChangesForZipFile(accountId, fileInputStream, null);
                       List originalChanges = new ArrayList<>(changeList);
 
-                      unauthorizedFiles = (List) changeList.stream()
+                      unauthorizedFiles = (List) io.harness.data.structure.CollectionUtils.emptyIfNull(changeList)
+                                              .stream()
                                               .map(fileChange -> {
                                                 String filePath = ((GitFileChange) fileChange).getFilePath();
                                                 try {
