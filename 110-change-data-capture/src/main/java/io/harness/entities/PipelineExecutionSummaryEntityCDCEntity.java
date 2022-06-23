@@ -39,6 +39,7 @@ public class PipelineExecutionSummaryEntityCDCEntity implements CDCEntity<Pipeli
       if (!ff) {
         return planExecutionSummaryCdChangeDataHandler;
       } else {
+        log.info("FF DEBEZIUM_ENABLED is true.");
         return null;
       }
     } else if (handlerClass.contentEquals("PipelineExecutionSummaryEntityServiceAndInfra")) {

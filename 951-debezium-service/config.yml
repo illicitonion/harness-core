@@ -84,7 +84,7 @@ redisLockConfig:
 distributedLockImplementation: REDIS
 
 cfClientConfig:
-  apiKey: "7c8ea940-7e4b-4e29-a6b3-113feec1656a"
+  apiKey: ""
   configUrl: "https://config.feature-flags.uat.harness.io/api/1.0"
   eventUrl: "https://event.feature-flags.uat.harness.io/api/1.0"
   analyticsEnabled: true
