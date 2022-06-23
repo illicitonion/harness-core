@@ -9,13 +9,10 @@ package io.harness.template.services;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import io.harness.EntityType;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.encryption.Scope;
 import io.harness.eventsframework.schemas.entity.EntityDetailProtoDTO;
 import io.harness.git.model.ChangeType;
-import io.harness.ng.core.template.TemplateEntityType;
 import io.harness.template.entity.TemplateEntity;
 
 import java.util.Optional;
@@ -62,6 +59,4 @@ public interface NGTemplateService {
       String templateIdentifier, String versionLabel);
 
   TemplateEntity updateGitFilePath(TemplateEntity templateEntity, String newFilePath);
-
-    JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, String yamlGroup, Scope scope, EntityType entityType, TemplateEntityType templateEntityType);
 }
