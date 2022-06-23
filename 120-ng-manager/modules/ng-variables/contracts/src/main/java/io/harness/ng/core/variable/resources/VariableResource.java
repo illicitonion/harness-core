@@ -17,12 +17,8 @@ import static io.harness.NGCommonEntityConstants.PROJECT_PARAM_MESSAGE;
 import static io.harness.NGResourceFilterConstants.PAGE_KEY;
 import static io.harness.NGResourceFilterConstants.SEARCH_TERM_KEY;
 import static io.harness.NGResourceFilterConstants.SIZE_KEY;
-import static io.harness.ng.core.variable.VariablePermissions.VARIABLE_DELETE_PERMISSION;
-import static io.harness.ng.core.variable.VariablePermissions.VARIABLE_RESOURCE_TYPE;
-import static io.harness.ng.core.variable.VariablePermissions.VARIABLE_VIEW_PERMISSION;
 
 import io.harness.accesscontrol.AccountIdentifier;
-import io.harness.accesscontrol.NGAccessControlCheck;
 import io.harness.accesscontrol.OrgIdentifier;
 import io.harness.accesscontrol.ProjectIdentifier;
 import io.harness.annotations.dev.HarnessTeam;
