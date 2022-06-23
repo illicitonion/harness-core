@@ -632,7 +632,7 @@ public class EnvironmentResourceV2 {
   @GET
   @Hidden
   @Path("{environmentIdentifier}/attributes")
-  @ApiOperation(hidden = true, value = "Get Environment Attributes")
+  @ApiOperation(hidden = true, value = "Get Environment Attributes", nickname = "getEnvironmentAttributes")
   @InternalApi
   public ResponseDTO<Map<String, String>> getEnvironmentAttributes(
       @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId,

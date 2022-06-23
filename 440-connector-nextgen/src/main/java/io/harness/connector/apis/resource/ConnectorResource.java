@@ -558,7 +558,7 @@ public class ConnectorResource {
   @GET
   @Hidden
   @Path("{identifier}/attributes")
-  @ApiOperation(hidden = true, value = "Get Connector Attributes")
+  @ApiOperation(hidden = true, value = "Get Connector Attributes", nickname = "getConnectorAttributes")
   @InternalApi
   public ResponseDTO<Map<String, String>> getConnectorAttributes(
       @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId,
