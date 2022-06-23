@@ -324,7 +324,7 @@ public class PMSPipelineRepositoryCustomImpl implements PMSPipelineRepositoryCus
     Query query = new Query(criteria);
     try {
       List<PipelineEntity> entities = mongoTemplate.findAllAndRemove(query, PipelineEntity.class);
-      entities.stream().forEach((deletedPipelineEntity) -> {
+      entities.stream().forEach(deletedPipelineEntity -> {
         outboxService.save(new PipelineDeleteEvent(accountId, orgId, projectId, deletedPipelineEntity));
       });
       return true;
