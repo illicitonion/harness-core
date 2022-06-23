@@ -283,23 +283,28 @@ public class AuthenticationSettingsServiceImpl implements AuthenticationSettings
 
   @Override
   public LDAPSettings getLdapSettings(String accountIdentifier) {
+    log.info("NGLDAP: Get ldap settings call for accountId {}", accountIdentifier);
     return fromCGLdapSettings(getResponse(managerClient.getLdapSettings(accountIdentifier)));
   }
 
   @Override
   public LDAPSettings createLdapSettings(String accountIdentifier, LDAPSettings ldapSettings) {
+    log.info("NGLDAP: Create ldap settings call for accountId {}", accountIdentifier);
     return fromCGLdapSettings(getResponse(
         managerClient.createLdapSettings(accountIdentifier, toCGLdapSettings(ldapSettings, accountIdentifier))));
   }
 
   @Override
   public LDAPSettings updateLdapSettings(String accountIdentifier, LDAPSettings ldapSettings) {
+    log.info("NGLDAP: Update ldap settings call for accountId {}, ldap name {}", accountIdentifier,
+        ldapSettings.getDisplayName());
     return fromCGLdapSettings(getResponse(
         managerClient.updateLdapSettings(accountIdentifier, toCGLdapSettings(ldapSettings, accountIdentifier))));
   }
 
   @Override
   public void deleteLdapSettings(String accountIdentifier) {
+    log.info("NGLDAP: Delete ldap settings call for accountId {}", accountIdentifier);
     getResponse(managerClient.deleteLdapSettings(accountIdentifier));
   }
 
