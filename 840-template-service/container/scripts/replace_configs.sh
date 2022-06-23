@@ -155,8 +155,8 @@ if [[ "" != "$REDIS_NETTY_THREADS" ]]; then
   yq write -i $REDISSON_CACHE_FILE nettyThreads "$REDIS_NETTY_THREADS"
 fi
 
-if [[ "" != "$PIPELINE_SECRET" ]]; then
-  yq write -i $CONFIG_FILE pipelineServiceSecret "$NEXT_GEN_MANAGER_SECRET$PIPELINE_SECRET"
+if [[ "" != "$PIPELINE_SERVICE_SECRET" ]]; then
+  yq write -i $CONFIG_FILE pipelineServiceSecret "$PIPELINE_SERVICE_SECRET"
 fi
 
 replace_key_value cacheConfig.cacheNamespace $CACHE_NAMESPACE
