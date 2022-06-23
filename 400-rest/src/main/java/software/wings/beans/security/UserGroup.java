@@ -25,7 +25,6 @@ import io.harness.mongo.index.MongoIndex;
 import io.harness.persistence.AccountAccess;
 import io.harness.persistence.NameAccess;
 
-import lombok.experimental.UtilityClass;
 import software.wings.beans.Base;
 import software.wings.beans.NotificationChannelType;
 import software.wings.beans.NotificationReceiverInfo;
@@ -52,6 +51,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldNameConstants;
+import lombok.experimental.UtilityClass;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -87,6 +87,12 @@ public class UserGroup extends Base implements NotificationReceiverInfo, Account
                 .name("accountIdAndName")
                 .field(UserGroupKeys.accountId)
                 .field(UserGroupKeys.name)
+                .build(),
+            CompoundMongoIndex.builder()
+                .name("accountIdAndFilterTypeAndAppIds")
+                .field(UserGroupKeys.accountId)
+                .field(UserGroupKeys.appFilterType)
+                .field(UserGroupKeys.appIds)
                 .build())
         .build();
   }
