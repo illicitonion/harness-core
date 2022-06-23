@@ -95,8 +95,11 @@ import com.google.common.io.Files;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.mongodb.BasicDBObject;
+import com.mongodb.BulkWriteOperation;
+import com.mongodb.DBCollection;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -863,8 +866,31 @@ public class ArtifactServiceImpl implements ArtifactService {
 
   private void deleteArtifacts(Object[] artifactIds, List<String> artifactFileIds) {
     log.info("Deleting artifactIds of artifacts {}", artifactIds);
-    wingsPersistence.getCollection(DEFAULT_STORE, "artifacts")
-        .remove(new BasicDBObject("_id", new BasicDBObject("$in", artifactIds)));
+
+    final DBCollection dbCollection = wingsPersistence.getCollection(DEFAULT_STORE, "artifacts");
+    BulkWriteOperation bulkWriteOperation = dbCollection.initializeUnorderedBulkOperation();
+
+    int i = 1;
+    try (HIterator<Artifact> artifacts = new HIterator<>(wingsPersistence.createQuery(Artifact.class)
+                                                             .field(ArtifactKeys.uuid)
+                                                             .in(Arrays.asList(artifactIds))
+                                                             .fetch())) {
+      while (artifacts.hasNext()) {
+        final Artifact artifact = artifacts.next();
+        if (i % 100 == 0) {
+          bulkWriteOperation.execute();
+          bulkWriteOperation = dbCollection.initializeUnorderedBulkOperation();
+          log.info("Artifacts: {} deleted", i);
+        }
+        ++i;
+        bulkWriteOperation.find(wingsPersistence.createQuery(Artifact.class).filter(ArtifactKeys.uuid, artifact.getUuid()).getQueryObject()).removeOne();
+      }
+    }
+    if (i % 100 != 1) {
+      bulkWriteOperation.execute();
+    }
+
+    //.remove(new BasicDBObject("_id", new BasicDBObject("$in", artifactIds)));
     deleteArtifactFiles(artifactFileIds);
   }
 
