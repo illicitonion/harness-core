@@ -753,8 +753,8 @@ public class NodeExecutionServiceImpl implements NodeExecutionService {
       String nextId = nodeExecution.getNextId();
       String parentId = nodeExecution.getParentId();
       RetryStageInfo stageDetail = RetryStageInfo.builder()
-                                       .name(nodeExecution.getName())
-                                       .identifier(nodeExecution.getIdentifier())
+                                       .name(nodeExecution.getNode().getName())
+                                       .identifier(nodeExecution.getNode().getIdentifier())
                                        .parentId(parentId)
                                        .createdAt(nodeExecution.getCreatedAt())
                                        .status(ExecutionStatus.getExecutionStatus(nodeExecution.getStatus()))

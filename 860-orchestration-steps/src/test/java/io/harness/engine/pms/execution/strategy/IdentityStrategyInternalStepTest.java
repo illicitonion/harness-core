@@ -10,10 +10,12 @@ package io.harness.engine.pms.execution.strategy;
 import static io.harness.rule.OwnerRule.BRIJESH;
 
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -35,9 +37,9 @@ import io.harness.plancreator.strategy.MatrixConfig;
 import io.harness.plancreator.strategy.StrategyConfig;
 import io.harness.pms.contracts.ambiance.Ambiance;
 import io.harness.pms.contracts.ambiance.Level;
+import io.harness.pms.contracts.execution.ChildExecutableResponse;
 import io.harness.pms.contracts.execution.ChildrenExecutableResponse;
 import io.harness.pms.contracts.execution.ExecutableResponse;
-import io.harness.pms.contracts.execution.Status;
 import io.harness.pms.contracts.execution.StrategyMetadata;
 import io.harness.pms.data.stepparameters.PmsStepParameters;
 import io.harness.pms.plan.execution.SetupAbstractionKeys;
@@ -51,6 +53,7 @@ import io.harness.steps.matrix.StrategyStepParameters;
 import com.google.inject.Inject;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -95,25 +98,17 @@ public class IdentityStrategyInternalStepTest extends CategoryTest {
     IdentityStepParameters stepParameters =
         IdentityStepParameters.builder().originalNodeExecutionId(originalNodeExecutionId).build();
     List<NodeExecution> childrenNodeExecutions = new ArrayList<>();
-    childrenNodeExecutions.add(NodeExecution.builder()
-                                   .ambiance(oldAmbiance)
-                                   .status(Status.SUCCEEDED)
-                                   .planNode(PlanNode.builder().uuid("planUuid1").build())
-                                   .build());
-    childrenNodeExecutions.add(NodeExecution.builder()
-                                   .ambiance(oldAmbiance)
-                                   .status(Status.SUCCEEDED)
-                                   .planNode(PlanNode.builder().uuid("planUuid2").build())
-                                   .build());
+    childrenNodeExecutions.add(
+        NodeExecution.builder().ambiance(oldAmbiance).planNode(PlanNode.builder().uuid("planUuid1").build()).build());
+    childrenNodeExecutions.add(
+        NodeExecution.builder().ambiance(oldAmbiance).planNode(PlanNode.builder().uuid("planUuid2").build()).build());
     childrenNodeExecutions.add(NodeExecution.builder()
                                    .ambiance(oldAmbiance)
                                    .planNode(IdentityPlanNode.builder().uuid("identityUuid1").build())
-                                   .status(Status.SUCCEEDED)
                                    .build());
     childrenNodeExecutions.add(NodeExecution.builder()
                                    .ambiance(oldAmbiance)
                                    .planNode(IdentityPlanNode.builder().uuid("identityUuid2").build())
-                                   .status(Status.SUCCEEDED)
                                    .build());
 
     doReturn(childrenNodeExecutions)
@@ -209,16 +204,72 @@ public class IdentityStrategyInternalStepTest extends CategoryTest {
 
   private void assertChildrenResponse(ChildrenExecutableResponse childrenExecutableResponse, List<Node> identityNodes,
       List<NodeExecution> childrenNodeExecutions) {
-    List<String> nodeIds = identityNodes.stream().map(UuidAccess::getUuid).collect(Collectors.toList());
+    List<String> newlyCreatedidentittNodeids =
+        identityNodes.stream().map(UuidAccess::getUuid).collect(Collectors.toList());
+    List<String> originalIdentityNodeIds = childrenNodeExecutions.stream()
+                                               .filter(o -> o.getNode() instanceof IdentityPlanNode)
+                                               .map(o -> o.getNode().getUuid())
+                                               .collect(Collectors.toList());
     long planNodesCount = childrenNodeExecutions.stream().filter(o -> o.getNode() instanceof PlanNode).count();
     int identityNodesCount = 0;
     for (ChildrenExecutableResponse.Child child : childrenExecutableResponse.getChildrenList()) {
-      if (!child.getChildNodeId().equals("childId")) {
+      if (!originalIdentityNodeIds.contains(child.getChildNodeId())) {
         identityNodesCount++;
-        assertTrue(nodeIds.contains(child.getChildNodeId()));
+        assertTrue(newlyCreatedidentittNodeids.contains(child.getChildNodeId()));
+      } else {
+        assertFalse(newlyCreatedidentittNodeids.contains(child.getChildNodeId()));
       }
     }
-    assertEquals(identityNodesCount, nodeIds.size());
+    assertEquals(identityNodesCount, newlyCreatedidentittNodeids.size());
     assertEquals(planNodesCount, identityNodesCount);
+  }
+
+  @Test
+  @Owner(developers = BRIJESH)
+  @Category(UnitTests.class)
+  public void testObtainChild() {
+    String originalNodeExecutionId = "originalNodeExecutionId";
+    Ambiance oldAmbiance = buildAmbiance();
+    Ambiance ambiance = Ambiance.newBuilder().setPlanId("planId").build();
+    IdentityStepParameters stepParameters =
+        IdentityStepParameters.builder().originalNodeExecutionId(originalNodeExecutionId).build();
+
+    doReturn(Collections.singletonList(NodeExecution.builder()
+                                           .ambiance(oldAmbiance)
+                                           .planNode(IdentityPlanNode.builder().uuid("identityPlanUuid").build())
+                                           .build()))
+        .when(nodeExecutionService)
+        .fetchNodeExecutionsByParentIdWithAmbianceAndNode(originalNodeExecutionId, true);
+
+    ChildExecutableResponse childExecutableResponse = ChildExecutableResponse.newBuilder().build();
+    doReturn(NodeExecution.builder()
+                 .executableResponse(ExecutableResponse.newBuilder().setChild(childExecutableResponse).build())
+                 .build())
+        .when(nodeExecutionService)
+        .get(originalNodeExecutionId);
+    ChildExecutableResponse response = identityStrategyInternalStep.obtainChild(ambiance, stepParameters, null);
+
+    assertEquals(response, childExecutableResponse);
+    verify(planService, never()).saveIdentityNodesForMatrix(any(), any());
+
+    doReturn(Collections.singletonList(NodeExecution.builder()
+                                           .ambiance(oldAmbiance)
+                                           .planNode(PlanNode.builder().uuid("planUuid1").build())
+                                           .build()))
+        .when(nodeExecutionService)
+        .fetchNodeExecutionsByParentIdWithAmbianceAndNode(originalNodeExecutionId, true);
+
+    response = identityStrategyInternalStep.obtainChild(ambiance, stepParameters, null);
+    assertFalse(response.getChildNodeId().equals("planUuid1"));
+
+    verify(planService, times(1)).saveIdentityNodesForMatrix(any(), any());
+  }
+
+  @Test
+  @Owner(developers = BRIJESH)
+  @Category(UnitTests.class)
+  public void testHandleChildResponse() {
+    StepResponse stepResponse = identityStrategyInternalStep.handleChildResponse(null, null, new HashMap<>());
+    assertNotNull(stepResponse);
   }
 }

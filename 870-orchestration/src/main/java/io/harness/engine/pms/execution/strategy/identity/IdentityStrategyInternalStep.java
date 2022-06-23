@@ -114,10 +114,12 @@ public class IdentityStrategyInternalStep
         RecastOrchestrationUtils
             .fromMap(strategyNodeExecution.getResolvedStepParameters(), StrategyStepParameters.class)
             .getStrategyConfig();
-    if (!ParameterField.isBlank(((MatrixConfig) strategyConfig.getMatrixConfig()).getMaxConcurrency())) {
+    if (strategyConfig.getMatrixConfig() != null
+        && !ParameterField.isBlank(((MatrixConfig) strategyConfig.getMatrixConfig()).getMaxConcurrency())) {
       maxConcurrency = ((MatrixConfig) strategyConfig.getMatrixConfig()).getMaxConcurrency().getValue();
     }
-    if (!ParameterField.isBlank(strategyConfig.getForConfig().getMaxConcurrency())) {
+    if (strategyConfig.getForConfig() != null
+        && !ParameterField.isBlank(strategyConfig.getForConfig().getMaxConcurrency())) {
       maxConcurrency = strategyConfig.getForConfig().getMaxConcurrency().getValue();
     }
 

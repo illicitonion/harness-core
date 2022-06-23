@@ -37,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -135,10 +134,6 @@ public class PipelineExecutor {
       @NotNull String orgIdentifier, @NotNull String projectIdentifier, @NotNull String pipelineIdentifier,
       String moduleType, String inputSetPipelineYaml, String previousExecutionId, List<String> retryStagesIdentifier,
       boolean runAllStages, boolean useV2) {
-    retryStagesIdentifier = retryStagesIdentifier.stream()
-                                .map(s -> s.contains("_") ? s.substring(0, s.length() - 2) : s)
-                                .distinct()
-                                .collect(Collectors.toList());
     PipelineEntity pipelineEntity =
         executionHelper.fetchPipelineEntity(accountId, orgIdentifier, projectIdentifier, pipelineIdentifier);
 

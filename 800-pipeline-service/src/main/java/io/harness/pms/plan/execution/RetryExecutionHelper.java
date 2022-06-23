@@ -240,6 +240,7 @@ public class RetryExecutionHelper {
     }
     int stageCounter = 0;
     JsonNode stagesNode = previousRootJsonNode.get("pipeline").get("stages");
+    boolean isStrategyNodeProcessed = false;
     for (JsonNode stage : stagesNode) {
       // stage is not a part of parallel group
       if (stage.get("stage") != null) {
@@ -247,7 +248,7 @@ public class RetryExecutionHelper {
         // previous processed yaml
         JsonNode previousExecutionStageNodeJson = stage.get("stage");
         String stageIdentifier = previousExecutionStageNodeJson.get("identifier").textValue();
-        if (!retryStages.contains(stageIdentifier)) {
+        if (!retryStages.contains(stageIdentifier) && !isStrategyNodeProcessed) {
           identifierOfSkipStages.add(stageIdentifier);
           ((ArrayNode) currentRootJsonNode.get("pipeline").get("stages")).set(stageCounter, stage);
           stageCounter = stageCounter + 1;
@@ -256,8 +257,22 @@ public class RetryExecutionHelper {
           JsonNode currentResumableStagejsonNode =
               currentRootJsonNode.get("pipeline").get("stages").get(stageCounter).get("stage");
           ((ObjectNode) currentResumableStagejsonNode).set("__uuid", previousExecutionStageNodeJson.get("__uuid"));
-          // here onwards we need to retry the pipeline, no further copy of nodes required
-          break;
+
+          if (isStrategyNodeProcessed) {
+            break;
+          }
+
+          JsonNode currentResumableStrategyJsonNode =
+              currentRootJsonNode.get("pipeline").get("stages").get(stageCounter).get("stage").get("strategy");
+          if (currentResumableStrategyJsonNode != null) {
+            stageCounter++;
+            isStrategyNodeProcessed = true;
+            //            ((ObjectNode) currentResumableStrategyJsonNode).set("__uuid",
+            //            previousExecutionStageNodeJson.get("strategy").get("__uuid"));
+          } else {
+            // here onwards we need to retry the pipeline, no further copy of nodes required
+            break;
+          }
         }
       } else {
         // parallel group
