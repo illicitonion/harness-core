@@ -13,6 +13,7 @@ import static java.lang.String.format;
 
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.azure.utility.AzureResourceUtility;
 import io.harness.cdng.infra.beans.AwsInstanceFilter;
 import io.harness.cdng.infra.beans.AzureWebAppInfrastructureOutcome;
 import io.harness.cdng.infra.beans.InfrastructureOutcome;
@@ -174,7 +175,9 @@ public class InfrastructureMapper {
         return AzureWebAppInfrastructureOutcome.builder()
             .connectorRef(azureWebAppInfrastructure.getConnectorRef().getValue())
             .webApp(azureWebAppInfrastructure.getWebApp().getValue())
-            .deploymentSlot(azureWebAppInfrastructure.getDeploymentSlot().getValue())
+            .deploymentSlot(
+                AzureResourceUtility.fixDeploymentSlotName(azureWebAppInfrastructure.getDeploymentSlot().getValue(),
+                    azureWebAppInfrastructure.getWebApp().getValue()))
             .environment(environmentOutcome)
             .infrastructureKey(InfrastructureKey.generate(
                 service, environmentOutcome, azureWebAppInfrastructure.getInfrastructureKeyValues()))
