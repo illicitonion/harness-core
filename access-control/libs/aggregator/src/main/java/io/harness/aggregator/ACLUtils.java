@@ -50,7 +50,7 @@ public class ACLUtils {
                             .build())
         .resourceSelector(resourceSelector.getSelector())
         .conditional(resourceSelector.isConditional())
-        .jexlCondition(resourceSelector.getCondition())
+        .condition(resourceSelector.getCondition())
         .principalType(principal.getPrincipalType().name())
         .principalIdentifier(principal.getPrincipalIdentifier())
         .aclQueryString(ACL.getAclQueryString(scopeIdentifier, selector, principal.getPrincipalType().name(),

@@ -96,7 +96,7 @@ public abstract class BaseACLRepositoryImpl implements ACLRepository {
             -> ResourceSelector.builder()
                    .selector(acl.getResourceSelector())
                    .conditional(acl.isConditional())
-                   .condition(acl.getJexlCondition())
+                   .condition(acl.getCondition())
                    .build())
         .collect(Collectors.toSet());
   }
@@ -113,7 +113,7 @@ public abstract class BaseACLRepositoryImpl implements ACLRepository {
           ResourceSelector resourceSelector = ResourceSelector.builder()
                                                   .selector(acl.getResourceSelector())
                                                   .conditional(acl.isConditional())
-                                                  .condition(acl.getJexlCondition())
+                                                  .condition(acl.getCondition())
                                                   .build();
           return resourceSelectorsToDelete.contains(resourceSelector);
         })
@@ -164,7 +164,7 @@ public abstract class BaseACLRepositoryImpl implements ACLRepository {
   @Override
   public List<ACL> getByAclQueryStringInAndEnabled(List<String> aclQueries, boolean enabled) {
     Query query = new Query(Criteria.where(ACLKeys.aclQueryString).in(aclQueries).and(ACLKeys.enabled).is(enabled));
-    query.fields().include(ACLKeys.aclQueryString).include(ACLKeys.jexlCondition).include(ACLKeys.conditional);
+    query.fields().include(ACLKeys.aclQueryString).include(ACLKeys.condition).include(ACLKeys.conditional);
     return mongoTemplate.find(query, ACL.class);
   }
 
