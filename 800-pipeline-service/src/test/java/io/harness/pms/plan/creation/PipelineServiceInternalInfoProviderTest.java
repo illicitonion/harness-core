@@ -129,11 +129,8 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
     assertThat(planCreatorClasses.contains(ServiceNowUpdateStepPlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(StrategyConfigPlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(CustomStagePlanCreator.class)).isTrue();
-<<<<<<< HEAD
     assertThat(planCreatorClasses.contains(QueueStepPlanCreator.class)).isTrue();
-=======
     assertThat(planCreatorClasses.contains(JenkinsCreateStepPlanCreator.class)).isTrue();
->>>>>>> 35e75fd1f21 ([CDS-38023]: UT fixes)
   }
 
   @Test
@@ -184,11 +181,8 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
     assertThat(variableCreatorClasses.contains(ServiceNowCreateStepVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(ServiceNowUpdateStepVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(CustomStageVariableCreator.class)).isTrue();
-<<<<<<< HEAD
     assertThat(variableCreatorClasses.contains(QueueStepVariableCreator.class)).isTrue();
-=======
     assertThat(variableCreatorClasses.contains(JenkinsBuildStepVariableCreator.class)).isTrue();
->>>>>>> 35e75fd1f21 ([CDS-38023]: UT fixes)
   }
 
   @Test
