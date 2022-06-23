@@ -12,11 +12,13 @@ import static io.harness.rule.OwnerRule.TMACARI;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
 import io.harness.cdng.CDNGTestBase;
+import io.harness.cdng.azure.AzureHelperService;
 import io.harness.cdng.azure.config.ConnectionStringsOutcome;
 import io.harness.cdng.k8s.beans.StepExceptionPassThroughData;
 import io.harness.cdng.manifest.yaml.GitStore;
@@ -54,8 +56,6 @@ import org.mockito.Mock;
 @OwnedBy(CDP)
 public class ConnectionStringsStepTest extends CDNGTestBase {
   private static final String FILE_PATH = "file/path";
-  private static final String FILE_REFERENCE_WITH_ACCOUNT_SCOPE = "account.fileReference";
-  private static final String FILE_REFERENCE = "fileReference";
   private static final String MASTER = "master";
   private static final String COMMIT_ID = "commitId";
   private static final String CONNECTOR_REF = "connectorRef";
@@ -63,14 +63,8 @@ public class ConnectionStringsStepTest extends CDNGTestBase {
   private static final String ACCOUNT_IDENTIFIER = "accountIdentifier";
   private static final String ORG_IDENTIFIER = "orgIdentifier";
   private static final String PROJECT_IDENTIFIER = "projectIdentifier";
-  private static final String CONNECTOR_NAME = "connectorName";
-  private static final String CONFIG_FILE_NAME = "configFileName";
-  private static final String CONFIG_FILE_IDENTIFIER = "configFileIdentifier";
-  private static final String CONFIG_FILE_PARENT_IDENTIFIER = "configFileParentIdentifier";
 
-  @Mock private ConnectorService connectorService;
-  @Mock private FileStoreService fileStoreService;
-  @Mock private NGEncryptedDataService ngEncryptedDataService;
+  @Mock private AzureHelperService azureHelperService;
 
   @InjectMocks private ConnectionStringsStep connectionStringsStep;
 
@@ -87,8 +81,6 @@ public class ConnectionStringsStepTest extends CDNGTestBase {
   public void testExecuteSyncHarnessStore() {
     Ambiance ambiance = getAmbiance();
     StoreConfigWrapper storeConfigWrapper = getStoreConfigWrapper();
-    when(fileStoreService.get(ACCOUNT_IDENTIFIER, null, null, FILE_REFERENCE, false))
-        .thenReturn(Optional.of(getFileStoreNode()));
 
     ConnectionStringsParameters stepParameters =
         ConnectionStringsParameters.builder().connectionStrings(storeConfigWrapper).build();
@@ -107,91 +99,7 @@ public class ConnectionStringsStepTest extends CDNGTestBase {
     HarnessStoreFile harnessStoreFile = store.getFiles().getValue().get(0);
 
     assertThat(harnessStoreFile.getPath().getValue()).isEqualTo(FILE_PATH);
-    assertThat(harnessStoreFile.getRef().getValue()).isEqualTo(FILE_REFERENCE_WITH_ACCOUNT_SCOPE);
-    assertThat(harnessStoreFile.getIsEncrypted().getValue()).isEqualTo(Boolean.FALSE);
-  }
-
-  @Test
-  @Owner(developers = TMACARI)
-  @Category(UnitTests.class)
-  public void testExecuteSyncHarnessStoreNoFilesRefs() {
-    Ambiance ambiance = getAmbiance();
-    ConnectionStringsParameters stepParameters =
-        ConnectionStringsParameters.builder()
-            .connectionStrings(StoreConfigWrapper.builder().spec(HarnessStore.builder().build()).build())
-            .build();
-    assertThatThrownBy(
-        () -> connectionStringsStep.executeSync(ambiance, stepParameters, getStepInputPackage(), getPassThroughData()))
-        .isInstanceOf(InvalidRequestException.class)
-        .hasMessageContaining("Cannot find any file reference for connection strings, store kind:");
-  }
-
-  @Test
-  @Owner(developers = TMACARI)
-  @Category(UnitTests.class)
-  public void testExecuteSyncHarnessStoreMoreThanOneFileProvided() {
-    Ambiance ambiance = getAmbiance();
-    ConnectionStringsParameters stepParameters =
-        ConnectionStringsParameters.builder()
-            .connectionStrings(
-                StoreConfigWrapper.builder()
-                    .spec(HarnessStore.builder()
-                              .files(ParameterField.createValueField(Arrays.asList(getHarnessFile(), getHarnessFile())))
-                              .build())
-                    .build())
-            .build();
-    assertThatThrownBy(
-        () -> connectionStringsStep.executeSync(ambiance, stepParameters, getStepInputPackage(), getPassThroughData()))
-        .isInstanceOf(InvalidRequestException.class)
-        .hasMessageContaining("Only one connection strings file should be provided, store kind:");
-  }
-
-  @Test
-  @Owner(developers = TMACARI)
-  @Category(UnitTests.class)
-  public void testExecuteSyncHarnessStoreFileRefNotFound() {
-    Ambiance ambiance = getAmbiance();
-    ConnectionStringsParameters stepParameters =
-        ConnectionStringsParameters.builder()
-            .connectionStrings(StoreConfigWrapper.builder()
-                                   .spec(HarnessStore.builder()
-                                             .files(ParameterField.createValueField(Arrays.asList(
-                                                 HarnessStoreFile.builder()
-                                                     .path(ParameterField.createValueField(FILE_PATH))
-                                                     .isEncrypted(ParameterField.createValueField(Boolean.FALSE))
-                                                     .build())))
-                                             .build())
-                                   .build())
-            .build();
-    assertThatThrownBy(
-        () -> connectionStringsStep.executeSync(ambiance, stepParameters, getStepInputPackage(), getPassThroughData()))
-        .isInstanceOf(InvalidRequestException.class)
-        .hasMessageContaining("File ref not found for one for connection strings, store kind: ");
-  }
-
-  @Test
-  @Owner(developers = TMACARI)
-  @Category(UnitTests.class)
-  public void testExecuteSyncHarnessStoreEncrypted() {
-    Ambiance ambiance = getAmbiance();
-    ConnectionStringsParameters stepParameters =
-        ConnectionStringsParameters.builder()
-            .connectionStrings(
-                StoreConfigWrapper.builder()
-                    .spec(HarnessStore.builder()
-                              .files(ParameterField.createValueField(Arrays.asList(
-                                  HarnessStoreFile.builder()
-                                      .path(ParameterField.createValueField(FILE_PATH))
-                                      .ref(ParameterField.createValueField(FILE_REFERENCE_WITH_ACCOUNT_SCOPE))
-                                      .isEncrypted(ParameterField.createValueField(Boolean.TRUE))
-                                      .build())))
-                              .build())
-                    .build())
-            .build();
-    assertThatThrownBy(
-        () -> connectionStringsStep.executeSync(ambiance, stepParameters, getStepInputPackage(), getPassThroughData()))
-        .isInstanceOf(InvalidRequestException.class)
-        .hasMessageContaining("Connection strings file not found in Encrypted Store with ref:");
+    verify(azureHelperService).validateSettingsStoreReferences(storeConfigWrapper, ambiance, ConnectionStringsStep.ENTITY_TYPE);
   }
 
   @Test
@@ -199,12 +107,6 @@ public class ConnectionStringsStepTest extends CDNGTestBase {
   @Category(UnitTests.class)
   public void testExecuteSyncGitStore() {
     Ambiance ambiance = getAmbiance();
-    when(connectorService.get(ACCOUNT_IDENTIFIER, ORG_IDENTIFIER, PROJECT_IDENTIFIER, CONNECTOR_REF))
-        .thenReturn(Optional.of(
-            ConnectorResponseDTO.builder()
-                .connector(ConnectorInfoDTO.builder().identifier(CONNECTOR_REF).name(CONNECTOR_NAME).build())
-                .entityValidityDetails(EntityValidityDetails.builder().valid(true).build())
-                .build()));
 
     StoreConfigWrapper storeConfigWrapper = getStoreConfigWrapperWithGitStore();
     ConnectionStringsParameters stepParameters =
@@ -226,15 +128,7 @@ public class ConnectionStringsStepTest extends CDNGTestBase {
     assertThat(store.getCommitId().getValue()).isEqualTo(COMMIT_ID);
     assertThat(store.getConnectorRef().getValue()).isEqualTo(CONNECTOR_REF);
     assertThat(store.getRepoName().getValue()).isEqualTo(REPO_NAME);
-  }
-
-  private FileStoreNodeDTO getFileStoreNode() {
-    return FileNodeDTO.builder()
-        .name(CONFIG_FILE_NAME)
-        .identifier(CONFIG_FILE_IDENTIFIER)
-        .fileUsage(FileUsage.CONFIG)
-        .parentIdentifier(CONFIG_FILE_PARENT_IDENTIFIER)
-        .build();
+    verify(azureHelperService).validateSettingsStoreReferences(storeConfigWrapper, ambiance, ConnectionStringsStep.ENTITY_TYPE);
   }
 
   private Ambiance getAmbiance() {
@@ -267,8 +161,6 @@ public class ConnectionStringsStepTest extends CDNGTestBase {
   private HarnessStoreFile getHarnessFile() {
     return HarnessStoreFile.builder()
         .path(ParameterField.createValueField(FILE_PATH))
-        .ref(ParameterField.createValueField(FILE_REFERENCE_WITH_ACCOUNT_SCOPE))
-        .isEncrypted(ParameterField.createValueField(Boolean.FALSE))
         .build();
   }
 
