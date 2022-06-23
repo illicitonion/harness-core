@@ -99,6 +99,7 @@ import io.harness.delegate.beans.DelegateDTO;
 import io.harness.delegate.beans.DelegateEntityOwner;
 import io.harness.delegate.beans.DelegateGroup;
 import io.harness.delegate.beans.DelegateGroup.DelegateGroupKeys;
+import io.harness.delegate.beans.DelegateGroupDTO;
 import io.harness.delegate.beans.DelegateGroupStatus;
 import io.harness.delegate.beans.DelegateInitializationDetails;
 import io.harness.delegate.beans.DelegateInstanceStatus;
@@ -267,6 +268,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPOutputStream;
 import javax.validation.ConstraintViolation;
 import javax.validation.executable.ValidateOnExecution;
@@ -3419,7 +3421,7 @@ public class DelegateServiceImpl implements DelegateService {
       throw new InvalidRequestException(
           format("Delegate with accountId: %s and delegateId: %s does not exists.", accountId, delegateId));
     }
-    return DelegateDTO.convertToDTO(delegate);
+    return DelegateDTO.convertToDTO(delegate, delegateSetupService.listDelegateImplicitSelectors(delegate));
   }
 
   @Override
@@ -3437,7 +3439,7 @@ public class DelegateServiceImpl implements DelegateService {
       delegate.setTags(delegateTags.getTags());
     }
     Delegate updatedDelegate = updateTags(delegate);
-    return DelegateDTO.convertToDTO(updatedDelegate);
+    return DelegateDTO.convertToDTO(updatedDelegate, null);
   }
 
   @Override
@@ -3449,7 +3451,7 @@ public class DelegateServiceImpl implements DelegateService {
     }
     delegate.setTags(delegateTags.getTags());
     Delegate updatedDelegate = updateTags(delegate);
-    return DelegateDTO.convertToDTO(updatedDelegate);
+    return DelegateDTO.convertToDTO(updatedDelegate, null);
   }
 
   @Override
@@ -3461,7 +3463,7 @@ public class DelegateServiceImpl implements DelegateService {
     }
     delegate.setTags(emptyList());
     Delegate updatedDelegate = updateTags(delegate);
-    return DelegateDTO.convertToDTO(updatedDelegate);
+    return DelegateDTO.convertToDTO(updatedDelegate, null);
   }
 
   private DelegateSequenceConfig generateNewSeqenceConfig(Delegate delegate, Integer seqNum) {
@@ -4110,6 +4112,25 @@ public class DelegateServiceImpl implements DelegateService {
         persistence.createUpdateOperations(Delegate.class).set(DelegateKeys.status, DelegateInstanceStatus.DELETED);
 
     persistence.update(query, updateOperations);
+  }
+
+  @Override
+  public List<DelegateDTO> listDelegatesHavingTags(String accountId, DelegateTags tags) {
+    List<Delegate> delegateList =
+        persistence.createQuery(Delegate.class).filter(DelegateKeys.accountId, accountId).asList();
+
+    // ARPIT: dont calculate implicitSelectorsList twice here
+    return delegateList.stream()
+        .filter(delegate -> checkForDelegateHavingAllTags(delegate, tags))
+        .map(delegate
+            -> DelegateDTO.convertToDTO(delegate, delegateSetupService.listDelegateImplicitSelectors(delegate)))
+        .collect(Collectors.toList());
+  }
+
+  private boolean checkForDelegateHavingAllTags(Delegate delegate, DelegateTags tags) {
+    List<String> delegateTags = delegate.getTags();
+    delegateTags.addAll(delegateSetupService.listDelegateImplicitSelectors(delegate));
+    return delegateTags.containsAll(tags.getTags());
   }
 
   private String getDelegateXmx(String delegateType) {
