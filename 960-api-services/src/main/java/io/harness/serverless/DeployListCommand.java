@@ -14,6 +14,7 @@ public class DeployListCommand extends AbstractExecutable {
   private String stage;
   private String region;
   private String config;
+  private String profile;
   public DeployListCommand(ServerlessClient client) {
     this.client = client;
   }
@@ -29,6 +30,10 @@ public class DeployListCommand extends AbstractExecutable {
     this.config = config;
     return this;
   }
+  public DeployListCommand profile(String profile) {
+    this.profile = profile;
+    return this;
+  }
   @Override
   public String command() {
     StringBuilder command = new StringBuilder(2048);
@@ -41,6 +46,9 @@ public class DeployListCommand extends AbstractExecutable {
     }
     if (StringUtils.isNotBlank(this.config)) {
       command.append(ServerlessClient.option(Option.config, this.config));
+    }
+    if (StringUtils.isNotBlank(this.profile)) {
+      command.append(ServerlessClient.option(Option.profile, this.profile));
     }
     return command.toString().trim();
   }

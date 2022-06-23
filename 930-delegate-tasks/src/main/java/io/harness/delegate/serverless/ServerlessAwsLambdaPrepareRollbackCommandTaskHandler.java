@@ -1,4 +1,6 @@
 package io.harness.delegate.serverless;
+import static io.harness.data.structure.UUIDGenerator.convertBase64UuidToCanonicalForm;
+import static io.harness.data.structure.UUIDGenerator.generateUuid;
 import static io.harness.logging.LogLevel.ERROR;
 import static io.harness.logging.LogLevel.INFO;
 
@@ -8,6 +10,8 @@ import static java.lang.String.format;
 
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.awscli.AwsCliClient;
+import io.harness.awscli.AwsCliClientImpl;
 import io.harness.delegate.beans.connector.awsconnector.AwsCredentialType;
 import io.harness.delegate.beans.logstreaming.CommandUnitsProgress;
 import io.harness.delegate.beans.logstreaming.ILogStreamingTaskClient;
@@ -51,6 +55,7 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
   @Inject private ServerlessTaskHelperBase serverlessTaskHelperBase;
   @Inject private ServerlessInfraConfigHelper serverlessInfraConfigHelper;
   @Inject private ServerlessAwsCommandTaskHelper serverlessAwsCommandTaskHelper;
+  @Inject private AwsCliClient awsCliClient;
 
   private ServerlessAwsLambdaConfig serverlessAwsLambdaConfig;
   private ServerlessClient serverlessClient;
@@ -60,6 +65,8 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
   private long timeoutInMillis;
   private String previousDeployTimeStamp;
   private String serverlessAwsLambdaCredentialType;
+  private boolean crossAccountAccessFlag;
+  private String awsConnectorProfile = null;
 
   @Override
   protected ServerlessCommandResponse executeTaskInternal(ServerlessCommandRequest serverlessCommandRequest,
@@ -86,6 +93,15 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
         (ServerlessAwsLambdaInfraConfig) serverlessPrepareRollbackDataRequest.getServerlessInfraConfig();
     serverlessAwsLambdaCredentialType =
         serverlessInfraConfigHelper.getServerlessAwsLambdaCredentialType(serverlessAwsLambdaInfraConfig);
+
+    crossAccountAccessFlag = serverlessInfraConfigHelper.getAwsCrossAccountFlag(serverlessAwsLambdaInfraConfig);
+
+    if(serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+      awsConnectorProfile = convertBase64UuidToCanonicalForm(generateUuid());
+      serverlessAwsLambdaConfig = (ServerlessAwsLambdaConfig) serverlessInfraConfigHelper.createServerlessConfig(
+              serverlessPrepareRollbackDataRequest.getServerlessInfraConfig());
+    }
+
     LogCallback executionLogCallback = serverlessTaskHelperBase.getLogCallback(
         iLogStreamingTaskClient, ServerlessCommandUnitConstants.rollbackData.toString(), true, commandUnitsProgress);
     try {
@@ -98,8 +114,20 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
     serverlessClient = ServerlessClient.client(serverlessDelegateTaskParams.getServerlessClientPath());
 
     try {
-      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name()) && crossAccountAccessFlag) {
+        serverlessAwsCommandTaskHelper.configureAwsCredentials(awsCliClient, executionLogCallback,
+                serverlessAwsLambdaConfig, timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams,
+                (ServerlessAwsLambdaInfraConfig) serverlessPrepareRollbackDataRequest.getServerlessInfraConfig());
+        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, executionLogCallback,
+                timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
+      }
+      else if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
         configureCredential(serverlessPrepareRollbackDataRequest, executionLogCallback, serverlessDelegateTaskParams);
+      }
+      else if (crossAccountAccessFlag) {
+        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, executionLogCallback,
+                timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
+        executionLogCallback.saveExecutionLog(format("Done..%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
       }
     } catch (Exception ex) {
       executionLogCallback.saveExecutionLog(
@@ -144,11 +172,9 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
 
   private void configureCredential(ServerlessPrepareRollbackDataRequest serverlessPrepareRollbackDataRequest,
       LogCallback executionLogCallback, ServerlessDelegateTaskParams serverlessDelegateTaskParams) throws Exception {
-    serverlessAwsLambdaConfig = (ServerlessAwsLambdaConfig) serverlessInfraConfigHelper.createServerlessConfig(
-        serverlessPrepareRollbackDataRequest.getServerlessInfraConfig());
 
     ServerlessCliResponse response = serverlessAwsCommandTaskHelper.configCredential(serverlessClient,
-        serverlessAwsLambdaConfig, serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis);
+        serverlessAwsLambdaConfig, serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis, awsConnectorProfile);
 
     if (response.getCommandExecutionStatus() == CommandExecutionStatus.SUCCESS) {
       executionLogCallback.saveExecutionLog(
@@ -184,7 +210,7 @@ public class ServerlessAwsLambdaPrepareRollbackCommandTaskHandler extends Server
     }
     ServerlessCliResponse response =
         serverlessAwsCommandTaskHelper.deployList(serverlessClient, serverlessDelegateTaskParams, executionLogCallback,
-            serverlessAwsLambdaInfraConfig, timeoutInMillis, serverlessManifestConfig);
+            serverlessAwsLambdaInfraConfig, timeoutInMillis, serverlessManifestConfig, awsConnectorProfile);
     if (response.getCommandExecutionStatus() == CommandExecutionStatus.SUCCESS) {
       executionLogCallback.saveExecutionLog(
           color(format("%nDeploy List command executed successfully..%n"), LogColor.White, LogWeight.Bold), INFO);

@@ -155,14 +155,14 @@ public class ServerlessAwsLambdaDeployCommandTaskHandlerTest extends CategoryTes
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .configCredential(serverlessClient, serverlessAwsLambdaConfig, serverlessDelegateTaskParams,
-            configureCredsLogCallback, true, timeout * 60000);
+            configureCredsLogCallback, true, timeout * 60000, "bhbh");
 
     doReturn(deployServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .deploy(serverlessClient, serverlessDelegateTaskParams, deployLogCallback,
             (ServerlessAwsLambdaDeployConfig) serverlessDeployConfig,
             (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, timeout * 60000,
-            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig);
+            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig, "byhb");
 
     doReturn(serverlessAwsLambdaManifestSchema)
         .when(serverlessAwsCommandTaskHelper)
@@ -204,7 +204,7 @@ public class ServerlessAwsLambdaDeployCommandTaskHandlerTest extends CategoryTes
         .deploy(serverlessClient, serverlessDelegateTaskParams, initLogCallback,
             (ServerlessAwsLambdaDeployConfig) serverlessDeployConfig,
             (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, timeout * 60000,
-            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig);
+            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig, "bhbhb");
 
     doReturn(INHERIT_FROM_DELEGATE.name())
         .when(serverlessInfraConfigHelper)
@@ -274,16 +274,16 @@ public class ServerlessAwsLambdaDeployCommandTaskHandlerTest extends CategoryTes
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .configCredential(serverlessClient, serverlessAwsLambdaConfig, serverlessDelegateTaskParams, initLogCallback,
-            true, (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000));
+            true, (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000), "bub");
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .configCredential(serverlessClient, serverlessAwsLambdaConfig, serverlessDelegateTaskParams,
-            configureCredsLogCallback, true, timeout * 60000);
+            configureCredsLogCallback, true, timeout * 60000, "bybyg");
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .deployList(serverlessClient, serverlessDelegateTaskParams, prepareRollbackLogCallback,
             (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, timeout * 60000,
-            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig);
+            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig, "bhbh");
     doReturn(Optional.of(previousVersionTimeStamp))
         .when(serverlessAwsCommandTaskHelper)
         .getPreviousVersionTimeStamp(any(), any(), any());
@@ -293,7 +293,7 @@ public class ServerlessAwsLambdaDeployCommandTaskHandlerTest extends CategoryTes
         .deploy(serverlessClient, serverlessDelegateTaskParams, deployLogCallback,
             (ServerlessAwsLambdaDeployConfig) serverlessDeployConfig,
             (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, timeout * 60000,
-            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig);
+            (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig, "bjbhb");
 
     doReturn(serverlessAwsLambdaManifestSchema)
         .when(serverlessAwsCommandTaskHelper)

@@ -11,10 +11,13 @@ import static io.harness.utils.FieldWithPlainTextOrSecretValueHelper.getSecretAs
 
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.aws.CrossAccountAccess;
+import io.harness.data.structure.EmptyPredicate;
 import io.harness.delegate.beans.connector.awsconnector.AwsConnectorDTO;
 import io.harness.delegate.beans.connector.awsconnector.AwsCredentialDTO;
 import io.harness.delegate.beans.connector.awsconnector.AwsCredentialType;
 import io.harness.delegate.beans.connector.awsconnector.AwsManualConfigSpecDTO;
+import io.harness.delegate.beans.connector.awsconnector.CrossAccountAccessDTO;
 import io.harness.exception.InvalidRequestException;
 import io.harness.exception.sanitizer.ExceptionMessageSanitizer;
 import io.harness.security.encryption.EncryptedDataDetail;
@@ -85,5 +88,14 @@ public class ServerlessInfraConfigHelper {
   public String getServerlessAwsLambdaCredentialType(ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig) {
     AwsCredentialDTO awsCredentialDTO = serverlessAwsLambdaInfraConfig.getAwsConnectorDTO().getCredential();
     return awsCredentialDTO.getAwsCredentialType().name();
+  }
+
+  public boolean getAwsCrossAccountFlag(ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig) {
+    AwsCredentialDTO awsCredentialDTO = serverlessAwsLambdaInfraConfig.getAwsConnectorDTO().getCredential();
+    CrossAccountAccessDTO crossAccountAccess = awsCredentialDTO.getCrossAccountAccess();
+    if (crossAccountAccess != null && crossAccountAccess.getCrossAccountRoleArn() != null) {
+      return true;
+    }
+    return false;
   }
 }

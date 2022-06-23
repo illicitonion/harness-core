@@ -15,6 +15,7 @@ public class ConfigCredentialCommand extends AbstractExecutable {
   private String key;
   private String secret;
   private boolean overwrite;
+  private String profile;
   public ConfigCredentialCommand(ServerlessClient client) {
     this.client = client;
   }
@@ -34,6 +35,10 @@ public class ConfigCredentialCommand extends AbstractExecutable {
     this.overwrite = overwrite;
     return this;
   }
+  public ConfigCredentialCommand profile(String profile) {
+    this.profile = profile;
+    return this;
+  }
 
   @Override
   public String command() {
@@ -47,6 +52,9 @@ public class ConfigCredentialCommand extends AbstractExecutable {
     }
     if (StringUtils.isNotBlank(this.secret)) {
       command.append(ServerlessClient.option(Option.secret, this.secret));
+    }
+    if (StringUtils.isNotBlank(this.profile)) {
+      command.append(ServerlessClient.option(Option.profile, this.profile));
     }
     if (this.overwrite) {
       command.append(ServerlessClient.flag(Flag.overwrite));

@@ -10,10 +10,11 @@ import java.util.concurrent.TimeoutException;
 
 @OwnedBy(HarnessTeam.CDP)
 public interface AwsCliClient {
+  CliResponse setConfigure(String configureOption, String configureValue, String profile, String directory,
+      LogCallback executionLogCallback, long timeoutInMillis)
+      throws IOException, InterruptedException, TimeoutException;
 
-    CliResponse setConfigure(String configureOption, String configureValue, String profile, String directory,
-                             LogCallback executionLogCallback, long timeoutInMillis) throws IOException, InterruptedException, TimeoutException;
-
-    CliResponse stsAssumeRole(String roleArn, String roleSessionName, String region, String profile, String directory,
-                              LogCallback executionLogCallback, long timeoutInMillis) throws IOException, InterruptedException, TimeoutException;
+  CliResponse stsAssumeRole(String roleArn, String roleSessionName, String externalId, String region, String profile, String directory,
+      LogCallback executionLogCallback, long timeoutInMillis)
+      throws IOException, InterruptedException, TimeoutException;
 }

@@ -7,6 +7,8 @@
 
 package io.harness.delegate.serverless;
 
+import static io.harness.data.structure.UUIDGenerator.convertBase64UuidToCanonicalForm;
+import static io.harness.data.structure.UUIDGenerator.generateUuid;
 import static io.harness.delegate.task.serverless.exception.ServerlessExceptionConstants.SERVERLESS_FETCH_DEPLOY_OUTPUT_EXPLANATION;
 import static io.harness.delegate.task.serverless.exception.ServerlessExceptionConstants.SERVERLESS_FETCH_DEPLOY_OUTPUT_FAILED;
 import static io.harness.delegate.task.serverless.exception.ServerlessExceptionConstants.SERVERLESS_FETCH_DEPLOY_OUTPUT_HINT;
@@ -21,6 +23,8 @@ import static java.lang.String.format;
 
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.awscli.AwsCliClient;
+import io.harness.awscli.AwsCliClientImpl;
 import io.harness.delegate.beans.connector.awsconnector.AwsCredentialType;
 import io.harness.delegate.beans.logstreaming.CommandUnitsProgress;
 import io.harness.delegate.beans.logstreaming.ILogStreamingTaskClient;
@@ -71,6 +75,7 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
   @Inject private ServerlessTaskHelperBase serverlessTaskHelperBase;
   @Inject private ServerlessInfraConfigHelper serverlessInfraConfigHelper;
   @Inject private ServerlessAwsCommandTaskHelper serverlessAwsCommandTaskHelper;
+  @Inject private AwsCliClient awsCliClient;
 
   private ServerlessAwsLambdaConfig serverlessAwsLambdaConfig;
   private ServerlessClient serverlessClient;
@@ -79,6 +84,8 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
   private ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig;
   private long timeoutInMillis;
   private String serverlessAwsLambdaCredentialType;
+  private boolean crossAccountAccessFlag;
+  private String awsConnectorProfile = null;
 
   @Override
   protected ServerlessCommandResponse executeTaskInternal(ServerlessCommandRequest serverlessCommandRequest,
@@ -107,6 +114,15 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
         (ServerlessAwsLambdaInfraConfig) serverlessDeployRequest.getServerlessInfraConfig();
     serverlessAwsLambdaCredentialType =
         serverlessInfraConfigHelper.getServerlessAwsLambdaCredentialType(serverlessAwsLambdaInfraConfig);
+
+    crossAccountAccessFlag = serverlessInfraConfigHelper.getAwsCrossAccountFlag(serverlessAwsLambdaInfraConfig);
+
+    if(serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+      awsConnectorProfile = convertBase64UuidToCanonicalForm(generateUuid());
+      serverlessAwsLambdaConfig = (ServerlessAwsLambdaConfig) serverlessInfraConfigHelper.createServerlessConfig(
+              serverlessDeployRequest.getServerlessInfraConfig());
+    }
+
     LogCallback setupDirectoryLogCallback = serverlessTaskHelperBase.getLogCallback(
         iLogStreamingTaskClient, ServerlessCommandUnitConstants.setupDirectory.toString(), true, commandUnitsProgress);
     try {
@@ -135,9 +151,23 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
     LogCallback configureCredsLogCallback = serverlessTaskHelperBase.getLogCallback(
         iLogStreamingTaskClient, ServerlessCommandUnitConstants.configureCred.toString(), true, commandUnitsProgress);
     try {
-      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name()) && crossAccountAccessFlag) {
+        serverlessAwsCommandTaskHelper.configureAwsCredentials(awsCliClient, configureCredsLogCallback,
+        serverlessAwsLambdaConfig, timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams,
+        (ServerlessAwsLambdaInfraConfig) serverlessDeployRequest.getServerlessInfraConfig());
+        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, configureCredsLogCallback,
+                timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
+        configureCredsLogCallback.saveExecutionLog(format("Done..%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
+      }
+      else if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
         configureCredential(serverlessDeployRequest, configureCredsLogCallback, serverlessDelegateTaskParams);
-      } else {
+      }
+      else if (crossAccountAccessFlag) {
+        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, configureCredsLogCallback,
+                timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
+        configureCredsLogCallback.saveExecutionLog(format("Done..%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
+      }
+      else {
         configureCredsLogCallback.saveExecutionLog(
             format("skipping configure credentials command..%n%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
       }
@@ -187,11 +217,9 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
 
   private void configureCredential(ServerlessDeployRequest serverlessDeployRequest, LogCallback executionLogCallback,
       ServerlessDelegateTaskParams serverlessDelegateTaskParams) throws Exception {
-    serverlessAwsLambdaConfig = (ServerlessAwsLambdaConfig) serverlessInfraConfigHelper.createServerlessConfig(
-        serverlessDeployRequest.getServerlessInfraConfig());
 
     ServerlessCliResponse response = serverlessAwsCommandTaskHelper.configCredential(serverlessClient,
-        serverlessAwsLambdaConfig, serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis);
+        serverlessAwsLambdaConfig, serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis, awsConnectorProfile);
 
     if (response.getCommandExecutionStatus() == CommandExecutionStatus.SUCCESS) {
       executionLogCallback.saveExecutionLog(
@@ -217,7 +245,7 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
 
     response =
         serverlessAwsCommandTaskHelper.deploy(serverlessClient, serverlessDelegateTaskParams, executionLogCallback,
-            serverlessAwsLambdaDeployConfig, serverlessAwsLambdaInfraConfig, timeoutInMillis, serverlessManifestConfig);
+            serverlessAwsLambdaDeployConfig, serverlessAwsLambdaInfraConfig, timeoutInMillis, serverlessManifestConfig, awsConnectorProfile);
 
     ServerlessAwsLambdaDeployResultBuilder serverlessAwsLambdaDeployResultBuilder =
         ServerlessAwsLambdaDeployResult.builder();

@@ -8,6 +8,8 @@
 package io.harness.delegate.task.serverless;
 
 import static io.harness.annotations.dev.HarnessTeam.CDP;
+import static io.harness.data.structure.UUIDGenerator.convertBase64UuidToCanonicalForm;
+import static io.harness.data.structure.UUIDGenerator.generateUuid;
 import static io.harness.delegate.task.serverless.exception.ServerlessExceptionConstants.SERVERLESS_COMMAND_FAILURE;
 import static io.harness.delegate.task.serverless.exception.ServerlessExceptionConstants.SERVERLESS_COMMAND_FAILURE_EXPLANATION;
 import static io.harness.delegate.task.serverless.exception.ServerlessExceptionConstants.SERVERLESS_COMMAND_FAILURE_HINT;
@@ -22,7 +24,11 @@ import static software.wings.beans.LogHelper.color;
 import static java.lang.String.format;
 
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.aws.CrossAccountAccess;
+import io.harness.awscli.AwsCliClient;
+import io.harness.cli.CliResponse;
 import io.harness.data.structure.EmptyPredicate;
+import io.harness.delegate.beans.connector.awsconnector.CrossAccountAccessDTO;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaCloudFormationSchema;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaFunction;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaFunction.ServerlessAwsLambdaFunctionBuilder;
@@ -37,6 +43,7 @@ import io.harness.exception.sanitizer.ExceptionMessageSanitizer;
 import io.harness.filesystem.FileIo;
 import io.harness.logging.CommandExecutionStatus;
 import io.harness.logging.LogCallback;
+import io.harness.logging.LogLevel;
 import io.harness.serializer.YamlUtils;
 import io.harness.serverless.AbstractExecutable;
 import io.harness.serverless.ConfigCredentialCommand;
@@ -94,13 +101,14 @@ public class ServerlessAwsCommandTaskHelper {
 
   public ServerlessCliResponse configCredential(ServerlessClient serverlessClient,
       ServerlessAwsLambdaConfig serverlessAwsLambdaConfig, ServerlessDelegateTaskParams serverlessDelegateTaskParams,
-      LogCallback executionLogCallback, boolean overwrite, long timeoutInMillis)
+      LogCallback executionLogCallback, boolean overwrite, long timeoutInMillis, String profile)
       throws InterruptedException, IOException, TimeoutException {
     executionLogCallback.saveExecutionLog("Setting up AWS config credentials..\n");
     ConfigCredentialCommand command = serverlessClient.configCredential()
                                           .provider(serverlessAwsLambdaConfig.getProvider())
                                           .key(serverlessAwsLambdaConfig.getAccessKey())
                                           .secret(serverlessAwsLambdaConfig.getSecretKey())
+            .profile(profile)
                                           .overwrite(overwrite);
     return ServerlessCommandTaskHelper.executeCommand(
         command, serverlessDelegateTaskParams.getWorkingDirectory(), executionLogCallback, false, timeoutInMillis);
@@ -110,12 +118,13 @@ public class ServerlessAwsCommandTaskHelper {
       ServerlessDelegateTaskParams serverlessDelegateTaskParams, LogCallback executionLogCallback,
       ServerlessAwsLambdaDeployConfig serverlessAwsLambdaDeployConfig,
       ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig, long timeoutInMillis,
-      ServerlessAwsLambdaManifestConfig serverlessAwsLambdaManifestConfig)
+      ServerlessAwsLambdaManifestConfig serverlessAwsLambdaManifestConfig, String profile)
       throws InterruptedException, IOException, TimeoutException {
     executionLogCallback.saveExecutionLog("Serverless Deployment Starting..\n");
     DeployCommand command = serverlessClient.deploy()
                                 .options(serverlessAwsLambdaDeployConfig.getCommandOptions())
                                 .region(serverlessAwsLambdaInfraConfig.getRegion())
+            .profile(profile)
                                 .stage(serverlessAwsLambdaInfraConfig.getStage());
     if (EmptyPredicate.isNotEmpty(serverlessAwsLambdaManifestConfig.getConfigOverridePath())) {
       command.config(serverlessAwsLambdaManifestConfig.getConfigOverridePath());
@@ -123,6 +132,61 @@ public class ServerlessAwsCommandTaskHelper {
     return ServerlessCommandTaskHelper.executeCommand(
         command, serverlessDelegateTaskParams.getWorkingDirectory(), executionLogCallback, true, timeoutInMillis);
   }
+
+  public void configureAwsCredentials(AwsCliClient awsCliClient, LogCallback executionLogCallback,
+       ServerlessAwsLambdaConfig serverlessAwsLambdaConfig, long timeoutInMillis, String profile,
+       ServerlessDelegateTaskParams serverlessDelegateTaskParams, ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig)
+          throws InterruptedException, IOException, TimeoutException {
+    executionLogCallback.saveExecutionLog("Setting up AWS config credentials..\n");
+    CliResponse response = awsCliClient.setConfigure("aws_access_key_id", serverlessAwsLambdaConfig.getAccessKey(), profile,
+            serverlessDelegateTaskParams.getWorkingDirectory(), executionLogCallback, timeoutInMillis);
+    if (response.getCommandExecutionStatus() != CommandExecutionStatus.SUCCESS) {
+      String command = "aws configure set aws_access_key_id *** --profile " + profile;
+      executionLogCallback.saveExecutionLog(
+              color(format("%nConfig Credential command failed..%n"), LogColor.Red, LogWeight.Bold), ERROR,
+              CommandExecutionStatus.FAILURE);
+      handleAwsCommandExecutionFailure(command);
+    }
+    response = awsCliClient.setConfigure("aws_secret_access_key", serverlessAwsLambdaConfig.getSecretKey(), profile,
+            serverlessDelegateTaskParams.getWorkingDirectory(), executionLogCallback, timeoutInMillis);
+    if (response.getCommandExecutionStatus() != CommandExecutionStatus.SUCCESS) {
+      String command = "aws configure set aws_secret_access_key *** --profile " + profile;
+      executionLogCallback.saveExecutionLog(
+              color(format("%nConfig Credential command failed..%n"), LogColor.Red, LogWeight.Bold), ERROR,
+              CommandExecutionStatus.FAILURE);
+      handleAwsCommandExecutionFailure(command);
+    }
+    response = awsCliClient.setConfigure("region", serverlessAwsLambdaInfraConfig.getRegion(), profile,
+            serverlessDelegateTaskParams.getWorkingDirectory(), executionLogCallback, timeoutInMillis);
+    if (response.getCommandExecutionStatus() != CommandExecutionStatus.SUCCESS) {
+      String command = "aws configure set region *** --profile " + profile;
+      executionLogCallback.saveExecutionLog(
+              color(format("%nConfig Credential command failed..%n"), LogColor.Red, LogWeight.Bold), ERROR,
+              CommandExecutionStatus.FAILURE);
+      handleAwsCommandExecutionFailure(command);
+    }
+    executionLogCallback.saveExecutionLog(
+            color(format("%nConfig Credential command executed successfully..%n"), LogColor.White, LogWeight.Bold), INFO);
+  }
+
+  public void awsStsAssumeRole(AwsCliClient awsCliClient, LogCallback executionLogCallback,long timeoutInMillis, String profile,
+                               ServerlessDelegateTaskParams serverlessDelegateTaskParams, ServerlessAwsLambdaInfraConfig
+                                       serverlessAwsLambdaInfraConfig)
+          throws InterruptedException, IOException, TimeoutException {
+    executionLogCallback.saveExecutionLog("Setting up AWS Cross-account access..\n");
+    CrossAccountAccessDTO crossAccountAccess = serverlessAwsLambdaInfraConfig.getAwsConnectorDTO().getCredential().getCrossAccountAccess();
+    CliResponse response = awsCliClient.stsAssumeRole(crossAccountAccess.getCrossAccountRoleArn(), convertBase64UuidToCanonicalForm(generateUuid()),
+            crossAccountAccess.getExternalId(), serverlessAwsLambdaInfraConfig.getRegion(), profile,
+            serverlessDelegateTaskParams.getWorkingDirectory(), executionLogCallback, timeoutInMillis);
+    if (response.getCommandExecutionStatus() != CommandExecutionStatus.SUCCESS) {
+      String command = "aws sts assume-role --role-arn ***";
+      executionLogCallback.saveExecutionLog(
+              color(format("%n setting up AWS Cross-account access failed..%n"), LogColor.Red, LogWeight.Bold), ERROR,
+              CommandExecutionStatus.FAILURE);
+      handleAwsCommandExecutionFailure(command);
+    }
+  }
+
 
   public boolean cloudFormationStackExists(
       LogCallback executionLogCallback, ServerlessCommandRequest serverlessCommandRequest, String manifestContent) {
@@ -157,11 +221,12 @@ public class ServerlessAwsCommandTaskHelper {
   public ServerlessCliResponse deployList(ServerlessClient serverlessClient,
       ServerlessDelegateTaskParams serverlessDelegateTaskParams, LogCallback executionLogCallback,
       ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig, long timeoutInMillis,
-      ServerlessAwsLambdaManifestConfig serverlessAwsLambdaManifestConfig)
+      ServerlessAwsLambdaManifestConfig serverlessAwsLambdaManifestConfig, String profile)
       throws InterruptedException, IOException, TimeoutException {
     executionLogCallback.saveExecutionLog("Fetching previous successful deployments..\n");
     DeployListCommand command = serverlessClient.deployList()
                                     .region(serverlessAwsLambdaInfraConfig.getRegion())
+            .profile(profile)
                                     .stage(serverlessAwsLambdaInfraConfig.getStage());
     if (EmptyPredicate.isNotEmpty(serverlessAwsLambdaManifestConfig.getConfigOverridePath())) {
       command.config(serverlessAwsLambdaManifestConfig.getConfigOverridePath());
@@ -173,11 +238,12 @@ public class ServerlessAwsCommandTaskHelper {
   public ServerlessCliResponse remove(ServerlessClient serverlessClient,
       ServerlessDelegateTaskParams serverlessDelegateTaskParams, LogCallback executionLogCallback, long timeoutInMillis,
       ServerlessAwsLambdaManifestConfig serverlessAwsLambdaManifestConfig,
-      ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig)
+      ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig, String profile)
       throws InterruptedException, IOException, TimeoutException {
     executionLogCallback.saveExecutionLog("Serverless Remove Starting..\n");
     RemoveCommand command = serverlessClient.remove()
                                 .stage(serverlessAwsLambdaInfraConfig.getStage())
+            .profile(profile)
                                 .region(serverlessAwsLambdaInfraConfig.getRegion());
     if (EmptyPredicate.isNotEmpty(serverlessAwsLambdaManifestConfig.getConfigOverridePath())) {
       command.config(serverlessAwsLambdaManifestConfig.getConfigOverridePath());
@@ -190,12 +256,13 @@ public class ServerlessAwsCommandTaskHelper {
       ServerlessDelegateTaskParams serverlessDelegateTaskParams, LogCallback executionLogCallback,
       ServerlessAwsLambdaRollbackConfig serverlessAwsLambdaRollbackConfig, long timeoutInMillis,
       ServerlessAwsLambdaManifestConfig serverlessAwsLambdaManifestConfig,
-      ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig)
+      ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig, String profile)
       throws InterruptedException, IOException, TimeoutException {
     executionLogCallback.saveExecutionLog("Serverless Rollback Starting..\n");
     RollbackCommand command = serverlessClient.rollback()
                                   .timeStamp(serverlessAwsLambdaRollbackConfig.getPreviousVersionTimeStamp())
                                   .stage(serverlessAwsLambdaInfraConfig.getStage())
+            .profile(profile)
                                   .region(serverlessAwsLambdaInfraConfig.getRegion());
     if (EmptyPredicate.isNotEmpty(serverlessAwsLambdaManifestConfig.getConfigOverridePath())) {
       command.config(serverlessAwsLambdaManifestConfig.getConfigOverridePath());
@@ -259,6 +326,13 @@ public class ServerlessAwsCommandTaskHelper {
         new ServerlessAwsLambdaRuntimeException(format(SERVERLESS_COMMAND_FAILURE, printCommand)));
     throw NestedExceptionUtils.hintWithExplanationException(format(SERVERLESS_COMMAND_FAILURE_HINT, printCommand),
         format(SERVERLESS_COMMAND_FAILURE_EXPLANATION, printCommand), sanitizedException);
+  }
+
+  public void handleAwsCommandExecutionFailure(String printCommand) {
+    Exception sanitizedException = ExceptionMessageSanitizer.sanitizeException(
+            new ServerlessAwsLambdaRuntimeException(format(SERVERLESS_COMMAND_FAILURE, printCommand)));
+    throw NestedExceptionUtils.hintWithExplanationException(format(SERVERLESS_COMMAND_FAILURE_HINT, printCommand),
+            format(SERVERLESS_COMMAND_FAILURE_EXPLANATION, printCommand), sanitizedException);
   }
 
   public List<ServerlessAwsLambdaFunction> fetchFunctionOutputFromCloudFormationTemplate(
@@ -344,7 +418,6 @@ public class ServerlessAwsCommandTaskHelper {
         }
       }
     }
-
     return Optional.empty();
   }
 }
