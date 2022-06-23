@@ -336,7 +336,8 @@ public class ScmFacilitatorResource {
           description = GitSyncApiConstants.GIT_REPO_SCOPE_PARAM_MESSAGE) GitRepoScopeParams gitRepoScopeParams,
       @Parameter(description = PAGE_PARAM_MESSAGE) @QueryParam(NGCommonEntityConstants.PAGE) @DefaultValue(
           "0") int pageNum,
-      @Parameter(description = SIZE_PARAM_MESSAGE + "(max 100)"
+      @Parameter(description = "Size of the list"
+              + "(max 100)"
               + "Default Value: 50") @QueryParam(NGCommonEntityConstants.SIZE) @DefaultValue("50") @Max(100)
       int pageSize,
       @Parameter(description = GitSyncApiConstants.SEARCH_TERM_PARAM_MESSAGE) @QueryParam(
