@@ -1008,6 +1008,7 @@
 7458:io.harness.beans.terraform.TerraformPlanParam
 7459:software.wings.beans.artifact.ArtifactInput
 7460:software.wings.beans.GitConfig$UrlType
+7462:software.wings.beans.appmanifest.ManifestInput
 7464:software.wings.helpers.ext.gcb.models.GcbArtifactObjects
 7465:io.harness.ccm.license.CeLicenseInfo
 7466:io.harness.ccm.license.CeLicenseType
