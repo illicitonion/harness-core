@@ -7,6 +7,7 @@
 
 package io.harness.aggregator.consumers;
 
+import static io.harness.accesscontrol.scopes.core.Scope.PATH_DELIMITER;
 import static io.harness.annotations.dev.HarnessTeam.PL;
 import static io.harness.rule.OwnerRule.KARAN;
 
@@ -44,6 +45,7 @@ import io.harness.utils.PageTestUtils;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -61,7 +63,6 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
   private RoleService roleService;
   private UserGroupService userGroupService;
   private ResourceGroupService resourceGroupService;
-  private ScopeService scopeService;
   private ResourceGroupChangeConsumerImpl resourceGroupChangeConsumer;
   private int randomCount;
   private String id = randomAlphabetic(10);
@@ -69,10 +70,10 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
 
   @Before
   public void setup() {
+    ScopeService scopeService = mock(ScopeService.class);
     roleService = mock(RoleService.class);
     resourceGroupService = mock(ResourceGroupService.class);
     userGroupService = mock(UserGroupService.class);
-    scopeService = mock(ScopeService.class);
     roleAssignmentRepository = mock(RoleAssignmentRepository.class);
     resourceGroupRepository = mock(ResourceGroupRepository.class);
     ChangeConsumerService changeConsumerService =
@@ -110,6 +111,18 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
   }
 
   private ResourceGroupDBO getResourceGroupDBO(String id) {
+    return ResourceGroupDBO.builder()
+        .id(id)
+        .scopeIdentifier(randomAlphabetic(10))
+        .identifier(randomAlphabetic(10))
+        .name(randomAlphabetic(10))
+        .resourceSelectors(Collections.singleton(PATH_DELIMITER.concat(ResourceGroup.ALL_RESOURCES_IDENTIFIER)
+                                                     .concat(PATH_DELIMITER)
+                                                     .concat(ResourceGroup.ALL_RESOURCES_IDENTIFIER)))
+        .build();
+  }
+
+  private ResourceGroupDBO getResourceGroupDBOWithNoResourceSelectors(String id) {
     return ResourceGroupDBO.builder()
         .id(id)
         .scopeIdentifier(randomAlphabetic(10))
@@ -172,15 +185,15 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
   @Owner(developers = KARAN)
   @Category(UnitTests.class)
   public void testResourceGroupUpdateNoResourceSelectors() {
-    resourceGroupDBO = getResourceGroupDBO(id);
+    resourceGroupDBO = getResourceGroupDBOWithNoResourceSelectors(id);
     List<RoleAssignmentDBO> roleAssignmentDBOs = getRoleAssignments(resourceGroupDBO, PrincipalType.USER);
 
     preResourceGroupUpdate(resourceGroupDBO, roleAssignmentDBOs);
 
     resourceGroupChangeConsumer.consumeUpdateEvent(id, resourceGroupDBO);
 
-    assertConsumeUpdateEventBaseInvocations(id, 0);
-    assertRoleAssignmentDBOs(resourceGroupDBO, roleAssignmentDBOs, 0, 0, 0, 0);
+    assertConsumeUpdateEventBaseInvocations(id, -1);
+    assertRoleAssignmentDBOs(resourceGroupDBO, roleAssignmentDBOs, -1, 0, 0, 0);
   }
 
   @Test
@@ -212,13 +225,13 @@ public class ResourceGroupChangeConsumerImplTest extends AggregatorTestBase {
     preResourceGroupUpdate(oldResourceGroupDBO, roleAssignmentDBOs);
     resourceGroupChangeConsumer.consumeUpdateEvent(id, oldResourceGroupDBO);
 
-    assertConsumeUpdateEventBaseInvocations(id, 0);
-    assertRoleAssignmentDBOs(oldResourceGroupDBO, roleAssignmentDBOs, 0, 0, 0, 0);
+    assertConsumeUpdateEventBaseInvocations(id, -1);
+    assertRoleAssignmentDBOs(oldResourceGroupDBO, roleAssignmentDBOs, -1, 0, 0, 0);
 
     preResourceGroupUpdate(resourceGroupDBO, roleAssignmentDBOs);
     resourceGroupChangeConsumer.consumeUpdateEvent(id, resourceGroupDBO);
-    assertConsumeUpdateEventBaseInvocations(id, 1);
-    assertRoleAssignmentDBOs(resourceGroupDBO, roleAssignmentDBOs, 1, randomCount, 1, 1);
+    assertConsumeUpdateEventBaseInvocations(id, 0);
+    assertRoleAssignmentDBOs(resourceGroupDBO, roleAssignmentDBOs, 0, randomCount, 1, 1);
   }
 
   private void preResourceGroupUpdate(
