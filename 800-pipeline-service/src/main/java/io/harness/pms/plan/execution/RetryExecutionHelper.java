@@ -339,6 +339,15 @@ public class RetryExecutionHelper {
       List<String> stageIdentifiersToRetrytWith) {
     List<Node> planNodes = plan.getPlanNodes();
 
+    /**
+     * if (stageIdentifierToRun has strategy field) {
+     *     fetch originalNodeExecutionID from db.
+     *     fetch matrix node from plan
+     *     convert matrix plan node to identity node
+     *     finalUpdatedPlanNodes.add(identityNode);
+     *  }
+     */
+
     List<String> stagesFqnToRetryWith =
         nodeExecutionService.fetchStageFqnFromStageIdentifiers(previousExecutionId, stageIdentifiersToRetrytWith);
     List<NodeExecution> strategyNodeExecutions =
@@ -376,15 +385,6 @@ public class RetryExecutionHelper {
     nodeUuidToNodeExecutionUuid.forEach((nodeExecutionUuid, planNode)
                                             -> finalUpdatedPlanNodes.add(IdentityPlanNode.mapPlanNodeToIdentityNode(
                                                 planNode, planNode.getStepType(), nodeExecutionUuid)));
-
-    /**
-     * if (stageIdentifierToRun has strategy field) {
-     *     fetch originalNodeExecutionID from db.
-     *     fetch matrix node from plan
-     *     convert matrix plan node to identity node
-     *     finalUpdatedPlanNodes.add(identityNode);
-     *  }
-     */
 
     finalUpdatedPlanNodes.addAll(getIdentityNodeForStrategyNodes(strategyNodes, strategyNodeExecutions));
 
