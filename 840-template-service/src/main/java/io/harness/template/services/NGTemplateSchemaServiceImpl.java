@@ -21,7 +21,6 @@ import io.harness.remote.client.NGRestUtils;
 import io.harness.template.helpers.YamlSchemaMergeHelper;
 import io.harness.yaml.schema.YamlSchemaProvider;
 import lombok.extern.slf4j.Slf4j;
-import software.wings.beans.template.Template;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
