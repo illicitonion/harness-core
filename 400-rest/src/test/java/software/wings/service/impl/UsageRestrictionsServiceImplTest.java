@@ -7,18 +7,106 @@
 
 package software.wings.service.impl;
 
-import com.google.common.collect.Sets;
+import static io.harness.beans.PageResponse.PageResponseBuilder.aPageResponse;
+import static io.harness.eraro.ErrorCode.NOT_ACCOUNT_MGR_NOR_HAS_ALL_APP_ACCESS;
+import static io.harness.eraro.ErrorCode.USER_NOT_AUTHORIZED_DUE_TO_USAGE_RESTRICTIONS;
+import static io.harness.rule.OwnerRule.DEEPAK;
+import static io.harness.rule.OwnerRule.KARAN;
+import static io.harness.rule.OwnerRule.RAMA;
+import static io.harness.rule.OwnerRule.UTKARSH;
+import static io.harness.rule.OwnerRule.VIKAS;
+import static io.harness.rule.OwnerRule.VOJIN;
+
+import static software.wings.beans.SettingAttribute.Builder.aSettingAttribute;
+import static software.wings.security.EnvFilter.FilterType.NON_PROD;
+import static software.wings.security.EnvFilter.FilterType.PROD;
+import static software.wings.security.EnvFilter.FilterType.SELECTED;
+import static software.wings.security.PermissionAttribute.PermissionType.ALL_APP_ENTITIES;
+import static software.wings.security.PermissionAttribute.PermissionType.ENV;
+import static software.wings.service.intfc.UsageRestrictionsService.UsageRestrictionsClient.ALL;
+import static software.wings.utils.WingsTestConstants.ACCOUNT_ID;
+import static software.wings.utils.WingsTestConstants.APP_ID;
+import static software.wings.utils.WingsTestConstants.ENTITY_ID;
+import static software.wings.utils.WingsTestConstants.ENV_ID;
+import static software.wings.utils.WingsTestConstants.TARGET_APP_ID;
+import static software.wings.utils.WingsTestConstants.USER_ID;
+import static software.wings.utils.WingsTestConstants.USER_NAME;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyBoolean;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
+
 import io.harness.CategoryTest;
 import io.harness.annotations.dev.HarnessModule;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.annotations.dev.TargetModule;
-import io.harness.beans.*;
+import io.harness.beans.EncryptedData;
+import io.harness.beans.EnvironmentType;
+import io.harness.beans.PageRequest;
+import io.harness.beans.PageResponse;
 import io.harness.beans.PageResponse.PageResponseBuilder;
+import io.harness.beans.SecretManagerConfig;
 import io.harness.category.element.UnitTests;
 import io.harness.eraro.ErrorCode;
 import io.harness.exception.WingsException;
 import io.harness.rule.Owner;
+
+import software.wings.beans.Application;
+import software.wings.beans.Base;
+import software.wings.beans.Environment;
+import software.wings.beans.SettingAttribute;
+import software.wings.beans.User;
+import software.wings.beans.security.AppPermission;
+import software.wings.beans.security.UserGroup;
+import software.wings.dl.WingsPersistence;
+import software.wings.security.AccountPermissionSummary;
+import software.wings.security.AppFilter;
+import software.wings.security.AppPermissionSummary;
+import software.wings.security.AppPermissionSummary.EnvInfo;
+import software.wings.security.AppPermissionSummaryForUI;
+import software.wings.security.EnvFilter;
+import software.wings.security.GenericEntityFilter;
+import software.wings.security.GenericEntityFilter.FilterType;
+import software.wings.security.PermissionAttribute.Action;
+import software.wings.security.PermissionAttribute.PermissionType;
+import software.wings.security.UsageRestrictions;
+import software.wings.security.UsageRestrictions.AppEnvRestriction;
+import software.wings.security.UserPermissionInfo;
+import software.wings.security.UserRequestContext;
+import software.wings.security.UserRestrictionInfo;
+import software.wings.security.UserRestrictionInfo.UserRestrictionInfoBuilder;
+import software.wings.security.UserThreadLocal;
+import software.wings.service.impl.security.auth.AuthHandler;
+import software.wings.service.intfc.AppService;
+import software.wings.service.intfc.EnvironmentService;
+import software.wings.service.intfc.SettingsService;
+import software.wings.service.intfc.UserGroupService;
+import software.wings.service.intfc.UserService;
+import software.wings.service.intfc.security.SecretManager;
+import software.wings.settings.SettingVariableTypes;
+import software.wings.settings.UsageRestrictionsReferenceSummary;
+
+import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -33,45 +121,6 @@ import org.mockito.stubbing.Answer;
 import org.mongodb.morphia.query.FieldEnd;
 import org.mongodb.morphia.query.MorphiaIterator;
 import org.mongodb.morphia.query.Query;
-import software.wings.beans.*;
-import software.wings.beans.security.AppPermission;
-import software.wings.beans.security.UserGroup;
-import software.wings.dl.WingsPersistence;
-import software.wings.security.*;
-import software.wings.security.AppPermissionSummary.EnvInfo;
-import software.wings.security.GenericEntityFilter.FilterType;
-import software.wings.security.PermissionAttribute.Action;
-import software.wings.security.PermissionAttribute.PermissionType;
-import software.wings.security.UsageRestrictions.AppEnvRestriction;
-import software.wings.security.UserRestrictionInfo.UserRestrictionInfoBuilder;
-import software.wings.service.impl.security.auth.AuthHandler;
-import software.wings.service.intfc.*;
-import software.wings.service.intfc.security.SecretManager;
-import software.wings.settings.SettingVariableTypes;
-import software.wings.settings.UsageRestrictionsReferenceSummary;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static io.harness.beans.PageResponse.PageResponseBuilder.aPageResponse;
-import static io.harness.eraro.ErrorCode.NOT_ACCOUNT_MGR_NOR_HAS_ALL_APP_ACCESS;
-import static io.harness.eraro.ErrorCode.USER_NOT_AUTHORIZED_DUE_TO_USAGE_RESTRICTIONS;
-import static io.harness.rule.OwnerRule.*;
-import static java.util.Arrays.asList;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.*;
-import static software.wings.beans.SettingAttribute.Builder.aSettingAttribute;
-import static software.wings.security.EnvFilter.FilterType.*;
-import static software.wings.security.PermissionAttribute.PermissionType.ALL_APP_ENTITIES;
-import static software.wings.security.PermissionAttribute.PermissionType.ENV;
-import static software.wings.service.intfc.UsageRestrictionsService.UsageRestrictionsClient.ALL;
-import static software.wings.utils.WingsTestConstants.*;
 
 /**
  * @author rktummala on 06/08/18
@@ -141,7 +190,8 @@ public class UsageRestrictionsServiceImplTest extends CategoryTest {
         asList(UserGroup.builder().accountId(ACCOUNT_ID).appPermissions(newHashSet(appPermissions)).build());
     pageResponse = aPageResponse().withResponse(userGroups).build();
     when(userGroupService.listByAccountId(anyString(), any(User.class), anyBoolean())).thenReturn(userGroups);
-    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), any(), any())).thenReturn(pageResponse);
+    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), any(), any()))
+        .thenReturn(pageResponse);
     when(authHandler.getAppIdsByFilter(anyString(), any(AppFilter.class))).thenReturn(newHashSet(appIds));
     return userGroups;
   }
