@@ -15,7 +15,6 @@ public class DeployCommand extends AbstractExecutable {
   private String region;
   private String config;
   private String options;
-  private String profile;
   public DeployCommand(ServerlessClient client) {
     this.client = client;
   }
@@ -35,10 +34,6 @@ public class DeployCommand extends AbstractExecutable {
     this.config = config;
     return this;
   }
-  public DeployCommand profile(String profile) {
-    this.profile = profile;
-    return this;
-  }
   @Override
   public String command() {
     StringBuilder command = new StringBuilder(2048);
@@ -51,9 +46,6 @@ public class DeployCommand extends AbstractExecutable {
     }
     if (StringUtils.isNotBlank(this.config)) {
       command.append(ServerlessClient.option(Option.config, this.config));
-    }
-    if (StringUtils.isNotBlank(this.profile)) {
-      command.append("--aws-profile " + this.profile + " ");
     }
     if (StringUtils.isNotBlank(this.options)) {
       command.append(this.options);

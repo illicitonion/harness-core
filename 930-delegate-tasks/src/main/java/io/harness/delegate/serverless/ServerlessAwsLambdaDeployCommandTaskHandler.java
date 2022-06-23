@@ -24,7 +24,6 @@ import static java.lang.String.format;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.awscli.AwsCliClient;
-import io.harness.awscli.AwsCliClientImpl;
 import io.harness.delegate.beans.connector.awsconnector.AwsCredentialType;
 import io.harness.delegate.beans.logstreaming.CommandUnitsProgress;
 import io.harness.delegate.beans.logstreaming.ILogStreamingTaskClient;
@@ -63,7 +62,9 @@ import software.wings.beans.LogWeight;
 
 import com.google.inject.Inject;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
@@ -85,8 +86,7 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
   private long timeoutInMillis;
   private String serverlessAwsLambdaCredentialType;
   private boolean crossAccountAccessFlag;
-  private String awsConnectorProfile = null;
-
+  private Map<String, String> environmentVariables = new HashMap<>();
   @Override
   protected ServerlessCommandResponse executeTaskInternal(ServerlessCommandRequest serverlessCommandRequest,
       ServerlessDelegateTaskParams serverlessDelegateTaskParams, ILogStreamingTaskClient iLogStreamingTaskClient,
@@ -117,10 +117,16 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
 
     crossAccountAccessFlag = serverlessInfraConfigHelper.getAwsCrossAccountFlag(serverlessAwsLambdaInfraConfig);
 
-    if(serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
-      awsConnectorProfile = convertBase64UuidToCanonicalForm(generateUuid());
+    if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+      String credentialsParentDirectory =
+          Paths
+              .get(serverlessDelegateTaskParams.getWorkingDirectory(), convertBase64UuidToCanonicalForm(generateUuid()))
+              .toString();
+      environmentVariables.put(
+          "AWS_SHARED_CREDENTIALS_FILE", Paths.get(credentialsParentDirectory, "credentials").toString());
+      environmentVariables.put("AWS_CONFIG_FILE", Paths.get(credentialsParentDirectory, "config").toString());
       serverlessAwsLambdaConfig = (ServerlessAwsLambdaConfig) serverlessInfraConfigHelper.createServerlessConfig(
-              serverlessDeployRequest.getServerlessInfraConfig());
+          serverlessDeployRequest.getServerlessInfraConfig());
     }
 
     LogCallback setupDirectoryLogCallback = serverlessTaskHelperBase.getLogCallback(
@@ -151,23 +157,22 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
     LogCallback configureCredsLogCallback = serverlessTaskHelperBase.getLogCallback(
         iLogStreamingTaskClient, ServerlessCommandUnitConstants.configureCred.toString(), true, commandUnitsProgress);
     try {
-      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name()) && crossAccountAccessFlag) {
+      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())
+          && crossAccountAccessFlag) {
         serverlessAwsCommandTaskHelper.configureAwsCredentials(awsCliClient, configureCredsLogCallback,
-        serverlessAwsLambdaConfig, timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams,
-        (ServerlessAwsLambdaInfraConfig) serverlessDeployRequest.getServerlessInfraConfig());
-        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, configureCredsLogCallback,
-                timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
+            serverlessAwsLambdaConfig, timeoutInMillis, environmentVariables, serverlessDelegateTaskParams,
+            (ServerlessAwsLambdaInfraConfig) serverlessDeployRequest.getServerlessInfraConfig());
+        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, configureCredsLogCallback, timeoutInMillis,
+            environmentVariables, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
         configureCredsLogCallback.saveExecutionLog(format("Done..%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
-      }
-      else if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+      } else if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
         configureCredential(serverlessDeployRequest, configureCredsLogCallback, serverlessDelegateTaskParams);
-      }
-      else if (crossAccountAccessFlag) {
-        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, configureCredsLogCallback,
-                timeoutInMillis, awsConnectorProfile, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
+      } else if (crossAccountAccessFlag) {
+        serverlessAwsCommandTaskHelper.awsStsAssumeRole(awsCliClient, configureCredsLogCallback, timeoutInMillis,
+            environmentVariables, serverlessDelegateTaskParams, serverlessAwsLambdaInfraConfig);
         configureCredsLogCallback.saveExecutionLog(format("Done..%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
-      }
-      else {
+
+      } else {
         configureCredsLogCallback.saveExecutionLog(
             format("skipping configure credentials command..%n%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
       }
@@ -217,9 +222,9 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
 
   private void configureCredential(ServerlessDeployRequest serverlessDeployRequest, LogCallback executionLogCallback,
       ServerlessDelegateTaskParams serverlessDelegateTaskParams) throws Exception {
-
-    ServerlessCliResponse response = serverlessAwsCommandTaskHelper.configCredential(serverlessClient,
-        serverlessAwsLambdaConfig, serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis, awsConnectorProfile);
+    ServerlessCliResponse response =
+        serverlessAwsCommandTaskHelper.configCredential(serverlessClient, serverlessAwsLambdaConfig,
+            serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis, environmentVariables);
 
     if (response.getCommandExecutionStatus() == CommandExecutionStatus.SUCCESS) {
       executionLogCallback.saveExecutionLog(
@@ -243,9 +248,9 @@ public class ServerlessAwsLambdaDeployCommandTaskHandler extends ServerlessComma
     ServerlessAwsLambdaDeployConfig serverlessAwsLambdaDeployConfig =
         (ServerlessAwsLambdaDeployConfig) serverlessDeployRequest.getServerlessDeployConfig();
 
-    response =
-        serverlessAwsCommandTaskHelper.deploy(serverlessClient, serverlessDelegateTaskParams, executionLogCallback,
-            serverlessAwsLambdaDeployConfig, serverlessAwsLambdaInfraConfig, timeoutInMillis, serverlessManifestConfig, awsConnectorProfile);
+    response = serverlessAwsCommandTaskHelper.deploy(serverlessClient, serverlessDelegateTaskParams,
+        executionLogCallback, serverlessAwsLambdaDeployConfig, serverlessAwsLambdaInfraConfig, timeoutInMillis,
+        serverlessManifestConfig, environmentVariables);
 
     ServerlessAwsLambdaDeployResultBuilder serverlessAwsLambdaDeployResultBuilder =
         ServerlessAwsLambdaDeployResult.builder();

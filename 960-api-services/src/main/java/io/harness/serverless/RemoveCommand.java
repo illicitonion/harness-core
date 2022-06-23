@@ -14,7 +14,6 @@ public class RemoveCommand extends AbstractExecutable {
   private String config;
   private String stage;
   private String region;
-  private String profile;
   public RemoveCommand(ServerlessClient client) {
     this.client = client;
   }
@@ -30,10 +29,6 @@ public class RemoveCommand extends AbstractExecutable {
     this.region = region;
     return this;
   }
-  public RemoveCommand profile(String profile) {
-    this.profile = profile;
-    return this;
-  }
   @Override
   public String command() {
     StringBuilder command = new StringBuilder(2048);
@@ -46,9 +41,6 @@ public class RemoveCommand extends AbstractExecutable {
     }
     if (StringUtils.isNotBlank(this.config)) {
       command.append(ServerlessClient.option(Option.config, this.config));
-    }
-    if (StringUtils.isNotBlank(this.profile)) {
-      command.append(ServerlessClient.option(Option.profile, this.profile));
     }
     return command.toString().trim();
   }

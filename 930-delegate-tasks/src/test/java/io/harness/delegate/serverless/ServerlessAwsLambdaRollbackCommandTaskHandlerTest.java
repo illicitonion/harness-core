@@ -149,7 +149,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .configCredential(serverlessClient, serverlessAwsLambdaConfig, serverlessDelegateTaskParams,
-            configureCredsLogCallback, true, timeout * 60000, "bvhb");
+            configureCredsLogCallback, true, timeout * 60000, null);
 
     doReturn(Optional.of(previousVersionTimeStamp))
         .when(serverlessAwsCommandTaskHelper)
@@ -221,7 +221,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .configCredential(serverlessClient, serverlessAwsLambdaConfig, serverlessDelegateTaskParams,
-            configureCredsLogCallback, true, timeout * 60000, "bhbh");
+            configureCredsLogCallback, true, timeout * 60000, null);
 
     doReturn(Optional.of(previousVersionTimeStamp))
         .when(serverlessAwsCommandTaskHelper)
@@ -233,7 +233,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
             (ServerlessAwsLambdaRollbackConfig) serverlessRollbackConfig,
             (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000),
             (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig,
-            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, "bhbh");
+            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, null);
 
     doReturn(serverlessAwsLambdaFunctionsList)
         .when(serverlessAwsCommandTaskHelper)
@@ -260,7 +260,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
             (ServerlessAwsLambdaRollbackConfig) serverlessRollbackConfig,
             (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000),
             (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig,
-            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, "bhybhy");
+            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, null);
     assertThat(serverlessRollbackResponse.getServerlessRollbackResult()).isEqualTo(serverlessAwsLambdaRollbackResult);
     assertThat(serverlessRollbackResponse.getCommandExecutionStatus()).isEqualTo(CommandExecutionStatus.SUCCESS);
   }
@@ -310,7 +310,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .configCredential(serverlessClient, serverlessAwsLambdaConfig, serverlessDelegateTaskParams,
-            configureCredsLogCallback, true, timeout * 60000, "hbh");
+            configureCredsLogCallback, true, timeout * 60000, null);
 
     doReturn(Optional.of(previousVersionTimeStamp))
         .when(serverlessAwsCommandTaskHelper)
@@ -322,7 +322,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
             (ServerlessAwsLambdaRollbackConfig) serverlessRollbackConfig,
             (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000),
             (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig,
-            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, "vhbvhb");
+            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, null);
 
     doReturn(serverlessAwsLambdaFunctionsList)
         .when(serverlessAwsCommandTaskHelper)
@@ -396,7 +396,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
     doReturn(intiServerlessCliResponse)
         .when(serverlessAwsCommandTaskHelper)
         .configCredential(serverlessClient, serverlessAwsLambdaConfig, serverlessDelegateTaskParams,
-            configureCredsLogCallback, true, timeout * 60000, "njbhb");
+            configureCredsLogCallback, true, timeout * 60000, null);
 
     doReturn(Optional.of(previousVersionTimeStamp))
         .when(serverlessAwsCommandTaskHelper)
@@ -407,7 +407,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
         .remove(serverlessClient, serverlessDelegateTaskParams, rollbackLogCallback,
             (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000),
             (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig,
-            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, "bhbhb");
+            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, null);
 
     doReturn(serverlessAwsLambdaFunctionsList)
         .when(serverlessAwsCommandTaskHelper)
@@ -434,7 +434,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
         .remove(serverlessClient, serverlessDelegateTaskParams, rollbackLogCallback,
             (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000),
             (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig,
-            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, "hvhvhb");
+            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, null);
     assertThat(serverlessRollbackResponse.getServerlessRollbackResult()).isEqualTo(serverlessAwsLambdaRollbackResult);
     assertThat(serverlessRollbackResponse.getCommandExecutionStatus()).isEqualTo(CommandExecutionStatus.SUCCESS);
   }
@@ -474,7 +474,7 @@ public class ServerlessAwsLambdaRollbackCommandTaskHandlerTest extends CategoryT
             (ServerlessAwsLambdaRollbackConfig) serverlessRollbackConfig,
             (long) (serverlessCommandRequest.getTimeoutIntervalInMin() * 60000),
             (ServerlessAwsLambdaManifestConfig) serverlessManifestConfig,
-            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, "bhbh");
+            (ServerlessAwsLambdaInfraConfig) serverlessInfraConfig, null);
 
     doReturn(serverlessAwsLambdaFunctionsList)
         .when(serverlessAwsCommandTaskHelper)
