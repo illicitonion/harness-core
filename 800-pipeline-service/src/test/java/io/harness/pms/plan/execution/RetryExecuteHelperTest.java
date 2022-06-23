@@ -743,8 +743,9 @@ public class RetryExecuteHelperTest extends CategoryTest {
             .adviserObtainment(
                 AdviserObtainment.newBuilder().setType(AdviserType.newBuilder().setType("NEXT_STEP").build()).build())
             .build();
-    Plan newPlan = retryExecuteHelper.transformPlan(
-        Plan.builder().planNodes(Arrays.asList(planNode1, planNode2)).build(), Collections.singletonList(uuid), "abc");
+    Plan newPlan =
+        retryExecuteHelper.transformPlan(Plan.builder().planNodes(Arrays.asList(planNode1, planNode2)).build(),
+            Collections.singletonList(uuid), "abc", null);
 
     List<Node> updatedNodes = newPlan.getPlanNodes();
     assertThat(updatedNodes.size()).isEqualTo(2);

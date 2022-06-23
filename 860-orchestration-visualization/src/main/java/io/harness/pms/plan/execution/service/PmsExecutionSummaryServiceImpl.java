@@ -14,7 +14,9 @@ import io.harness.annotations.dev.OwnedBy;
 import io.harness.engine.executions.node.NodeExecutionService;
 import io.harness.engine.utils.OrchestrationUtils;
 import io.harness.execution.NodeExecution;
+import io.harness.plan.NodeType;
 import io.harness.pms.contracts.ambiance.Ambiance;
+import io.harness.pms.contracts.steps.StepCategory;
 import io.harness.pms.execution.ExecutionStatus;
 import io.harness.pms.execution.utils.AmbianceUtils;
 import io.harness.pms.plan.execution.ExecutionSummaryUpdateUtils;
@@ -26,6 +28,7 @@ import com.google.inject.Inject;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -42,13 +45,55 @@ public class PmsExecutionSummaryServiceImpl implements PmsExecutionSummaryServic
   public void updateStageOfIdentityType(String planExecutionId, Update update) {
     List<NodeExecution> nodeExecutions =
         nodeExecutionService.fetchStageExecutionsWithEndTsAndStatusProjection(planExecutionId);
+    PipelineExecutionSummaryEntity pipelineExecutionSummaryEntity = null;
 
     // This is done inorder to reduce the load while updating stageInfo. Here we will update only the status.
     for (NodeExecution nodeExecution : nodeExecutions) {
-      String nodeSetupId = AmbianceUtils.obtainCurrentSetupId(nodeExecution.getAmbiance());
-      update.set(PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeSetupId + ".status",
-          ExecutionStatus.getExecutionStatus(nodeExecution.getStatus()));
-      update.set(PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeSetupId + ".endTs", nodeExecution.getEndTs());
+      if (nodeExecution.getStepType().getStepCategory() != StepCategory.STRATEGY) {
+        if (!AmbianceUtils.getStrategyLevelFromAmbiance(nodeExecution.getAmbiance()).isPresent()) {
+          String nodeSetupId = AmbianceUtils.obtainCurrentSetupId(nodeExecution.getAmbiance());
+          update.set(PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeSetupId + ".status",
+              ExecutionStatus.getExecutionStatus(nodeExecution.getStatus()));
+          update.set(PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeSetupId + ".endTs", nodeExecution.getEndTs());
+        } else {
+          update.set(PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeExecution.getUuid() + ".status",
+              ExecutionStatus.getExecutionStatus(nodeExecution.getStatus()));
+          update.set(PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeExecution.getUuid() + ".endTs",
+              nodeExecution.getEndTs());
+        }
+      } else {
+        if (pipelineExecutionSummaryEntity == null) {
+          Optional<PipelineExecutionSummaryEntity> entity =
+              getPipelineExecutionSummary(AmbianceUtils.getAccountId(nodeExecution.getAmbiance()),
+                  AmbianceUtils.getOrgIdentifier(nodeExecution.getAmbiance()),
+                  AmbianceUtils.getProjectIdentifier(nodeExecution.getAmbiance()), planExecutionId);
+          if (!entity.isPresent()) {
+            continue;
+          }
+          pipelineExecutionSummaryEntity = entity.get();
+        }
+
+        Map<String, GraphLayoutNodeDTO> graphLayoutNode = pipelineExecutionSummaryEntity.getLayoutNodeMap();
+
+        if (graphLayoutNode.get(nodeExecution.getNodeId()) == null) {
+          continue;
+        }
+        String stageSetupId =
+            graphLayoutNode.get(nodeExecution.getNodeId()).getEdgeLayoutList().getCurrentNodeChildren().get(0);
+
+        List<NodeExecution> childrenNodeExecution = nodeExecutions.stream()
+                                                        .filter(o -> o.getParentId().equals(nodeExecution.getUuid()))
+                                                        .collect(Collectors.toList());
+        for (NodeExecution childNodeExecution : childrenNodeExecution) {
+          if (!graphLayoutNode.get(nodeExecution.getNodeId())
+                   .getEdgeLayoutList()
+                   .getCurrentNodeChildren()
+                   .contains(childNodeExecution.getUuid())) {
+            addStageIdentityNodeInGraphIfUnderStrategy(planExecutionId, childNodeExecution, update,
+                graphLayoutNode.get(stageSetupId), nodeExecution.getNodeId(), stageSetupId);
+          }
+        }
+      }
     }
   }
 
@@ -96,7 +141,8 @@ public class PmsExecutionSummaryServiceImpl implements PmsExecutionSummaryServic
   public void addStageNodeInGraphIfUnderStrategy(
       String planExecutionId, NodeExecution nodeExecution, Update summaryUpdate) {
     if (OrchestrationUtils.isStageNode(nodeExecution)
-        && AmbianceUtils.getStrategyLevelFromAmbiance(nodeExecution.getAmbiance()).isPresent()) {
+        && AmbianceUtils.getStrategyLevelFromAmbiance(nodeExecution.getAmbiance()).isPresent()
+        && nodeExecution.getNode().getNodeType() != NodeType.IDENTITY_PLAN_NODE) {
       String stageSetupId = nodeExecution.getNodeId();
       Update update = new Update();
       Ambiance ambiance = nodeExecution.getAmbiance();
@@ -114,7 +160,7 @@ public class PmsExecutionSummaryServiceImpl implements PmsExecutionSummaryServic
       GraphLayoutNodeDTO graphLayoutNodeDTO = graphLayoutNodeDTOMap.get(stageSetupId);
       modifyGraphLayoutNode(graphLayoutNodeDTO, nodeExecution);
       update.set(PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeExecution.getUuid(),
-              graphLayoutNodeDTO);
+          graphLayoutNodeDTO);
       String strategyNodeId = AmbianceUtils.getStrategyLevelFromAmbiance(ambiance).get().getSetupId();
       update.addToSet(PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + strategyNodeId
               + ".edgeLayoutList.currentNodeChildren",
@@ -122,9 +168,8 @@ public class PmsExecutionSummaryServiceImpl implements PmsExecutionSummaryServic
       summaryUpdate.pull(PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + strategyNodeId
               + ".edgeLayoutList.currentNodeChildren",
           stageSetupId);
-      summaryUpdate.set(PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + stageSetupId
-                      + ".hidden",
-              true);
+      summaryUpdate.set(
+          PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + stageSetupId + ".hidden", true);
       update(planExecutionId, update);
     }
   }
@@ -142,7 +187,6 @@ public class PmsExecutionSummaryServiceImpl implements PmsExecutionSummaryServic
     pmsExecutionSummaryRepository.update(query, update);
   }
 
-
   /**
    * Modifies the identifier and name of the dummy node we are copying.
    * @param graphLayoutNodeDTO
@@ -152,5 +196,26 @@ public class PmsExecutionSummaryServiceImpl implements PmsExecutionSummaryServic
     graphLayoutNodeDTO.setNodeIdentifier(nodeExecution.getIdentifier());
     graphLayoutNodeDTO.setName(nodeExecution.getName());
     graphLayoutNodeDTO.setNodeExecutionId(nodeExecution.getUuid());
+    graphLayoutNodeDTO.setNodeUuid(nodeExecution.getNodeId());
+  }
+
+  public void addStageIdentityNodeInGraphIfUnderStrategy(String planExecutionId, NodeExecution nodeExecution,
+      Update summaryUpdate, GraphLayoutNodeDTO graphLayoutNodeDTO, String strategyNodeId, String stageSetupId) {
+    if (AmbianceUtils.getStrategyLevelFromAmbiance(nodeExecution.getAmbiance()).isPresent()) {
+      Update update = new Update();
+
+      modifyGraphLayoutNode(graphLayoutNodeDTO, nodeExecution);
+      update.set(PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + nodeExecution.getUuid(),
+          graphLayoutNodeDTO);
+      update.addToSet(PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + strategyNodeId
+              + ".edgeLayoutList.currentNodeChildren",
+          nodeExecution.getUuid());
+      summaryUpdate.pull(PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + strategyNodeId
+              + ".edgeLayoutList.currentNodeChildren",
+          stageSetupId);
+      summaryUpdate.set(
+          PipelineExecutionSummaryEntity.PlanExecutionSummaryKeys.layoutNodeMap + "." + stageSetupId + ".hidden", true);
+      update(planExecutionId, update);
+    }
   }
 }

@@ -109,6 +109,8 @@ public interface NodeExecutionService {
 
   List<NodeExecution> fetchNodeExecutionsByParentId(String nodeExecutionId, boolean oldRetry);
 
+  List<NodeExecution> fetchNodeExecutionsByParentIdWithAmbianceAndNode(String nodeExecutionId, boolean oldRetry);
+
   boolean errorOutActiveNodes(String planExecutionId);
 
   boolean removeTimeoutInstances(String nodeExecutionId);
@@ -116,6 +118,8 @@ public interface NodeExecutionService {
   List<RetryStageInfo> getStageDetailFromPlanExecutionId(String planExecutionId);
 
   List<NodeExecution> fetchStageExecutions(String planExecutionId);
+
+  List<NodeExecution> fetchStrategyNodeExecutions(String planExecutionId, List<String> stageFQNs);
 
   List<String> fetchStageFqnFromStageIdentifiers(String planExecutionId, List<String> stageIdentifiers);
 

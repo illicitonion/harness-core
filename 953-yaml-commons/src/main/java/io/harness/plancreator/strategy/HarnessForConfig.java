@@ -17,12 +17,16 @@ import io.harness.pms.yaml.ParameterField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 @OwnedBy(PIPELINE)
 @Data
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RecasterAlias("io.harness.plancreator.strategy.HarnessForConfig")

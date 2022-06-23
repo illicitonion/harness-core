@@ -60,6 +60,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 import com.mongodb.client.result.UpdateResult;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -516,6 +517,26 @@ public class NodeExecutionServiceImpl implements NodeExecutionService {
   }
 
   @Override
+  public List<NodeExecution> fetchNodeExecutionsByParentIdWithAmbianceAndNode(
+      String nodeExecutionId, boolean oldRetry) {
+    Query query = query(where(NodeExecutionKeys.parentId).is(nodeExecutionId))
+                      .addCriteria(where(NodeExecutionKeys.oldRetry).is(false));
+    query.fields()
+        .include(NodeExecutionKeys.uuid)
+        .include(NodeExecutionKeys.nodeId)
+        .include(NodeExecutionKeys.identifier)
+        .include(NodeExecutionKeys.name)
+        .include(NodeExecutionKeys.status)
+        .include(NodeExecutionKeys.failureInfo)
+        .include(NodeExecutionKeys.parentId)
+        .include(NodeExecutionKeys.ambiance)
+        .include(NodeExecutionKeys.planNode)
+        .include(NodeExecutionKeys.adviserResponse)
+        .include(NodeExecutionKeys.oldRetry);
+    return mongoTemplate.find(query, NodeExecution.class);
+  }
+
+  @Override
   public boolean errorOutActiveNodes(String planExecutionId) {
     Update ops = new Update();
     ops.set(NodeExecutionKeys.status, ERRORED);
@@ -698,15 +719,20 @@ public class NodeExecutionServiceImpl implements NodeExecutionService {
 
   @Override
   public List<NodeExecution> fetchStageExecutionsWithEndTsAndStatusProjection(String planExecutionId) {
-    Query query = query(where(NodeExecutionKeys.planExecutionId).is(planExecutionId))
-                      .addCriteria(where(NodeExecutionKeys.status).ne(SKIPPED))
-                      .addCriteria(where(NodeExecutionKeys.stepCategory).is(StepCategory.STAGE));
+    Query query =
+        query(where(NodeExecutionKeys.planExecutionId).is(planExecutionId))
+            .addCriteria(where(NodeExecutionKeys.status).ne(SKIPPED))
+            .addCriteria(
+                where(NodeExecutionKeys.stepCategory).in(Arrays.asList(StepCategory.STAGE, StepCategory.STRATEGY)));
     query.fields()
         .include(NodeExecutionKeys.uuid)
         .include(NodeExecutionKeys.status)
         .include(NodeExecutionKeys.endTs)
         .include(NodeExecutionKeys.createdAt)
         .include(NodeExecutionKeys.mode)
+        .include(NodeExecutionKeys.stepType)
+        .include(NodeExecutionKeys.ambiance)
+        .include(NodeExecutionKeys.nodeId)
         .include(NodeExecutionKeys.parentId)
         .include(NodeExecutionKeys.oldRetry)
         .include(NodeExecutionKeys.ambiance);
@@ -742,7 +768,7 @@ public class NodeExecutionServiceImpl implements NodeExecutionService {
   @Override
   public List<String> fetchStageFqnFromStageIdentifiers(String planExecutionId, List<String> stageIdentifiers) {
     Query query = query(where(NodeExecutionKeys.planExecutionId).is(planExecutionId))
-                      .addCriteria(where(NodeExecutionKeys.stepCategory).is(StepCategory.STAGE))
+                      .addCriteria(where(NodeExecutionKeys.stepCategory).in(StepCategory.STAGE, StepCategory.STRATEGY))
                       .addCriteria(where(NodeExecutionKeys.identifier).in(stageIdentifiers));
 
     List<NodeExecution> nodeExecutions = mongoTemplate.find(query, NodeExecution.class);
@@ -751,6 +777,20 @@ public class NodeExecutionServiceImpl implements NodeExecutionService {
     return nodeExecutions.stream()
         .map(nodeExecution -> nodeExecution.getNode().getStageFqn())
         .collect(Collectors.toList());
+  }
+
+  @Override
+  public List<NodeExecution> fetchStrategyNodeExecutions(String planExecutionId, List<String> stageFQNs) {
+    Criteria criteria = Criteria.where(NodeExecutionKeys.planExecutionId)
+                            .is(planExecutionId)
+                            .and(NodeExecutionKeys.stepCategory)
+                            .is(StepCategory.STRATEGY)
+                            .and(NodeExecutionKeys.stageFqn)
+                            .in(stageFQNs);
+
+    Query query = new Query().addCriteria(criteria);
+
+    return mongoTemplate.find(query, NodeExecution.class);
   }
 
   @Override
