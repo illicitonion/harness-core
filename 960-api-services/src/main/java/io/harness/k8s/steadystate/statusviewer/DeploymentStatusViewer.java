@@ -7,8 +7,7 @@
 
 package io.harness.k8s.steadystate.statusviewer;
 
-import io.harness.exception.InvalidRequestException;
-import io.harness.k8s.model.KubernetesStatusResponse;
+import io.harness.k8s.steadystate.model.K8ApiResponseDTO;
 
 import com.google.inject.Singleton;
 import io.kubernetes.client.openapi.models.V1Deployment;
@@ -21,7 +20,7 @@ import java.util.Optional;
 
 @Singleton
 public class DeploymentStatusViewer {
-  public KubernetesStatusResponse extractRolloutStatus(V1Deployment deployment) {
+  public K8ApiResponseDTO extractRolloutStatus(V1Deployment deployment) {
     V1ObjectMeta meta = deployment.getMetadata();
     if (meta != null && meta.getGeneration() != null && deployment.getStatus() != null
         && deployment.getStatus().getObservedGeneration() != null
@@ -38,7 +37,7 @@ public class DeploymentStatusViewer {
           V1DeploymentCondition deploymentCondition = deploymentConditionOptional.get();
           if (deploymentCondition.getReason() != null
               && deploymentCondition.getReason().equalsIgnoreCase("ProgressDeadlineExceeded")) {
-            return KubernetesStatusResponse.builder()
+            return K8ApiResponseDTO.builder()
                 .isFailed(true)
                 .message(String.format("deployment %s exceeded its progress deadline", meta.getName()))
                 .build();
@@ -51,7 +50,7 @@ public class DeploymentStatusViewer {
 
       if (deploymentSpec != null && deploymentSpec.getReplicas() != null
           && deploymentStatus.getUpdatedReplicas() < deploymentSpec.getReplicas()) {
-        return KubernetesStatusResponse.builder()
+        return K8ApiResponseDTO.builder()
             .isDone(false)
             .message(String.format(
                 "Waiting for deployment %s rollout to finish: %s out of %s new replicas have been updated...%n",
@@ -59,7 +58,7 @@ public class DeploymentStatusViewer {
             .build();
       }
       if (deploymentStatus.getReplicas() > deploymentStatus.getUpdatedReplicas()) {
-        return KubernetesStatusResponse.builder()
+        return K8ApiResponseDTO.builder()
             .isDone(false)
             .message(String.format(
                 "Waiting for deployment %s rollout to finish: %s old replicas are pending termination...%n",
@@ -67,19 +66,19 @@ public class DeploymentStatusViewer {
             .build();
       }
       if (deploymentStatus.getAvailableReplicas() < deploymentStatus.getUpdatedReplicas()) {
-        return KubernetesStatusResponse.builder()
+        return K8ApiResponseDTO.builder()
             .isDone(false)
             .message(String.format(
                 "Waiting for deployment %s rollout to finish: %s of %s updated replicas are available...%n",
                 meta.getName(), deploymentStatus.getAvailableReplicas(), deploymentStatus.getUpdatedReplicas()))
             .build();
       }
-      return KubernetesStatusResponse.builder()
+      return K8ApiResponseDTO.builder()
           .isDone(true)
           .message(String.format("deployment %s successfully rolled out%n", meta.getName()))
           .build();
     }
-    return KubernetesStatusResponse.builder()
+    return K8ApiResponseDTO.builder()
         .isDone(false)
         .message(String.format("Waiting for deployment spec update to be observed...%n"))
         .build();

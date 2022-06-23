@@ -16,11 +16,9 @@ import io.harness.k8s.kubectl.Kubectl;
 import io.harness.k8s.model.K8sDelegateTaskParams;
 import io.harness.k8s.model.K8sSteadyStateDTO;
 import io.harness.k8s.model.KubernetesConfig;
-import io.harness.k8s.model.KubernetesNamespaceEventWatchDTO;
 import io.harness.k8s.model.KubernetesResourceId;
-import io.harness.k8s.model.KubernetesRolloutStatusDTO;
-import io.harness.k8s.steadystate.KubernetesApiWatcherFactory;
-import io.harness.k8s.steadystate.KubernetesCliWatcherFactory;
+import io.harness.k8s.steadystate.model.K8sEventWatchDTO;
+import io.harness.k8s.steadystate.model.K8sRolloutStatusDTO;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -32,15 +30,13 @@ import java.util.Set;
 public class KubernetesClientHelper {
   @Inject private KubernetesHelperService kubernetesHelperService;
   @Inject private ContainerDeploymentDelegateBaseHelper containerDeploymentDelegateBaseHelper;
-  @Inject private KubernetesApiWatcherFactory kubernetesApiWatcherFactory;
-  @Inject private KubernetesCliWatcherFactory kubernetesCliWatcherFactory;
 
-  public KubernetesNamespaceEventWatchDTO createNamespaceEventWatchDTO(
+  public K8sEventWatchDTO createNamespaceEventWatchDTO(
       K8sSteadyStateDTO steadyStateDTO, ApiClient apiClient, Kubectl client) {
     int maxResourceNameLength = getMaxResourceNameLength(steadyStateDTO.getResourceIds());
     final String eventErrorFormat = "%-7s: %s";
     final String eventInfoFormat = "%-7s: %-" + maxResourceNameLength + "s   %s";
-    return KubernetesNamespaceEventWatchDTO.builder()
+    return K8sEventWatchDTO.builder()
         .apiClient(apiClient)
         .client(client)
         .executionLogCallback(steadyStateDTO.getExecutionLogCallback())
@@ -51,12 +47,12 @@ public class KubernetesClientHelper {
         .build();
   }
 
-  public KubernetesRolloutStatusDTO createRolloutStatusDTO(
+  public K8sRolloutStatusDTO createRolloutStatusDTO(
       K8sSteadyStateDTO steadyStateDTO, ApiClient apiClient, Kubectl client) {
     int maxResourceNameLength = getMaxResourceNameLength(steadyStateDTO.getResourceIds());
     final String statusFormat = "%n%-7s: %-" + maxResourceNameLength + "s   %s";
 
-    return KubernetesRolloutStatusDTO.builder()
+    return K8sRolloutStatusDTO.builder()
         .apiClient(apiClient)
         .client(client)
         .logCallback(steadyStateDTO.getExecutionLogCallback())

@@ -13,13 +13,13 @@ import static io.harness.logging.LogLevel.INFO;
 import static java.lang.String.format;
 
 import io.harness.data.structure.EmptyPredicate;
-import io.harness.k8s.eventwatcher.KubeApiEventWatcher;
 import io.harness.k8s.model.K8sSteadyStateDTO;
-import io.harness.k8s.model.KubernetesNamespaceEventWatchDTO;
 import io.harness.k8s.model.KubernetesResourceId;
-import io.harness.k8s.model.KubernetesRolloutStatusDTO;
-import io.harness.k8s.steadystate.KubernetesApiWatcherFactory;
-import io.harness.k8s.steadystate.WorkloadWatcher;
+import io.harness.k8s.steadystate.model.K8sEventWatchDTO;
+import io.harness.k8s.steadystate.model.K8sRolloutStatusDTO;
+import io.harness.k8s.steadystate.watcher.event.KubeApiEventWatcher;
+import io.harness.k8s.steadystate.watcher.workload.K8sWorkloadWatcherFactory;
+import io.harness.k8s.steadystate.watcher.workload.WorkloadWatcher;
 import io.harness.logging.CommandExecutionStatus;
 import io.harness.logging.LogCallback;
 
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 public class KubernetesApiClient implements KubernetesClient {
   @Inject KubernetesClientHelper kubernetesClientHelper;
   @Inject KubeApiEventWatcher kubeApiEventWatcher;
-  @Inject private KubernetesApiWatcherFactory kubernetesApiWatcherFactory;
+  @Inject private K8sWorkloadWatcherFactory workloadWatcherFactory;
 
   @Override
   public boolean performSteadyStateCheck(K8sSteadyStateDTO steadyStateDTO) throws Exception {
@@ -51,9 +51,9 @@ public class KubernetesApiClient implements KubernetesClient {
 
     executionLogCallback.saveExecutionLog("Executing steady state check using Kubernetes java client.");
 
-    KubernetesNamespaceEventWatchDTO eventWatchDTO =
+    K8sEventWatchDTO eventWatchDTO =
         kubernetesClientHelper.createNamespaceEventWatchDTO(steadyStateDTO, apiClient, null);
-    KubernetesRolloutStatusDTO rolloutStatusDTO =
+    K8sRolloutStatusDTO rolloutStatusDTO =
         kubernetesClientHelper.createRolloutStatusDTO(steadyStateDTO, apiClient, null);
 
     List<Future<?>> futureList = new ArrayList<>();
@@ -61,13 +61,13 @@ public class KubernetesApiClient implements KubernetesClient {
 
     try {
       for (String ns : namespaces) {
-        Future<?> threadRef = kubeApiEventWatcher.watchForEvents(ns, eventWatchDTO);
+        Future<?> threadRef = kubeApiEventWatcher.watchForEvents(ns, eventWatchDTO, executionLogCallback);
         futureList.add(threadRef);
       }
 
       for (KubernetesResourceId workload : resourceIds) {
-        WorkloadWatcher workloadWatcher = kubernetesApiWatcherFactory.getWorkloadApiWatcher(workload.getKind());
-        success = workloadWatcher.watchRolloutStatus(rolloutStatusDTO, workload);
+        WorkloadWatcher workloadWatcher = workloadWatcherFactory.getWorkloadWatcher(workload.getKind(), true);
+        success = workloadWatcher.watchRolloutStatus(rolloutStatusDTO, workload, executionLogCallback);
         if (!success) {
           break;
         }

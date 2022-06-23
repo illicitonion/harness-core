@@ -8,7 +8,7 @@
 package io.harness.k8s.steadystate.statusviewer;
 
 import io.harness.exception.InvalidRequestException;
-import io.harness.k8s.model.KubernetesStatusResponse;
+import io.harness.k8s.steadystate.model.K8ApiResponseDTO;
 
 import com.google.inject.Singleton;
 import io.kubernetes.client.openapi.models.V1DaemonSet;
@@ -17,7 +17,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta;
 
 @Singleton
 public class DaemonSetStatusViewer {
-  public KubernetesStatusResponse extractRolloutStatus(V1DaemonSet daemonSet) {
+  public K8ApiResponseDTO extractRolloutStatus(V1DaemonSet daemonSet) {
     if (daemonSet.getSpec() != null && daemonSet.getSpec().getUpdateStrategy() != null
         && !"RollingUpdate".equals(daemonSet.getSpec().getUpdateStrategy().getType())) {
       throw new InvalidRequestException("rollout status is only available for RollingUpdate strategy type");
@@ -33,7 +33,7 @@ public class DaemonSetStatusViewer {
 
       if (daemonSetStatus != null
           && daemonSetStatus.getUpdatedNumberScheduled() < daemonSetStatus.getDesiredNumberScheduled()) {
-        return KubernetesStatusResponse.builder()
+        return K8ApiResponseDTO.builder()
             .message(String.format(
                 "Waiting for daemon set %s rollout to finish: %d out of %d new pods have been updated...%n",
                 meta.getName(), daemonSetStatus.getUpdatedNumberScheduled(),
@@ -44,7 +44,7 @@ public class DaemonSetStatusViewer {
 
       if (daemonSetStatus != null
           && daemonSetStatus.getNumberAvailable() < daemonSetStatus.getDesiredNumberScheduled()) {
-        return KubernetesStatusResponse.builder()
+        return K8ApiResponseDTO.builder()
             .message(
                 String.format("Waiting for daemon set %s rollout to finish: %d of %d updated pods are available...%n",
                     meta.getName(), daemonSetStatus.getNumberAvailable(), daemonSetStatus.getDesiredNumberScheduled()))
@@ -52,13 +52,13 @@ public class DaemonSetStatusViewer {
             .build();
       }
 
-      return KubernetesStatusResponse.builder()
+      return K8ApiResponseDTO.builder()
           .message(String.format("daemon set %s successfully rolled out%n", meta.getName()))
           .isDone(true)
           .build();
     }
 
-    return KubernetesStatusResponse.builder()
+    return K8ApiResponseDTO.builder()
         .isDone(false)
         .message("Waiting for daemon set spec update to be observed...%n")
         .build();

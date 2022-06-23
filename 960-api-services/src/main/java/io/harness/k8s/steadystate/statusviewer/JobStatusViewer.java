@@ -7,7 +7,7 @@
 
 package io.harness.k8s.steadystate.statusviewer;
 
-import io.harness.k8s.model.KubernetesStatusResponse;
+import io.harness.k8s.steadystate.model.K8ApiResponseDTO;
 
 import com.google.inject.Singleton;
 import io.kubernetes.client.openapi.models.V1Job;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @Singleton
 public class JobStatusViewer {
-  public KubernetesStatusResponse extractRolloutStatus(V1Job job) {
+  public K8ApiResponseDTO extractRolloutStatus(V1Job job) {
     V1JobStatus jobStatus = job.getStatus();
     String jobStatusString = "";
 
@@ -28,7 +28,7 @@ public class JobStatusViewer {
       if (jobConditions != null) {
         if (jobConditions.stream().anyMatch(
                 condition -> condition.getType().equals("Failed") && condition.getStatus().equals("True"))) {
-          return KubernetesStatusResponse.builder()
+          return K8ApiResponseDTO.builder()
               .isFailed(true)
               .message(String.format(" Job failed. Status: %s", jobStatusString))
               .build();
@@ -37,7 +37,7 @@ public class JobStatusViewer {
         if (jobConditions.stream().anyMatch(
                 condition -> condition.getType().equals("Complete") && condition.getStatus().equals("True"))
             && jobStatus.getCompletionTime() != null) {
-          return KubernetesStatusResponse.builder()
+          return K8ApiResponseDTO.builder()
               .isDone(true)
               .message(String.format("Successfully completed Job with status: %s %n", jobStatusString))
               .build();
@@ -45,7 +45,7 @@ public class JobStatusViewer {
       }
     }
 
-    return KubernetesStatusResponse.builder()
+    return K8ApiResponseDTO.builder()
         .isDone(false)
         .message(String.format("Waiting for job to complete. %nCurrent Job Status: %s %n", jobStatusString))
         .build();

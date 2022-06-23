@@ -11,28 +11,24 @@ import static io.harness.logging.CommandExecutionStatus.FAILURE;
 import static io.harness.logging.LogLevel.INFO;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.toSet;
 
 import io.harness.data.structure.EmptyPredicate;
-import io.harness.k8s.eventwatcher.KubeApiEventWatcher;
-import io.harness.k8s.eventwatcher.KubectlEventWatcher;
 import io.harness.k8s.kubectl.Kubectl;
 import io.harness.k8s.model.K8sDelegateTaskParams;
 import io.harness.k8s.model.K8sSteadyStateDTO;
-import io.harness.k8s.model.KubernetesNamespaceEventWatchDTO;
 import io.harness.k8s.model.KubernetesResourceId;
-import io.harness.k8s.model.KubernetesRolloutStatusDTO;
-import io.harness.k8s.steadystate.KubernetesCliWatcherFactory;
-import io.harness.k8s.steadystate.WorkloadWatcher;
+import io.harness.k8s.steadystate.model.K8sEventWatchDTO;
+import io.harness.k8s.steadystate.model.K8sRolloutStatusDTO;
+import io.harness.k8s.steadystate.watcher.event.KubectlEventWatcher;
+import io.harness.k8s.steadystate.watcher.workload.K8sWorkloadWatcherFactory;
+import io.harness.k8s.steadystate.watcher.workload.WorkloadWatcher;
 import io.harness.logging.CommandExecutionStatus;
 import io.harness.logging.LogCallback;
 
 import com.google.inject.Inject;
-import io.kubernetes.client.openapi.ApiClient;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Future;
 import lombok.extern.slf4j.Slf4j;
 import org.zeroturnaround.exec.StartedProcess;
 
@@ -40,7 +36,7 @@ import org.zeroturnaround.exec.StartedProcess;
 public class KubernetesCliClient implements KubernetesClient {
   @Inject KubernetesClientHelper kubernetesClientHelper;
   @Inject KubectlEventWatcher kubectlEventWatcher;
-  @Inject private KubernetesCliWatcherFactory kubernetesCliWatcherFactory;
+  @Inject private K8sWorkloadWatcherFactory workloadWatcherFactory;
 
   @Override
   public boolean performSteadyStateCheck(K8sSteadyStateDTO steadyStateDTO) throws Exception {
@@ -54,23 +50,21 @@ public class KubernetesCliClient implements KubernetesClient {
     Set<String> namespaces = kubernetesClientHelper.getNamespacesToMonitor(resourceIds, steadyStateDTO.getNamespace());
     LogCallback executionLogCallback = steadyStateDTO.getExecutionLogCallback();
 
-    KubernetesNamespaceEventWatchDTO eventWatchDTO =
-        kubernetesClientHelper.createNamespaceEventWatchDTO(steadyStateDTO, null, client);
-    KubernetesRolloutStatusDTO rolloutStatusDTO =
-        kubernetesClientHelper.createRolloutStatusDTO(steadyStateDTO, null, client);
+    K8sEventWatchDTO eventWatchDTO = kubernetesClientHelper.createNamespaceEventWatchDTO(steadyStateDTO, null, client);
+    K8sRolloutStatusDTO rolloutStatusDTO = kubernetesClientHelper.createRolloutStatusDTO(steadyStateDTO, null, client);
 
     List<StartedProcess> processRefs = new ArrayList<>();
     boolean success = false;
 
     try {
       for (String ns : namespaces) {
-        StartedProcess processRef = kubectlEventWatcher.watchForEvents(ns, eventWatchDTO);
+        StartedProcess processRef = kubectlEventWatcher.watchForEvents(ns, eventWatchDTO, executionLogCallback);
         processRefs.add(processRef);
       }
 
       for (KubernetesResourceId workload : resourceIds) {
-        WorkloadWatcher workloadWatcher = kubernetesCliWatcherFactory.getWorkloadWatcher(workload.getKind());
-        success = workloadWatcher.watchRolloutStatus(rolloutStatusDTO, workload);
+        WorkloadWatcher workloadWatcher = workloadWatcherFactory.getWorkloadWatcher(workload.getKind(), false);
+        success = workloadWatcher.watchRolloutStatus(rolloutStatusDTO, workload, executionLogCallback);
         if (!success) {
           break;
         }

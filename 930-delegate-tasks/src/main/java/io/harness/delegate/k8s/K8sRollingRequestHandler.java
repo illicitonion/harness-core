@@ -85,8 +85,6 @@ public class K8sRollingRequestHandler extends K8sRequestHandler {
   @Inject private K8sTaskHelperBase k8sTaskHelperBase;
   @Inject K8sRollingBaseHandler k8sRollingBaseHandler;
   @Inject private ContainerDeploymentDelegateBaseHelper containerDeploymentDelegateBaseHelper;
-  @Inject private KubernetesCliClient kubernetesCliClient;
-  @Inject private KubernetesApiClient kubernetesApiClient;
 
   private KubernetesConfig kubernetesConfig;
   private Kubectl client;
@@ -164,7 +162,7 @@ public class K8sRollingRequestHandler extends K8sRequestHandler {
                                                   .build();
 
         KubernetesClient kubernetesClient =
-            getKubernetesClient(k8sRollingDeployRequest.isUseK8sApiForSteadyStateCheck());
+            k8sTaskHelperBase.getKubernetesClient(k8sRollingDeployRequest.isUseK8sApiForSteadyStateCheck());
         kubernetesClient.performSteadyStateCheck(k8sSteadyStateDTO);
 
         k8sTaskHelperBase.doStatusCheckForAllCustomResources(client, customWorkloads, k8sDelegateTaskParams,
@@ -198,13 +196,6 @@ public class K8sRollingRequestHandler extends K8sRequestHandler {
         .commandExecutionStatus(CommandExecutionStatus.SUCCESS)
         .k8sNGTaskResponse(rollingSetupResponse)
         .build();
-  }
-
-  private KubernetesClient getKubernetesClient(boolean useK8sApiForSteadyStateCheck) {
-    if (useK8sApiForSteadyStateCheck) {
-      return kubernetesApiClient;
-    }
-    return kubernetesCliClient;
   }
 
   @Override
