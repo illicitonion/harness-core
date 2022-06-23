@@ -11,9 +11,9 @@ import static io.harness.annotations.dev.HarnessTeam.CDP;
 import static io.harness.rule.OwnerRule.TMACARI;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
@@ -26,16 +26,8 @@ import io.harness.cdng.manifest.yaml.harness.HarnessStore;
 import io.harness.cdng.manifest.yaml.harness.HarnessStoreFile;
 import io.harness.cdng.manifest.yaml.storeConfig.StoreConfigType;
 import io.harness.cdng.manifest.yaml.storeConfig.StoreConfigWrapper;
-import io.harness.connector.ConnectorInfoDTO;
-import io.harness.connector.ConnectorResponseDTO;
-import io.harness.connector.services.ConnectorService;
-import io.harness.exception.InvalidRequestException;
-import io.harness.filestore.dto.node.FileNodeDTO;
-import io.harness.filestore.dto.node.FileStoreNodeDTO;
-import io.harness.filestore.service.FileStoreService;
-import io.harness.gitsync.sdk.EntityValidityDetails;
-import io.harness.ng.core.api.NGEncryptedDataService;
-import io.harness.ng.core.filestore.FileUsage;
+import io.harness.cdng.service.steps.ServiceStepsHelper;
+import io.harness.logstreaming.NGLogCallback;
 import io.harness.pms.contracts.ambiance.Ambiance;
 import io.harness.pms.contracts.execution.Status;
 import io.harness.pms.plan.execution.SetupAbstractionKeys;
@@ -44,10 +36,9 @@ import io.harness.pms.sdk.core.steps.io.StepResponse;
 import io.harness.pms.yaml.ParameterField;
 import io.harness.rule.Owner;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.InjectMocks;
@@ -64,9 +55,17 @@ public class ConnectionStringsStepTest extends CDNGTestBase {
   private static final String ORG_IDENTIFIER = "orgIdentifier";
   private static final String PROJECT_IDENTIFIER = "projectIdentifier";
 
+  @Mock private NGLogCallback logCallback;
+
   @Mock private AzureHelperService azureHelperService;
+  @Mock private ServiceStepsHelper serviceStepsHelper;
 
   @InjectMocks private ConnectionStringsStep connectionStringsStep;
+
+  @Before
+  public void setup() {
+    doReturn(logCallback).when(serviceStepsHelper).getServiceLogCallback(any(Ambiance.class));
+  }
 
   @Test
   @Owner(developers = TMACARI)

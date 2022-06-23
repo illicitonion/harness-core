@@ -10,11 +10,12 @@ package io.harness.cdng.azure.webapp;
 import static io.harness.annotations.dev.HarnessTeam.CDP;
 import static io.harness.cdng.stepsdependency.constants.OutcomeExpressionConstants.CONNECTION_STRINGS;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.cdng.azure.AzureHelperService;
 import io.harness.cdng.azure.config.ConnectionStringsOutcome;
+import io.harness.cdng.service.steps.ServiceStepsHelper;
 import io.harness.executions.steps.ExecutionNodeType;
+import io.harness.logstreaming.NGLogCallback;
 import io.harness.pms.contracts.ambiance.Ambiance;
 import io.harness.pms.contracts.execution.Status;
 import io.harness.pms.contracts.steps.StepCategory;
@@ -25,6 +26,7 @@ import io.harness.pms.sdk.core.steps.io.PassThroughData;
 import io.harness.pms.sdk.core.steps.io.StepInputPackage;
 import io.harness.pms.sdk.core.steps.io.StepResponse;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,9 +38,10 @@ public class ConnectionStringsStep implements SyncExecutable<ConnectionStringsPa
                                                .setStepCategory(StepCategory.STEP)
                                                .build();
 
-  @VisibleForTesting static final String ENTITY_TYPE = "Connection Strings";
+  @VisibleForTesting static final String ENTITY_TYPE = "Connection strings";
 
   @Inject private AzureHelperService azureHelperService;
+  @Inject private ServiceStepsHelper serviceStepsHelper;
 
   @Override
   public Class<ConnectionStringsParameters> getStepParametersClass() {
@@ -48,7 +51,10 @@ public class ConnectionStringsStep implements SyncExecutable<ConnectionStringsPa
   @Override
   public StepResponse executeSync(Ambiance ambiance, ConnectionStringsParameters stepParameters,
       StepInputPackage inputPackage, PassThroughData passThroughData) {
+    NGLogCallback logCallback = serviceStepsHelper.getServiceLogCallback(ambiance);
+    logCallback.saveExecutionLog("Processing connection strings...");
     azureHelperService.validateSettingsStoreReferences(stepParameters.getConnectionStrings(), ambiance, ENTITY_TYPE);
+    logCallback.saveExecutionLog("Processed connection strings");
     return StepResponse.builder()
         .status(Status.SUCCEEDED)
         .stepOutcome(

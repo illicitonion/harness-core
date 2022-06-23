@@ -10,11 +10,12 @@ package io.harness.cdng.azure.webapp;
 import static io.harness.annotations.dev.HarnessTeam.CDP;
 import static io.harness.cdng.stepsdependency.constants.OutcomeExpressionConstants.APPLICATION_SETTINGS;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.cdng.azure.AzureHelperService;
 import io.harness.cdng.azure.config.ApplicationSettingsOutcome;
+import io.harness.cdng.service.steps.ServiceStepsHelper;
 import io.harness.executions.steps.ExecutionNodeType;
+import io.harness.logstreaming.NGLogCallback;
 import io.harness.pms.contracts.ambiance.Ambiance;
 import io.harness.pms.contracts.execution.Status;
 import io.harness.pms.contracts.steps.StepCategory;
@@ -25,6 +26,7 @@ import io.harness.pms.sdk.core.steps.io.PassThroughData;
 import io.harness.pms.sdk.core.steps.io.StepInputPackage;
 import io.harness.pms.sdk.core.steps.io.StepResponse;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,9 +38,10 @@ public class ApplicationSettingsStep implements SyncExecutable<ApplicationSettin
                                                .setStepCategory(StepCategory.STEP)
                                                .build();
 
-  @VisibleForTesting static final String ENTITY_TYPE = "Application Settings";
+  @VisibleForTesting static final String ENTITY_TYPE = "Application settings";
 
   @Inject private AzureHelperService azureHelperService;
+  @Inject private ServiceStepsHelper serviceStepsHelper;
 
   @Override
   public Class<ApplicationSettingsParameters> getStepParametersClass() {
@@ -48,7 +51,10 @@ public class ApplicationSettingsStep implements SyncExecutable<ApplicationSettin
   @Override
   public StepResponse executeSync(Ambiance ambiance, ApplicationSettingsParameters stepParameters,
       StepInputPackage inputPackage, PassThroughData passThroughData) {
+    NGLogCallback logCallback = serviceStepsHelper.getServiceLogCallback(ambiance);
+    logCallback.saveExecutionLog("Processing application settings...");
     azureHelperService.validateSettingsStoreReferences(stepParameters.getApplicationSettings(), ambiance, ENTITY_TYPE);
+    logCallback.saveExecutionLog("Processed application settings");
     return StepResponse.builder()
         .status(Status.SUCCEEDED)
         .stepOutcome(StepResponse.StepOutcome.builder()

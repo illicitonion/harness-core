@@ -11,6 +11,8 @@ import static io.harness.annotations.dev.HarnessTeam.CDP;
 import static io.harness.rule.OwnerRule.TMACARI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 import io.harness.annotations.dev.OwnedBy;
@@ -24,6 +26,8 @@ import io.harness.cdng.manifest.yaml.harness.HarnessStore;
 import io.harness.cdng.manifest.yaml.harness.HarnessStoreFile;
 import io.harness.cdng.manifest.yaml.storeConfig.StoreConfigType;
 import io.harness.cdng.manifest.yaml.storeConfig.StoreConfigWrapper;
+import io.harness.cdng.service.steps.ServiceStepsHelper;
+import io.harness.logstreaming.NGLogCallback;
 import io.harness.pms.contracts.ambiance.Ambiance;
 import io.harness.pms.contracts.execution.Status;
 import io.harness.pms.plan.execution.SetupAbstractionKeys;
@@ -34,6 +38,7 @@ import io.harness.rule.Owner;
 
 import java.util.Collections;
 import java.util.List;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.mockito.InjectMocks;
@@ -50,9 +55,17 @@ public class ApplicationSettingsStepTest extends CDNGTestBase {
   private static final String ORG_IDENTIFIER = "orgIdentifier";
   private static final String PROJECT_IDENTIFIER = "projectIdentifier";
 
+  @Mock private NGLogCallback logCallback;
+
   @Mock private AzureHelperService azureHelperService;
+  @Mock private ServiceStepsHelper serviceStepsHelper;
 
   @InjectMocks private ApplicationSettingsStep applicationSettingsStep;
+
+  @Before
+  public void setup() {
+    doReturn(logCallback).when(serviceStepsHelper).getServiceLogCallback(any(Ambiance.class));
+  }
 
   @Test
   @Owner(developers = TMACARI)

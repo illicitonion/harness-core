@@ -148,8 +148,9 @@ public class AzureHelperServiceTest extends CDNGTestBase {
         when(connectorService.get(ACCOUNT_IDENTIFIER, ORG_IDENTIFIER, PROJECT_IDENTIFIER, CONNECTOR_REF))
                 .thenReturn(Optional.empty());
         StoreConfigWrapper storeConfigWrapper = getStoreConfigWrapperWithGitStore();
-        assertThatCode(() -> azureHelperService.validateSettingsStoreReferences(storeConfigWrapper, ambiance, "Test Entity"))
-                .doesNotThrowAnyException();
+        assertThatThrownBy(
+            () -> azureHelperService.validateSettingsStoreReferences(storeConfigWrapper, ambiance, "Test Entity"))
+            .hasMessageContaining("Connector not found with identifier:");
     }
 
     private StoreConfigWrapper getStoreConfigWrapper() {
