@@ -36,11 +36,13 @@ import io.harness.accesscontrol.acl.api.ResourceScope;
 import io.harness.accesscontrol.clients.AccessControlClient;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.cdng.artifact.ArtifactSummary;
 import io.harness.cdng.service.beans.ServiceDefinitionType;
 import io.harness.data.structure.EmptyPredicate;
 import io.harness.exception.InvalidRequestException;
 import io.harness.ng.beans.PageResponse;
 import io.harness.ng.core.OrgAndProjectValidationHelper;
+import io.harness.ng.core.beans.NGEntityTemplateResponseDTO;
 import io.harness.ng.core.dto.ErrorDTO;
 import io.harness.ng.core.dto.FailureDTO;
 import io.harness.ng.core.dto.ResponseDTO;
@@ -56,6 +58,7 @@ import io.harness.ng.core.service.services.ServiceEntityService;
 import io.harness.ng.core.service.yaml.NGServiceConfig;
 import io.harness.pms.rbac.NGResourceType;
 import io.harness.rbac.CDNGRbacUtility;
+import io.harness.repositories.UpsertOptions;
 import io.harness.security.annotations.NextGenManagerAuth;
 import io.harness.utils.PageUtils;
 
@@ -288,7 +291,7 @@ public class ServiceResourceV2 {
     requestService.setVersion(isNumeric(ifMatch) ? parseLong(ifMatch) : null);
     orgAndProjectValidationHelper.checkThatTheOrganizationAndProjectExists(
         requestService.getOrgIdentifier(), requestService.getProjectIdentifier(), requestService.getAccountId());
-    ServiceEntity upsertService = serviceEntityService.upsert(requestService);
+    ServiceEntity upsertService = serviceEntityService.upsert(requestService, UpsertOptions.DEFAULT);
     return ResponseDTO.newResponse(
         upsertService.getVersion().toString(), ServiceElementMapper.toResponseWrapper(upsertService));
   }
@@ -396,6 +399,54 @@ public class ServiceResourceV2 {
   // do not delete this.
   public ResponseDTO<NGServiceConfig> getNGServiceConfig() {
     return ResponseDTO.newResponse(NGServiceConfig.builder().build());
+  }
+
+  @GET
+  @Path("/dummy-artifactSummary-api")
+  @ApiOperation(value = "This is dummy api to expose ArtifactSummary", nickname = "dummyArtifactSummaryApi")
+  @Hidden
+  // do not delete this.
+  public ResponseDTO<ArtifactSummary> getArtifactSummaries() {
+    return ResponseDTO.newResponse(new ArtifactSummary() {
+      @Override
+      public String getType() {
+        return null;
+      }
+
+      @Override
+      public String getDisplayName() {
+        return null;
+      }
+    });
+  }
+
+  @GET
+  @Path("/runtimeInputs/{serviceIdentifier}")
+  @ApiOperation(value = "This api returns runtime input YAML", nickname = "getRuntimeInputsServiceEntity")
+  @Hidden
+  public ResponseDTO<NGEntityTemplateResponseDTO> getServiceRuntimeInputs(
+      @Parameter(description = SERVICE_PARAM_MESSAGE) @PathParam(
+          "serviceIdentifier") @ResourceIdentifier String serviceIdentifier,
+      @Parameter(description = NGCommonEntityConstants.ACCOUNT_PARAM_MESSAGE) @NotNull @QueryParam(
+          NGCommonEntityConstants.ACCOUNT_KEY) @AccountIdentifier String accountId,
+      @Parameter(description = NGCommonEntityConstants.ORG_PARAM_MESSAGE) @QueryParam(
+          NGCommonEntityConstants.ORG_KEY) @OrgIdentifier String orgIdentifier,
+      @Parameter(description = NGCommonEntityConstants.PROJECT_PARAM_MESSAGE) @QueryParam(
+          NGCommonEntityConstants.PROJECT_KEY) @ProjectIdentifier String projectIdentifier) {
+    Optional<ServiceEntity> serviceEntity =
+        serviceEntityService.get(accountId, orgIdentifier, projectIdentifier, serviceIdentifier, false);
+
+    if (serviceEntity.isPresent()) {
+      if (EmptyPredicate.isEmpty(serviceEntity.get().getYaml())) {
+        throw new InvalidRequestException("Service is not configured with a Service definition. Service Yaml is empty");
+      }
+      String serviceInputYaml = serviceEntityService.createServiceInputsYaml(serviceEntity.get().getYaml());
+      return ResponseDTO.newResponse(
+          NGEntityTemplateResponseDTO.builder().inputSetTemplateYaml(serviceInputYaml).build());
+    } else {
+      throw new NotFoundException(String.format("Service with identifier [%s] in project [%s], org [%s] not found",
+          serviceIdentifier, projectIdentifier, orgIdentifier));
+    }
   }
 
   private List<ServiceResponse> filterByPermissionAndId(
