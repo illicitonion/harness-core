@@ -43,18 +43,15 @@ public class ACLServiceImpl implements ACLService {
   private final PermissionService permissionService;
   private static final PermissionFilter permissionFilter =
       PermissionFilter.builder().statusFilter(Sets.newHashSet(INACTIVE, EXPERIMENTAL, STAGING)).build();
-  private final ResourceAttributeFetcher resourceAttributeFetcher;
   private volatile Set<String> disabledPermissions;
   private final ACLExpressionEvaluatorProvider aclExpressionEvaluatorProvider;
 
   @Inject
   public ACLServiceImpl(ACLDAO aclDAO, PermissionService permissionService,
-      ACLExpressionEvaluatorProvider aclExpressionEvaluatorProvider,
-      ResourceAttributeFetcher resourceAttributeFetcher) {
+      ACLExpressionEvaluatorProvider aclExpressionEvaluatorProvider) {
     this.aclDAO = aclDAO;
     this.permissionService = permissionService;
     this.aclExpressionEvaluatorProvider = aclExpressionEvaluatorProvider;
-    this.resourceAttributeFetcher = resourceAttributeFetcher;
   }
 
   private PermissionCheckResult getPermissionCheckResult(PermissionCheck permissionCheck, boolean permitted) {
@@ -68,9 +65,10 @@ public class ACLServiceImpl implements ACLService {
   }
 
   @Override
-  public List<PermissionCheckResult> checkAccess(Principal principal, List<PermissionCheck> permissionChecks) {
+  public List<PermissionCheckResult> checkAccess(Principal principal, List<PermissionCheck> permissionChecks,
+      ResourceAttributeProvider resourceAttributeProvider) {
     List<List<ACL>> matchingACLs = aclDAO.getMatchingACLs(principal, permissionChecks);
-    List<Boolean> allowedAccessList = checkAccessInternal(permissionChecks, matchingACLs);
+    List<Boolean> allowedAccessList = checkAccessInternal(permissionChecks, matchingACLs, resourceAttributeProvider);
     List<PermissionCheckResult> permissionCheckResults = new ArrayList<>();
     ensureDisabledPermissions();
 
@@ -86,13 +84,15 @@ public class ACLServiceImpl implements ACLService {
     return permissionCheckResults;
   }
 
-  private List<Boolean> checkAccessInternal(List<PermissionCheck> permissionChecks, List<List<ACL>> matchedACLs) {
+  private List<Boolean> checkAccessInternal(List<PermissionCheck> permissionChecks, List<List<ACL>> matchedACLs,
+      ResourceAttributeProvider resourceAttributeProvider) {
     return IntStream.range(0, permissionChecks.size())
-        .mapToObj(i -> evaluateAccessFromACLs(permissionChecks.get(i), matchedACLs.get(i)))
+        .mapToObj(i -> evaluateAccessFromACLs(permissionChecks.get(i), matchedACLs.get(i), resourceAttributeProvider))
         .collect(Collectors.toList());
   }
 
-  private boolean evaluateAccessFromACLs(PermissionCheck permissionCheck, List<ACL> matchedACLs) {
+  private boolean evaluateAccessFromACLs(
+      PermissionCheck permissionCheck, List<ACL> matchedACLs, ResourceAttributeProvider resourceAttributeProvider) {
     if (matchedACLs.isEmpty()) {
       return false;
     }
@@ -102,7 +102,7 @@ public class ACLServiceImpl implements ACLService {
 
     Map<String, String> resourceAttributes;
     try {
-      resourceAttributes = resourceAttributeFetcher.fetchAttributes(permissionCheck.getResourceScope(),
+      resourceAttributes = resourceAttributeProvider.getAttributes(permissionCheck.getResourceScope(),
           permissionCheck.getResourceType(), permissionCheck.getResourceIdentifier());
     } catch (Exception ex) {
       log.error("Exception occurred fetching attributes for {}", permissionCheck, ex);
