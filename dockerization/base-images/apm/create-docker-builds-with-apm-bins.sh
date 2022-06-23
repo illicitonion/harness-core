@@ -61,6 +61,7 @@ function create_and_push_docker_build(){
 
 }
 
+export DOCKER_BUILDKIT=1
 
 export APPD_AGENT='https://harness.jfrog.io/artifactory/BuildsTools/docker/apm/appd/AppServerAgent-1.8-21.11.2.33305.zip'
 export TAKIPI_AGENT='https://harness.jfrog.io/artifactory/BuildsTools/docker/apm/overops/takipi-agent-latest.tar.gz'
