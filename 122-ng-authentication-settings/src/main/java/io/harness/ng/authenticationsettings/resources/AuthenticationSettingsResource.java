@@ -20,6 +20,7 @@ import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.exception.GeneralException;
 import io.harness.ng.authenticationsettings.dtos.AuthenticationSettingsResponse;
+import io.harness.ng.authenticationsettings.dtos.mechanisms.LDAPSettings;
 import io.harness.ng.authenticationsettings.dtos.mechanisms.OAuthSettings;
 import io.harness.ng.authenticationsettings.impl.AuthenticationSettingsService;
 import io.harness.ng.core.account.AuthenticationMechanism;
@@ -373,7 +374,79 @@ public class AuthenticationSettingsResource {
   }
 
   @GET
-  @Path("ldap/{ldapId}/search/group")
+  @Path("/ldap/settings")
+  @ApiOperation(value = "Get Ldap settings", nickname = "getLdapSettings")
+  @Operation(operationId = "getLdapSettings", summary = "Return configured Ldap settings for the account",
+      description = "Returns configured Ldap settings and its details for the account.",
+      responses =
+      {
+        @io.swagger.v3.oas.annotations.responses.
+        ApiResponse(responseCode = "default", description = "Returns ldap setting")
+      })
+  public RestResponse<LDAPSettings>
+  getLdapSettings(@QueryParam("accountId") @NotBlank String accountId) {
+    LDAPSettings settings = authenticationSettingsService.getLdapSettings(accountId);
+    return new RestResponse<>(settings);
+  }
+
+  @POST
+  @Path("/ldap/settings")
+  @ApiOperation(value = "Update Ldap settings - user queries, group queries", nickname = "createLdapSettings")
+  @Operation(operationId = "createLdapSettings", summary = "Create Ldap setting",
+      description = "Creates Ldap settings along with the user, group queries.",
+      responses =
+      {
+        @io.swagger.v3.oas.annotations.responses.
+        ApiResponse(responseCode = "default", description = "Creates Ldap settings along with the user, group queries")
+      })
+  public RestResponse<LDAPSettings>
+  createLdapSettings(@QueryParam("accountId") @NotBlank String accountId,
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+          description =
+              "Create LdapSettings request body. Values for connection settings are needed, user and group settings can also be provided")
+      LDAPSettings ldapSettings) {
+    LDAPSettings settings = authenticationSettingsService.createLdapSettings(accountId, ldapSettings);
+    return new RestResponse<>(settings);
+  }
+
+  @PUT
+  @Path("/ldap/settings")
+  @ApiOperation(value = "Update Ldap settings - user queries, group queries", nickname = "updateLdapSettings")
+  @Operation(operationId = "updateLdapSettings", summary = "Updates Ldap setting",
+      description = "Updates configured Ldap settings along with the user, group queries.",
+      responses =
+      {
+        @io.swagger.v3.oas.annotations.responses.
+        ApiResponse(responseCode = "default", description = "Updated Ldap settings along with the user, group settings")
+      })
+  public RestResponse<LDAPSettings>
+  updateLdapSettings(@QueryParam("accountId") @NotBlank String accountId,
+      @io.swagger.v3.oas.annotations.parameters.RequestBody(required = true,
+          description =
+              "This is the updated LdapSettings. Values for all fields is needed, not just the fields you are updating")
+      LDAPSettings ldapSettings) {
+    LDAPSettings settings = authenticationSettingsService.updateLdapSettings(accountId, ldapSettings);
+    return new RestResponse<>(settings);
+  }
+
+  @DELETE
+  @Path("/ldap/settings")
+  @ApiOperation(value = "Delete Ldap settings", nickname = "deleteLdapSettings")
+  @Operation(operationId = "deleteLdapSettings", summary = "Delete Ldap settings",
+      description = "Delete configured Ldap settings on the account.",
+      responses =
+      {
+        @io.swagger.v3.oas.annotations.responses.
+        ApiResponse(responseCode = "default", description = "Successfully deleted Ldap settings configured on account")
+      })
+  public RestResponse<Boolean>
+  deleteLdapSettings(@QueryParam("accountId") @NotBlank String accountId) {
+    authenticationSettingsService.deleteLdapSettings(accountId);
+    return new RestResponse<>(true);
+  }
+
+  @GET
+  @Path("/ldap/{ldapId}/search/group")
   @ApiOperation(value = "Search Ldap groups with matching name", nickname = "searchLdapGroups")
   @Operation(operationId = "searchLdapGroups", summary = "Return Ldap groups matching name",
       description = "Returns all userGroups for the configured Ldap in the account matching a given name.",

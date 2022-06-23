@@ -18,6 +18,7 @@ import software.wings.beans.sso.LdapUserSettings;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import java.util.ArrayList;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -39,15 +40,24 @@ public class LDAPSettings extends NGAuthSettings {
 
   @Valid List<LdapGroupSettings> groupSettingsList;
 
+  @NotNull private String displayName;
+  private String cronExpression;
+  private List<Long> nextIterations;
+
   public LDAPSettings(@JsonProperty("connectionSettings") LdapConnectionSettings connectionSettings,
       @JsonProperty("identifier") String identifier,
       @JsonProperty("userSettingsList") List<LdapUserSettings> userSettingsList,
-      @JsonProperty("groupSettingsList") List<LdapGroupSettings> groupSettingsList) {
+      @JsonProperty("groupSettingsList") List<LdapGroupSettings> groupSettingsList,
+      @JsonProperty("displayName") String displayName, @JsonProperty("cronExpression") String cronExpression,
+      @JsonProperty("nextIterations") List<Long> nextIterations) {
     super(AuthenticationMechanism.LDAP);
     this.connectionSettings = connectionSettings;
     this.userSettingsList = userSettingsList;
     this.groupSettingsList = groupSettingsList;
     this.identifier = identifier;
+    this.displayName = displayName;
+    this.cronExpression = cronExpression == null ? "" : cronExpression;
+    this.nextIterations = nextIterations == null ? new ArrayList<>() : nextIterations;
   }
 
   @Override

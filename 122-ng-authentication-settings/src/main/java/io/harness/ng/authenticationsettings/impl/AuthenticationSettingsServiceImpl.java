@@ -197,6 +197,9 @@ public class AuthenticationSettingsServiceImpl implements AuthenticationSettings
                        .connectionSettings(ldapSettings.getConnectionSettings())
                        .userSettingsList(ldapSettings.getUserSettingsList())
                        .groupSettingsList(ldapSettings.getGroupSettingsList())
+                       .displayName(ldapSettings.getDisplayName())
+                       .cronExpression(ldapSettings.getCronExpression())
+                       .nextIterations(ldapSettings.getNextIterations())
                        .build());
       }
     }
@@ -279,6 +282,28 @@ public class AuthenticationSettingsServiceImpl implements AuthenticationSettings
   }
 
   @Override
+  public LDAPSettings getLdapSettings(String accountIdentifier) {
+    return fromCGLdapSettings(getResponse(managerClient.getLdapSettings(accountIdentifier)));
+  }
+
+  @Override
+  public LDAPSettings createLdapSettings(String accountIdentifier, LDAPSettings ldapSettings) {
+    return fromCGLdapSettings(getResponse(
+        managerClient.createLdapSettings(accountIdentifier, toCGLdapSettings(ldapSettings, accountIdentifier))));
+  }
+
+  @Override
+  public LDAPSettings updateLdapSettings(String accountIdentifier, LDAPSettings ldapSettings) {
+    return fromCGLdapSettings(getResponse(
+        managerClient.updateLdapSettings(accountIdentifier, toCGLdapSettings(ldapSettings, accountIdentifier))));
+  }
+
+  @Override
+  public void deleteLdapSettings(String accountIdentifier) {
+    getResponse(managerClient.deleteLdapSettings(accountIdentifier));
+  }
+
+  @Override
   public Collection<LdapGroupResponse> searchLdapGroupsByName(String accountIdentifier, String ldapId, String name) {
     Call<RestResponse<LdapSettingsWithEncryptedDataDetail>> settingsWithEncryptedDataDetails =
         managerClient.getLdapSettingsWithEncryptedDataDetails(accountIdentifier);
@@ -290,5 +315,32 @@ public class AuthenticationSettingsServiceImpl implements AuthenticationSettings
     LdapSettingsWithEncryptedDataDetail settingsWithEncryptedDataDetail = getResponse(settingsWithEncryptedDataDetails);
     return ngLdapSearchService.searchGroupsByName(settingsWithEncryptedDataDetail.getLdapSettings(),
         settingsWithEncryptedDataDetail.getEncryptedDataDetail(), name);
+  }
+
+  private LDAPSettings fromCGLdapSettings(LdapSettings ldapSettings) {
+    return LDAPSettings.builder()
+        .identifier(ldapSettings.getUuid())
+        .connectionSettings(ldapSettings.getConnectionSettings())
+        .userSettingsList(ldapSettings.getUserSettingsList())
+        .groupSettingsList(ldapSettings.getGroupSettingsList())
+        .displayName(ldapSettings.getDisplayName())
+        .cronExpression(ldapSettings.getCronExpression())
+        .nextIterations(ldapSettings.getNextIterations())
+        .build();
+  }
+
+  private LdapSettings toCGLdapSettings(LDAPSettings ldapSettings, final String accountId) {
+    LdapSettings toLdapSettings = LdapSettings.builder()
+                                      .displayName(ldapSettings.getDisplayName())
+                                      .accountId(ldapSettings.getConnectionSettings().getAccountId())
+                                      .connectionSettings(ldapSettings.getConnectionSettings())
+                                      .userSettingsList(ldapSettings.getUserSettingsList())
+                                      .groupSettingsList(ldapSettings.getGroupSettingsList())
+                                      .accountId(accountId)
+                                      .build();
+
+    toLdapSettings.setUuid(ldapSettings.getIdentifier());
+    toLdapSettings.setCronExpression(ldapSettings.getCronExpression());
+    return toLdapSettings;
   }
 }
