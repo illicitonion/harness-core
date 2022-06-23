@@ -383,6 +383,7 @@ public enum FeatureName {
   GITOPS_BYO_ARGO,
   NG_GIT_EXPERIENCE_IMPORT_FLOW,
   JENKINS_BUILD;
+  CVNG_LICENSE_ENFORCEMENT;
 
   FeatureName() {
     scope = Scope.PER_ACCOUNT;
