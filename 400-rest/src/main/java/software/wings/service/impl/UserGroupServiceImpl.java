@@ -10,7 +10,6 @@ package software.wings.service.impl;
 import static io.harness.annotations.dev.HarnessTeam.PL;
 import static io.harness.beans.PageRequest.PageRequestBuilder.aPageRequest;
 import static io.harness.beans.SearchFilter.Operator.EQ;
-import static io.harness.data.structure.CollectionUtils.emptyIfNull;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.exception.WingsException.USER;
@@ -70,12 +69,18 @@ import io.harness.mongo.MongoPersistence;
 import io.harness.persistence.HIterator;
 import io.harness.persistence.HPersistence;
 import io.harness.persistence.UuidAware;
-import io.harness.rest.RestResponse;
 import io.harness.scheduler.PersistentScheduler;
 
-import software.wings.beans.*;
+import software.wings.beans.Account;
+import software.wings.beans.Application;
+import software.wings.beans.Application.ApplicationKeys;
+import software.wings.beans.EntityType;
 import software.wings.beans.Event.Type;
+import software.wings.beans.User;
 import software.wings.beans.User.UserKeys;
+import software.wings.beans.UserGroupEntityReference;
+import software.wings.beans.UserInvite;
+import software.wings.beans.dto.Base;
 import software.wings.beans.notification.NotificationSettings;
 import software.wings.beans.security.AccountPermissions;
 import software.wings.beans.security.AppPermission;
@@ -278,7 +283,7 @@ public class UserGroupServiceImpl implements UserGroupService {
 
   private Set<String> getApplicationsMatchingTheSearchTerm(String accountId, String searchTerm) {
     PageResponse<Application> applicationList = getAllApplicationsStartingWithSearchTerm(accountId, searchTerm);
-    if (applicationList == null && applicationList.isEmpty()) {
+    if (applicationList == null || applicationList.isEmpty()) {
       return Collections.emptySet();
     }
     return applicationList.stream().map(Base::getUuid).collect(Collectors.toSet());
@@ -286,15 +291,15 @@ public class UserGroupServiceImpl implements UserGroupService {
 
   private PageResponse<Application> getAllApplicationsStartingWithSearchTerm(String accountId, String searchTerm) {
     SearchFilter applicationSearchFilter = SearchFilter.builder()
-                                               .fieldName(Application.ApplicationKeys.name)
+                                               .fieldName(ApplicationKeys.name)
                                                .op(Operator.STARTS_WITH)
                                                .fieldValues(new Object[] {searchTerm})
                                                .build();
-    PageRequest<Application> applicationPageRequest =
-        aPageRequest()
-            .addFilter(Application.ApplicationKeys.accountId, EQ, accountId)
-            .addFilter(applicationSearchFilter)
-            .build();
+    PageRequest<Application> applicationPageRequest = aPageRequest()
+                                                          .withLimit("100")
+                                                          .addFilter(ApplicationKeys.accountId, EQ, accountId)
+                                                          .addFilter(applicationSearchFilter)
+                                                          .build();
     return appService.list(applicationPageRequest);
   }
 

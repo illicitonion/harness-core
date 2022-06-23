@@ -625,7 +625,7 @@ public class UserServiceTest extends WingsBaseTest {
 
     when(accountService.save(any(Account.class), eq(false), eq(false))).thenReturn(account);
     when(wingsPersistence.query(eq(User.class), any(PageRequest.class))).thenReturn(aPageResponse().build());
-    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), null, null)).thenReturn(aPageResponse().build());
+    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), any(), any())).thenReturn(aPageResponse().build());
     when(subdomainUrlHelper.getPortalBaseUrl(ACCOUNT_ID)).thenReturn(PORTAL_URL + "/");
 
     userService.register(userBuilder.build());
@@ -769,7 +769,7 @@ public class UserServiceTest extends WingsBaseTest {
         .thenReturn(aPageResponse().withResponse(Lists.newArrayList(existingUser)).build());
     when(wingsPersistence.saveAndGet(eq(EmailVerificationToken.class), any(EmailVerificationToken.class)))
         .thenReturn(anEmailVerificationToken().withToken("token123").build());
-    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), null, null)).thenReturn(aPageResponse().build());
+    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), any(), any())).thenReturn(aPageResponse().build());
     when(subdomainUrlHelper.getPortalBaseUrl(any())).thenReturn(PORTAL_URL);
 
     userService.register(userBuilder.build());
@@ -1594,7 +1594,7 @@ public class UserServiceTest extends WingsBaseTest {
 
     when(ssoSettingService.getSamlSettingsByAccountId(account.getUuid())).thenReturn(samlSettings);
     when(wingsPersistence.get(User.class, user.getUuid())).thenReturn(user);
-    when(userGroupService.list(anyString(), any(), anyBoolean(), null, null)).thenReturn(val);
+    when(userGroupService.list(anyString(), any(), anyBoolean(), any(), any())).thenReturn(val);
 
     LogoutResponse logoutResponse = userService.logout(account.getUuid(), user.getUuid());
     assertThat(logoutResponse.getLogoutUrl()).isNotNull();

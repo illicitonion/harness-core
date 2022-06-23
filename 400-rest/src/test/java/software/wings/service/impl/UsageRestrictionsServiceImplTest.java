@@ -7,6 +7,7 @@
 
 package software.wings.service.impl;
 
+import static io.harness.beans.FeatureName.SEARCH_USERGROUP_BY_APPLICATION;
 import static io.harness.beans.PageResponse.PageResponseBuilder.aPageResponse;
 import static io.harness.eraro.ErrorCode.NOT_ACCOUNT_MGR_NOR_HAS_ALL_APP_ACCESS;
 import static io.harness.eraro.ErrorCode.USER_NOT_AUTHORIZED_DUE_TO_USAGE_RESTRICTIONS;
@@ -47,6 +48,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
+import com.google.inject.Inject;
 import io.harness.CategoryTest;
 import io.harness.annotations.dev.HarnessModule;
 import io.harness.annotations.dev.HarnessTeam;
@@ -61,6 +63,7 @@ import io.harness.beans.SecretManagerConfig;
 import io.harness.category.element.UnitTests;
 import io.harness.eraro.ErrorCode;
 import io.harness.exception.WingsException;
+import io.harness.ff.FeatureFlagService;
 import io.harness.rule.Owner;
 
 import software.wings.beans.Application;
@@ -171,7 +174,6 @@ public class UsageRestrictionsServiceImplTest extends CategoryTest {
   @Before
   public void setupMocks() {
     when(mockWingsPersistence.createQuery(SettingAttribute.class)).thenReturn(query);
-
     when(mockWingsPersistence.query(eq(SettingAttribute.class), any(PageRequest.class))).thenReturn(pageResponse);
     when(mockWingsPersistence.save(any(SettingAttribute.class)))
         .thenAnswer(
@@ -191,7 +193,7 @@ public class UsageRestrictionsServiceImplTest extends CategoryTest {
         asList(UserGroup.builder().accountId(ACCOUNT_ID).appPermissions(newHashSet(appPermissions)).build());
     pageResponse = aPageResponse().withResponse(userGroups).build();
     when(userGroupService.listByAccountId(anyString(), any(User.class), anyBoolean())).thenReturn(userGroups);
-    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), null, null)).thenReturn(pageResponse);
+    when(userGroupService.list(anyString(), any(PageRequest.class), anyBoolean(), any(), any())).thenReturn(pageResponse);
     when(authHandler.getAppIdsByFilter(anyString(), any(AppFilter.class))).thenReturn(newHashSet(appIds));
     return userGroups;
   }
