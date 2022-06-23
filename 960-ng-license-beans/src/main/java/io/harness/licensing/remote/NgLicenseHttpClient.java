@@ -40,5 +40,5 @@ public interface NgLicenseHttpClient {
       @Path("moduleType") ModuleType moduleType, @Query("expiryTime") long expiryTime);
 
   @GET(MODULE_LICENSE_FOR_ACCOUNT)
-  Call<ResponseDTO<AccountLicenseDTO>> getAccountLicensesDTO(@QueryParam("accountIdentifier") String accountIdentifier);
+  Call<ResponseDTO<AccountLicenseDTO>> getAccountLicensesDTO(@Query("accountIdentifier") String accountIdentifier);
 }
