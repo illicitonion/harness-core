@@ -26,8 +26,8 @@ import lombok.experimental.FieldDefaults;
 @OwnedBy(PIPELINE)
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @RecasterAlias("io.harness.plancreator.strategy.HarnessForConfig")
 public class HarnessForConfig {
