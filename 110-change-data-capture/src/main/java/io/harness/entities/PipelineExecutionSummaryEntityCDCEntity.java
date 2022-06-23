@@ -10,6 +10,8 @@ package io.harness.entities;
 import io.harness.ChangeHandler;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.cf.client.api.CfClient;
+import io.harness.cf.client.dto.Target;
 import io.harness.changehandlers.PlanExecutionSummaryCdChangeDataHandler;
 import io.harness.changehandlers.PlanExecutionSummaryCdChangeServiceInfraChangeDataHandlerNew;
 import io.harness.changehandlers.PlanExecutionSummaryChangeDataHandler;
@@ -22,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @OwnedBy(HarnessTeam.CI)
 @Slf4j
 public class PipelineExecutionSummaryEntityCDCEntity implements CDCEntity<PipelineExecutionSummaryEntity> {
+  @Inject CfClient cfClient;
   @Inject private PlanExecutionSummaryChangeDataHandler planExecutionSummaryChangeDataHandler;
   @Inject private PlanExecutionSummaryCdChangeDataHandler planExecutionSummaryCdChangeDataHandler;
   @Inject
@@ -29,10 +32,15 @@ public class PipelineExecutionSummaryEntityCDCEntity implements CDCEntity<Pipeli
       planExecutionSummaryCdChangeServiceInfraChangeDataHandlerNew;
   @Override
   public ChangeHandler getChangeHandler(String handlerClass) {
+    boolean ff = cfClient.boolVariation("DEBEZIUM_ENABLED", Target.builder().build(), false);
     if (handlerClass.contentEquals("PipelineExecutionSummaryEntity")) {
       return planExecutionSummaryChangeDataHandler;
     } else if (handlerClass.contentEquals("PipelineExecutionSummaryEntityCD")) {
-      return planExecutionSummaryCdChangeDataHandler;
+      if (!ff) {
+        return planExecutionSummaryCdChangeDataHandler;
+      } else {
+        return null;
+      }
     } else if (handlerClass.contentEquals("PipelineExecutionSummaryEntityServiceAndInfra")) {
       return planExecutionSummaryCdChangeServiceInfraChangeDataHandlerNew;
     }
