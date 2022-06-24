@@ -7,6 +7,8 @@
 
 package io.harness.cdng.service.steps;
 
+import static io.harness.annotations.dev.HarnessTeam.CDC;
+
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.common.VariablesSweepingOutput;
 import io.harness.cdng.artifact.outcome.ArtifactsOutcome;
@@ -20,13 +22,23 @@ import io.harness.pms.sdk.core.resolver.RefObjectUtils;
 import io.harness.pms.sdk.core.resolver.outcome.OutcomeService;
 import io.harness.pms.sdk.core.resolver.outputs.ExecutionSweepingOutputService;
 import io.harness.pms.yaml.YAMLFieldNameConstants;
-import lombok.experimental.UtilityClass;
 
-import static io.harness.annotations.dev.HarnessTeam.CDC;
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 @OwnedBy(CDC)
 public class ServiceOutcomeHelper {
+  public ServiceSectionStepOutcome createSectionOutcome(
+      Ambiance ambiance, OutcomeService outcomeService, ExecutionSweepingOutputService executionSweepingOutputService) {
+    return ServiceSectionStepOutcome.builder()
+        .serviceResult(getServiceOutcome(ambiance, outcomeService))
+        .variablesResult(getVariablesSweepingOutput(ambiance, executionSweepingOutputService))
+        .artifactResults(getArtifactsOutcome(ambiance, outcomeService))
+        .manifestResults(getManifestsOutcome(ambiance, outcomeService))
+        .configFileResults(getConfigFilesOutcome(ambiance, outcomeService))
+        .build();
+  }
+
   public ServiceConfigStepOutcome createOutcome(
       Ambiance ambiance, OutcomeService outcomeService, ExecutionSweepingOutputService executionSweepingOutputService) {
     return ServiceConfigStepOutcome.builder()

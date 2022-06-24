@@ -35,8 +35,6 @@ import java.util.Collections;
 import java.util.Map;
 
 @OwnedBy(HarnessTeam.CDC)
-// TODO(archit): Check why and how serviceConfigStepOutcome will be replicated here, is it needed?
-// TODO(archit): check getPipelineLevelModuleInfo for v2 impl
 public class ServiceSectionStep implements ChildExecutable<ServiceSectionStepParameters> {
   public static final StepType STEP_TYPE = StepType.newBuilder()
                                                .setType(ExecutionNodeType.SERVICE_SECTION.getName())
@@ -74,10 +72,11 @@ public class ServiceSectionStep implements ChildExecutable<ServiceSectionStepPar
     } else {
       logCallback.saveExecutionLog("Completed service step", LogLevel.INFO, CommandExecutionStatus.SUCCESS);
     }
-    return stepResponse.withStepOutcomes(Collections.singleton(
-        StepResponse.StepOutcome.builder()
-            .name("output")
-            .outcome(ServiceOutcomeHelper.createOutcome(ambiance, outcomeService, executionSweepingOutputService))
-            .build()));
+    return stepResponse.withStepOutcomes(
+        Collections.singleton(StepResponse.StepOutcome.builder()
+                                  .name("output")
+                                  .outcome(ServiceOutcomeHelper.createSectionOutcome(
+                                      ambiance, outcomeService, executionSweepingOutputService))
+                                  .build()));
   }
 }

@@ -7,7 +7,6 @@
 
 package io.harness.cdng.service.steps;
 
-import com.google.inject.Inject;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.data.structure.CollectionUtils;
@@ -27,9 +26,11 @@ import io.harness.pms.sdk.core.steps.io.StepInputPackage;
 import io.harness.pms.sdk.core.steps.io.StepResponse;
 import io.harness.steps.StepUtils;
 import io.harness.tasks.ResponseData;
+
 import software.wings.beans.LogColor;
 import software.wings.beans.LogHelper;
 
+import com.google.inject.Inject;
 import java.util.Collections;
 import java.util.Map;
 
