@@ -23,13 +23,14 @@ import static java.lang.String.format;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.data.structure.EmptyPredicate;
+import io.harness.delegate.beans.connector.awsconnector.AwsCredentialType;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaCloudFormationSchema;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaFunction;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaFunction.ServerlessAwsLambdaFunctionBuilder;
 import io.harness.delegate.beans.serverless.ServerlessAwsLambdaManifestSchema;
 import io.harness.delegate.task.aws.AwsNgConfigMapper;
 import io.harness.delegate.task.serverless.request.ServerlessCommandRequest;
-import io.harness.delegate.task.serverless.request.ServerlessDeployRequest;
+import io.harness.delegate.task.serverless.request.ServerlessPrepareRollbackDataRequest;
 import io.harness.exception.ExceptionUtils;
 import io.harness.exception.NestedExceptionUtils;
 import io.harness.exception.runtime.serverless.ServerlessAwsLambdaRuntimeException;
@@ -37,6 +38,7 @@ import io.harness.exception.sanitizer.ExceptionMessageSanitizer;
 import io.harness.filesystem.FileIo;
 import io.harness.logging.CommandExecutionStatus;
 import io.harness.logging.LogCallback;
+import io.harness.logging.LogLevel;
 import io.harness.serializer.YamlUtils;
 import io.harness.serverless.AbstractExecutable;
 import io.harness.serverless.ConfigCredentialCommand;
@@ -140,11 +142,11 @@ public class ServerlessAwsCommandTaskHelper {
   }
 
   public String getCurrentCloudFormationTemplate(
-      LogCallback executionLogCallback, ServerlessDeployRequest serverlessDeployRequest) {
+      LogCallback executionLogCallback, ServerlessPrepareRollbackDataRequest serverlessPrepareRollbackDataRequest) {
     ServerlessAwsLambdaManifestSchema serverlessManifestSchema =
-        parseServerlessManifest(executionLogCallback, serverlessDeployRequest.getManifestContent());
+        parseServerlessManifest(executionLogCallback, serverlessPrepareRollbackDataRequest.getManifestContent());
     ServerlessAwsLambdaInfraConfig serverlessAwsLambdaInfraConfig =
-        (ServerlessAwsLambdaInfraConfig) serverlessDeployRequest.getServerlessInfraConfig();
+        (ServerlessAwsLambdaInfraConfig) serverlessPrepareRollbackDataRequest.getServerlessInfraConfig();
     String cloudFormationStackName =
         serverlessManifestSchema.getService() + "-" + serverlessAwsLambdaInfraConfig.getStage();
     String region = serverlessAwsLambdaInfraConfig.getRegion();
@@ -249,6 +251,38 @@ public class ServerlessAwsCommandTaskHelper {
     }
   }
 
+  public void setUpConfigureCredential(ServerlessAwsLambdaConfig serverlessAwsLambdaConfig,
+      LogCallback executionLogCallback, ServerlessDelegateTaskParams serverlessDelegateTaskParams,
+      String serverlessAwsLambdaCredentialType, ServerlessClient serverlessClient, long timeoutInMillis)
+      throws Exception {
+    try {
+      if (serverlessAwsLambdaCredentialType.equals(AwsCredentialType.MANUAL_CREDENTIALS.name())) {
+        ServerlessCliResponse response = configCredential(serverlessClient, serverlessAwsLambdaConfig,
+            serverlessDelegateTaskParams, executionLogCallback, true, timeoutInMillis);
+
+        if (response.getCommandExecutionStatus() == CommandExecutionStatus.SUCCESS) {
+          executionLogCallback.saveExecutionLog(
+              color(format("%nConfig Credential command executed successfully..%n"), LogColor.White, LogWeight.Bold),
+              INFO);
+          executionLogCallback.saveExecutionLog(format("Done..%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
+        } else {
+          executionLogCallback.saveExecutionLog(
+              color(format("%nConfig Credential command failed..%n"), LogColor.Red, LogWeight.Bold), ERROR,
+              CommandExecutionStatus.FAILURE);
+          handleCommandExecutionFailure(response, serverlessClient.configCredential());
+        }
+      } else {
+        executionLogCallback.saveExecutionLog(
+            format("skipping configure credentials command..%n%n"), LogLevel.INFO, CommandExecutionStatus.SUCCESS);
+      }
+    } catch (Exception ex) {
+      executionLogCallback.saveExecutionLog(
+          color(format("%n configure credential failed."), LogColor.Red, LogWeight.Bold), LogLevel.ERROR,
+          CommandExecutionStatus.FAILURE);
+      throw ex;
+    }
+  }
+
   public void handleCommandExecutionFailure(ServerlessCliResponse response, AbstractExecutable command) {
     Optional<String> commandOptional = AbstractExecutable.getPrintableCommand(command.command());
     String printCommand = command.command();
@@ -327,11 +361,11 @@ public class ServerlessAwsCommandTaskHelper {
     return timeStamps;
   }
 
-  public Optional<String> getPreviousVersionTimeStamp(
-      List<String> timeStamps, LogCallback executionLogCallback, ServerlessDeployRequest serverlessDeployRequest) {
+  public Optional<String> getPreviousVersionTimeStamp(List<String> timeStamps, LogCallback executionLogCallback,
+      ServerlessPrepareRollbackDataRequest serverlessPrepareRollbackDataRequest) {
     if (!CollectionUtils.isEmpty(timeStamps)) {
       String currentCloudFormationTemplate =
-          getCurrentCloudFormationTemplate(executionLogCallback, serverlessDeployRequest);
+          getCurrentCloudFormationTemplate(executionLogCallback, serverlessPrepareRollbackDataRequest);
 
       int timeStampsCount = timeStamps.size();
       for (int index = timeStampsCount - 1; index >= 0; index--) {

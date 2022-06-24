@@ -48,6 +48,9 @@ public enum FeatureRestrictionName {
   TEST_INTELLIGENCE,
   TEMPLATE_SERVICE,
 
+  // CV Features
+  SRM_SERVICES,
+
   // CD Step Palette
   K8S_BG_SWAP_SERVICES,
   K8S_BLUE_GREEN_DEPLOY,
@@ -66,6 +69,11 @@ public enum FeatureRestrictionName {
   CREATE_STACK,
   DELETE_STACK,
   ROLLBACK_STACK,
+  COMMAND,
+  AZURE_SLOT_DEPLOYMENT,
+  AZURE_TRAFFIC_SHIFT,
+  AZURE_SWAP_SLOT,
+  AZURE_WEBAPP_ROLLBACK,
 
   // STO Features
   SECURITY,
