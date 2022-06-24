@@ -5,7 +5,7 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.steps.jenkins.jenkinsstep;
+package io.harness.cdng.jenkins.jenkinsstep;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
@@ -33,7 +33,7 @@ import org.springframework.data.annotation.TypeAlias;
 @OwnedBy(CDC)
 @JsonTypeName("JenkinsBuildOutcome")
 @TypeAlias("jenkinsBuildOutcome")
-@RecasterAlias("io.harness.steps.jenkins.jenkinsstep.JenkinsBuildOutcome")
+@RecasterAlias("JenkinsBuildOutcome")
 public class JenkinsBuildOutcome implements Outcome {
   private ExecutionStatus executionStatus;
   private String jenkinsResult;

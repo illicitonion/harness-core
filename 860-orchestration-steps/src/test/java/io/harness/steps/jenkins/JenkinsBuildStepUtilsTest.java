@@ -16,9 +16,9 @@ import io.harness.CategoryTest;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepUtils;
 import io.harness.pms.yaml.ParameterField;
 import io.harness.rule.Owner;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepUtils;
 
 import com.google.common.collect.ImmutableMap;
 import java.util.Collections;

@@ -5,17 +5,17 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.steps.jenkins.jenkinsstep;
+package io.harness.cdng.jenkins.jenkinsstep;
 
-import io.harness.plancreator.steps.internal.PMSStepPlanCreatorV2;
+import io.harness.cdng.creator.plan.steps.CDPMSStepPlanCreatorV2;
+import io.harness.executions.steps.StepSpecTypeConstants;
 import io.harness.pms.sdk.core.plan.creation.beans.PlanCreationContext;
 import io.harness.pms.sdk.core.plan.creation.beans.PlanCreationResponse;
-import io.harness.steps.StepSpecTypeConstants;
 
 import com.google.common.collect.Sets;
 import java.util.Set;
 
-public class JenkinsCreateStepPlanCreator extends PMSStepPlanCreatorV2<JenkinsBuildStepNode> {
+public class JenkinsCreateStepPlanCreator extends CDPMSStepPlanCreatorV2<JenkinsBuildStepNode> {
   @Override
   public Set<String> getSupportedStepTypes() {
     return Sets.newHashSet(StepSpecTypeConstants.JENKINS_BUILD);

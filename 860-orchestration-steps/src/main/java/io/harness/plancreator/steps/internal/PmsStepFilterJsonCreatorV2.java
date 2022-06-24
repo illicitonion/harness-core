@@ -24,6 +24,6 @@ public class PmsStepFilterJsonCreatorV2 extends GenericStepPMSFilterJsonCreatorV
         StepSpecTypeConstants.JIRA_UPDATE, StepSpecTypeConstants.JIRA_APPROVAL, StepSpecTypeConstants.HARNESS_APPROVAL,
         StepSpecTypeConstants.SERVICENOW_APPROVAL, StepSpecTypeConstants.BARRIER, StepSpecTypeConstants.POLICY_STEP,
         StepSpecTypeConstants.SERVICENOW_CREATE, StepSpecTypeConstants.SERVICENOW_UPDATE, StepSpecTypeConstants.QUEUE,
-                StepSpecTypeConstants.SHELL_SCRIPT, StepSpecTypeConstants.JENKINS_BUILD);
+        StepSpecTypeConstants.SHELL_SCRIPT);
   }
 }

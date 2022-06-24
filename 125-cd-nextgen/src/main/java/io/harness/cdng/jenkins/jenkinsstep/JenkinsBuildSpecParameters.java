@@ -5,7 +5,7 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.steps.jenkins.jenkinsstep;
+package io.harness.cdng.jenkins.jenkinsstep;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
@@ -29,7 +29,7 @@ import org.springframework.data.annotation.TypeAlias;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @TypeAlias("jenkinsBuildSpecParameters")
-@RecasterAlias("io.harness.steps.jenkins.jenkinsstep.JenkinsBuildSpecParameters")
+@RecasterAlias("JenkinsBuildSpecParameters")
 public class JenkinsBuildSpecParameters implements SpecParameters {
   @NotEmpty ParameterField<String> connectorRef;
   @NotEmpty ParameterField<String> jobName;

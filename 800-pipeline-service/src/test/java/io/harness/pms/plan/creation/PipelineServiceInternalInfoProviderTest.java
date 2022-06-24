@@ -60,8 +60,6 @@ import io.harness.steps.approval.step.servicenow.ServiceNowApprovalStepVariableC
 import io.harness.steps.customstage.CustomStageFilterCreator;
 import io.harness.steps.customstage.CustomStagePlanCreator;
 import io.harness.steps.customstage.CustomStageVariableCreator;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepVariableCreator;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsCreateStepPlanCreator;
 import io.harness.steps.jira.JiraStepVariableCreator;
 import io.harness.steps.jira.JiraUpdateStepVariableCreator;
 import io.harness.steps.jira.create.JiraCreateStepPlanCreator;
@@ -105,7 +103,7 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
             .stream()
             .map(e -> e.getClass())
             .collect(Collectors.toSet());
-    assertThat(planCreatorClasses).hasSize(27);
+    assertThat(planCreatorClasses).hasSize(26);
     assertThat(planCreatorClasses.contains(NGPipelinePlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(StagesPlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(ParallelPlanCreator.class)).isTrue();
@@ -130,7 +128,6 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
     assertThat(planCreatorClasses.contains(StrategyConfigPlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(CustomStagePlanCreator.class)).isTrue();
     assertThat(planCreatorClasses.contains(QueueStepPlanCreator.class)).isTrue();
-    assertThat(planCreatorClasses.contains(JenkinsCreateStepPlanCreator.class)).isTrue();
   }
 
   @Test
@@ -165,7 +162,7 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
             .stream()
             .map(e -> e.getClass())
             .collect(Collectors.toSet());
-    assertThat(variableCreatorClasses).hasSize(17);
+    assertThat(variableCreatorClasses).hasSize(16);
     assertThat(variableCreatorClasses.contains(PipelineVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(HTTPStepVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(StepGroupVariableCreator.class)).isTrue();
@@ -182,7 +179,6 @@ public class PipelineServiceInternalInfoProviderTest extends CategoryTest {
     assertThat(variableCreatorClasses.contains(ServiceNowUpdateStepVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(CustomStageVariableCreator.class)).isTrue();
     assertThat(variableCreatorClasses.contains(QueueStepVariableCreator.class)).isTrue();
-    assertThat(variableCreatorClasses.contains(JenkinsBuildStepVariableCreator.class)).isTrue();
   }
 
   @Test

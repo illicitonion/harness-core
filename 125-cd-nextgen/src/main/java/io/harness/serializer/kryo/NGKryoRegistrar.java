@@ -33,6 +33,7 @@ import io.harness.cdng.infra.yaml.PdcInfrastructure;
 import io.harness.cdng.infra.yaml.ServerlessAwsLambdaInfrastructure;
 import io.harness.cdng.infra.yaml.SshWinRmAwsInfrastructure;
 import io.harness.cdng.infra.yaml.SshWinRmAzureInfrastructure;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepInfo;
 import io.harness.cdng.k8s.DeleteResourcesWrapper;
 import io.harness.cdng.k8s.K8sBlueGreenOutcome;
 import io.harness.cdng.k8s.K8sCanaryOutcome;
@@ -170,5 +171,6 @@ public class NGKryoRegistrar implements KryoRegistrar {
     kryo.register(CloudformationRollbackStepInfo.class, 12584);
     kryo.register(ConfigFileStepParameters.class, 12585);
     kryo.register(CommandStepInfo.class, 12600);
+    kryo.register(JenkinsBuildStepInfo.class, 12700);
   }
 }

@@ -5,7 +5,7 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.steps.jenkins.jenkinsstep;
+package io.harness.cdng.jenkins.jenkinsstep;
 
 import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
 
@@ -14,8 +14,8 @@ import static com.fasterxml.jackson.annotation.JsonTypeInfo.Id.NAME;
 
 import io.harness.annotation.RecasterAlias;
 import io.harness.annotations.dev.OwnedBy;
-import io.harness.plancreator.steps.http.PmsAbstractStepNode;
-import io.harness.steps.StepSpecTypeConstants;
+import io.harness.cdng.pipeline.CdAbstractStepNode;
+import io.harness.executions.steps.StepSpecTypeConstants;
 import io.harness.yaml.core.StepSpecType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,8 +34,8 @@ import org.springframework.data.annotation.TypeAlias;
 @JsonTypeName(StepSpecTypeConstants.JENKINS_BUILD)
 @TypeAlias("JenkinsBuildStepNode")
 @OwnedBy(PIPELINE)
-@RecasterAlias("io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepNode")
-public class JenkinsBuildStepNode extends PmsAbstractStepNode {
+@RecasterAlias("JenkinsBuildStepNode")
+public class JenkinsBuildStepNode extends CdAbstractStepNode {
   @JsonProperty("type") @NotNull StepType type = StepType.JenkinsBuild;
   @NotNull
   @JsonProperty("spec")

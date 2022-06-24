@@ -74,7 +74,6 @@ import io.harness.pms.event.entitycrud.PipelineEntityCRUDStreamListener;
 import io.harness.pms.event.entitycrud.ProjectEntityCrudStreamListener;
 import io.harness.pms.event.pollingevent.PollingEventStreamListener;
 import io.harness.pms.expressions.PMSExpressionEvaluatorProvider;
-import io.harness.pms.jenkins.JenkinsBuildStepHelperServiceImpl;
 import io.harness.pms.jira.JiraStepHelperServiceImpl;
 import io.harness.pms.ngpipeline.inputset.service.PMSInputSetService;
 import io.harness.pms.ngpipeline.inputset.service.PMSInputSetServiceImpl;
@@ -136,7 +135,6 @@ import io.harness.service.DelegateServiceDriverModule;
 import io.harness.steps.approval.ApprovalNotificationHandler;
 import io.harness.steps.approval.step.jira.JiraApprovalHelperService;
 import io.harness.steps.approval.step.servicenow.ServiceNowApprovalHelperService;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepHelperService;
 import io.harness.steps.jira.JiraStepHelperService;
 import io.harness.steps.servicenow.ServiceNowStepHelperService;
 import io.harness.steps.shellscript.ShellScriptHelperService;
@@ -364,7 +362,6 @@ public class PipelineServiceModule extends AbstractModule {
     bind(ApprovalResourceService.class).to(ApprovalResourceServiceImpl.class);
     bind(JiraApprovalHelperService.class).to(JiraApprovalHelperServiceImpl.class);
     bind(JiraStepHelperService.class).to(JiraStepHelperServiceImpl.class);
-    bind(JenkinsBuildStepHelperService.class).to(JenkinsBuildStepHelperServiceImpl.class);
     bind(PMSResourceConstraintService.class).to(PMSResourceConstraintServiceImpl.class);
     bind(PMSLandingDashboardService.class).to(PMSLandingDashboardServiceImpl.class);
     bind(LogStreamingServiceRestClient.class)

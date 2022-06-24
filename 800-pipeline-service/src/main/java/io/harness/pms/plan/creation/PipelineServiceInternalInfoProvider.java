@@ -57,8 +57,6 @@ import io.harness.steps.cf.FlagConfigurationStep;
 import io.harness.steps.customstage.CustomStageFilterCreator;
 import io.harness.steps.customstage.CustomStagePlanCreator;
 import io.harness.steps.customstage.CustomStageVariableCreator;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepVariableCreator;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsCreateStepPlanCreator;
 import io.harness.steps.jira.JiraStepVariableCreator;
 import io.harness.steps.jira.JiraUpdateStepVariableCreator;
 import io.harness.steps.jira.create.JiraCreateStepPlanCreator;
@@ -112,7 +110,6 @@ public class PipelineServiceInternalInfoProvider implements PipelineServiceInfoP
     planCreators.add(new ServiceNowUpdateStepPlanCreator());
     planCreators.add(new StrategyConfigPlanCreator());
     planCreators.add(new CustomStagePlanCreator());
-    planCreators.add(new JenkinsCreateStepPlanCreator());
     injectorUtils.injectMembers(planCreators);
     return planCreators;
   }
@@ -153,7 +150,6 @@ public class PipelineServiceInternalInfoProvider implements PipelineServiceInfoP
     variableCreators.add(new ServiceNowUpdateStepVariableCreator());
     variableCreators.add(new CustomStageVariableCreator());
     variableCreators.add(new QueueStepVariableCreator());
-    variableCreators.add(new JenkinsBuildStepVariableCreator());
     injectorUtils.injectMembers(variableCreators);
     return variableCreators;
   }

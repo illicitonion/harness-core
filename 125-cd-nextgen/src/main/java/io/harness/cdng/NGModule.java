@@ -39,6 +39,8 @@ import io.harness.cdng.gitops.ClusterServiceImpl;
 import io.harness.cdng.gitops.service.ClusterService;
 import io.harness.cdng.instance.info.InstanceInfoService;
 import io.harness.cdng.instance.info.InstanceInfoServiceImpl;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepHelperService;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepHelperServiceImpl;
 import io.harness.cdng.jira.resources.service.JiraResourceService;
 import io.harness.cdng.jira.resources.service.JiraResourceServiceImpl;
 import io.harness.cdng.k8s.resources.azure.service.AzureResourceService;
@@ -117,6 +119,7 @@ public class NGModule extends AbstractModule {
     bind(ClusterService.class).to(ClusterServiceImpl.class);
     bind(InfrastructureEntityService.class).to(InfrastructureEntityServiceImpl.class);
     bind(ServiceOverrideService.class).to(ServiceOverrideServiceImpl.class);
+    bind(JenkinsBuildStepHelperService.class).to(JenkinsBuildStepHelperServiceImpl.class);
 
     MapBinder<String, FilterPropertiesMapper> filterPropertiesMapper =
         MapBinder.newMapBinder(binder(), String.class, FilterPropertiesMapper.class);

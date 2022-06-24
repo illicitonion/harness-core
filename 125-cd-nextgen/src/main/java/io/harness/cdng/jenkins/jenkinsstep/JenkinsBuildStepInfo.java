@@ -5,7 +5,7 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.steps.jenkins.jenkinsstep;
+package io.harness.cdng.jenkins.jenkinsstep;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 import static io.harness.yaml.schema.beans.SupportedPossibleFieldTypes.runtime;
@@ -13,17 +13,21 @@ import static io.harness.yaml.schema.beans.SupportedPossibleFieldTypes.runtime;
 import io.harness.annotation.RecasterAlias;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.SwaggerConstants;
+import io.harness.cdng.pipeline.CDStepInfo;
+import io.harness.cdng.visitor.helpers.cdstepinfo.JenkinsBuildStepInfoVisitorHelper;
+import io.harness.cdng.visitor.helpers.cdstepinfo.K8sApplyStepInfoVisitorHelper;
+import io.harness.executions.steps.StepSpecTypeConstants;
 import io.harness.filters.WithConnectorRef;
 import io.harness.plancreator.steps.TaskSelectorYaml;
 import io.harness.plancreator.steps.common.SpecParameters;
 import io.harness.plancreator.steps.common.WithDelegateSelector;
-import io.harness.plancreator.steps.internal.PMSStepInfo;
 import io.harness.pms.contracts.steps.StepType;
 import io.harness.pms.execution.OrchestrationFacilitatorType;
 import io.harness.pms.yaml.ParameterField;
 import io.harness.pms.yaml.YAMLFieldNameConstants;
 import io.harness.pms.yaml.YamlNode;
-import io.harness.steps.StepSpecTypeConstants;
+import io.harness.walktree.visitor.SimpleVisitorHelper;
+import io.harness.walktree.visitor.Visitable;
 import io.harness.yaml.YamlSchemaTypes;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,8 +50,9 @@ import org.springframework.data.annotation.TypeAlias;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @JsonTypeName(StepSpecTypeConstants.JENKINS_BUILD)
 @TypeAlias("jenkinsBuildStepInfo")
+@SimpleVisitorHelper(helperClass = JenkinsBuildStepInfoVisitorHelper.class)
 @RecasterAlias("io.harness.cdng.pipeline.stepinfo.JenkinsBuildStepInfo")
-public class JenkinsBuildStepInfo implements PMSStepInfo, WithConnectorRef, WithDelegateSelector {
+public class JenkinsBuildStepInfo implements CDStepInfo, WithConnectorRef, WithDelegateSelector, Visitable {
   @JsonProperty(YamlNode.UUID_FIELD_NAME)
   @Getter(onMethod_ = { @ApiModelProperty(hidden = true) })
   @ApiModelProperty(hidden = true)

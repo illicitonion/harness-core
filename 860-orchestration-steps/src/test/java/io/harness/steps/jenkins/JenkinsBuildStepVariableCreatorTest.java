@@ -15,14 +15,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.harness.CategoryTest;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepNode;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepVariableCreator;
 import io.harness.pms.contracts.plan.YamlProperties;
 import io.harness.pms.sdk.core.variables.beans.VariableCreationContext;
 import io.harness.pms.sdk.core.variables.beans.VariableCreationResponse;
 import io.harness.pms.yaml.YamlField;
 import io.harness.pms.yaml.YamlUtils;
 import io.harness.rule.Owner;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepNode;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepVariableCreator;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Resources;

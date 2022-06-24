@@ -79,6 +79,8 @@ import io.harness.cdng.creator.variables.K8sScaleStepVariableCreator;
 import io.harness.cdng.creator.variables.ServerlessAwsLambdaDeployStepVariableCreator;
 import io.harness.cdng.creator.variables.ServerlessAwsLambdaRollbackStepVariableCreator;
 import io.harness.cdng.creator.variables.SshVariableCreator;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepVariableCreator;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsCreateStepPlanCreator;
 import io.harness.cdng.provision.cloudformation.variablecreator.CloudformationCreateStepVariableCreator;
 import io.harness.cdng.provision.cloudformation.variablecreator.CloudformationDeleteStepVariableCreator;
 import io.harness.cdng.provision.cloudformation.variablecreator.CloudformationRollbackStepVariableCreator;
@@ -171,6 +173,7 @@ public class CDNGPlanCreatorProvider implements PipelineServiceInfoProvider {
     planCreators.add(new AzureWebAppSlotDeploymentStepPlanCreator());
     planCreators.add(new AzureWebAppSlotSwapSlotPlanCreator());
     planCreators.add(new AzureWebAppTrafficShiftStepPlanCreator());
+    planCreators.add(new JenkinsCreateStepPlanCreator());
     injectorUtils.injectMembers(planCreators);
     return planCreators;
   }
@@ -218,6 +221,7 @@ public class CDNGPlanCreatorProvider implements PipelineServiceInfoProvider {
     variableCreators.add(new AzureWebAppTrafficShiftStepVariableCreator());
     variableCreators.add(new AzureWebAppSwapSlotStepVariableCreator());
     variableCreators.add(new AzureWebAppRollbackStepVariableCreator());
+    variableCreators.add(new JenkinsBuildStepVariableCreator());
     return variableCreators;
   }
 
@@ -465,6 +469,15 @@ public class CDNGPlanCreatorProvider implements PipelineServiceInfoProvider {
             .setFeatureFlag(FeatureName.AZURE_WEBAPP_NG.name())
             .build();
 
+    StepInfo jenkinsBuildStepInfo =
+        StepInfo.newBuilder()
+            .setName("Jenkins Build")
+            .setType(StepSpecTypeConstants.JENKINS_BUILD)
+            .setFeatureRestrictionName(FeatureRestrictionName.JENKINS_ARTIFACT.name())
+            .setStepMetaData(StepMetaData.newBuilder().addCategory("Builds").addFolderPaths("Builds").build())
+            .setFeatureFlag(FeatureName.JENKINS_ARTIFACT.name())
+            .build();
+
     List<StepInfo> stepInfos = new ArrayList<>();
 
     stepInfos.add(gitOpsCreatePR);
@@ -494,6 +507,7 @@ public class CDNGPlanCreatorProvider implements PipelineServiceInfoProvider {
     stepInfos.add(azureWebAppTrafficShift);
     stepInfos.add(azureWebAppSwapSlot);
     stepInfos.add(azureWebAppRollback);
+    stepInfos.add(jenkinsBuildStepInfo);
     return stepInfos;
   }
 }

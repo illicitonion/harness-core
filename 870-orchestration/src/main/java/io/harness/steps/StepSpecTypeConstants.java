@@ -36,5 +36,4 @@ public interface StepSpecTypeConstants {
   String SECURITY_STAGE = "SecurityTests";
   String FEATURE_FLAG_STAGE = "FeatureFlag";
   String POLICY_STEP = "Policy";
-  String JENKINS_BUILD = "JenkinsBuild";
 }

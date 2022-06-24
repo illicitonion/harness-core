@@ -5,7 +5,7 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.pms.jenkins;
+package io.harness.cdng.jenkins.jenkinsstep;
 
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 import static io.harness.exception.WingsException.USER;
@@ -14,6 +14,9 @@ import static io.harness.logging.CommandExecutionStatus.SUCCESS;
 import io.harness.beans.DelegateTaskRequest;
 import io.harness.beans.EnvironmentType;
 import io.harness.beans.IdentifierRef;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildOutcome;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildOutcome.JenkinsBuildOutcomeBuilder;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepHelperService;
 import io.harness.common.NGTaskType;
 import io.harness.common.NGTimeConversionHelper;
 import io.harness.connector.ConnectorDTO;
@@ -51,9 +54,6 @@ import io.harness.secretmanagerclient.services.api.SecretManagerClientService;
 import io.harness.serializer.KryoSerializer;
 import io.harness.service.DelegateGrpcClientWrapper;
 import io.harness.steps.StepUtils;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildOutcome;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildOutcome.JenkinsBuildOutcomeBuilder;
-import io.harness.steps.jenkins.jenkinsstep.JenkinsBuildStepHelperService;
 import io.harness.supplier.ThrowingSupplier;
 import io.harness.utils.IdentifierRefHelper;
 

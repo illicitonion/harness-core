@@ -5,7 +5,7 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.pms.jenkins;
+package io.harness.cdng.jenkins;
 
 import static io.harness.annotations.dev.HarnessTeam.PIPELINE;
 import static io.harness.rule.OwnerRule.SHIVAM;
@@ -17,6 +17,7 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 import io.harness.CategoryTest;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
+import io.harness.cdng.jenkins.jenkinsstep.JenkinsBuildStepHelperServiceImpl;
 import io.harness.common.NGTimeConversionHelper;
 import io.harness.connector.ConnectorDTO;
 import io.harness.connector.ConnectorInfoDTO;

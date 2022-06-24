@@ -5,10 +5,11 @@
  * https://polyformproject.org/wp-content/uploads/2020/05/PolyForm-Free-Trial-1.0.0.txt.
  */
 
-package io.harness.steps.jenkins.jenkinsstep;
+package io.harness.cdng.jenkins.jenkinsstep;
 
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.executions.steps.StepSpecTypeConstants;
 import io.harness.pms.contracts.plan.YamlOutputProperties;
 import io.harness.pms.contracts.plan.YamlProperties;
 import io.harness.pms.sdk.core.pipeline.variables.GenericStepVariableCreator;
@@ -16,7 +17,6 @@ import io.harness.pms.sdk.core.variables.VariableCreatorHelper;
 import io.harness.pms.yaml.YAMLFieldNameConstants;
 import io.harness.pms.yaml.YamlField;
 import io.harness.pms.yaml.YamlNode;
-import io.harness.steps.StepSpecTypeConstants;
 
 import java.util.ArrayList;
 import java.util.HashSet;
