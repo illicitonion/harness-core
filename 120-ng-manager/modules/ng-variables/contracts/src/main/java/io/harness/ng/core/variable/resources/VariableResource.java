@@ -18,9 +18,6 @@ import static io.harness.NGResourceFilterConstants.PAGE_KEY;
 import static io.harness.NGResourceFilterConstants.SEARCH_TERM_KEY;
 import static io.harness.NGResourceFilterConstants.SIZE_KEY;
 
-import io.harness.accesscontrol.AccountIdentifier;
-import io.harness.accesscontrol.OrgIdentifier;
-import io.harness.accesscontrol.ProjectIdentifier;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.ng.beans.PageResponse;
@@ -95,10 +92,9 @@ public interface VariableResource {
   ResponseDTO<VariableResponseDTO>
   get(@Parameter(description = "Variable ID") @PathParam(IDENTIFIER_KEY) @NotNull String identifier,
       @Parameter(description = ACCOUNT_PARAM_MESSAGE, required = true) @QueryParam(
-          ACCOUNT_KEY) @NotNull @AccountIdentifier String accountIdentifier,
-      @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) @OrgIdentifier String orgIdentifier,
-      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(
-          PROJECT_KEY) @ProjectIdentifier String projectIdentifier);
+          ACCOUNT_KEY) @NotNull String accountIdentifier,
+      @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) String orgIdentifier,
+      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(PROJECT_KEY) String projectIdentifier);
 
   @POST
   @ApiOperation(value = "Create a Variable", nickname = "createVariable")
@@ -123,11 +119,9 @@ public interface VariableResource {
         ApiResponse(responseCode = "default", description = "Returns the list of Variable.")
       })
   ResponseDTO<PageResponse<VariableResponseDTO>>
-  list(@Parameter(description = ACCOUNT_PARAM_MESSAGE, required = true) @NotNull @QueryParam(
-           ACCOUNT_KEY) @AccountIdentifier String accountIdentifier,
-      @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) @OrgIdentifier String orgIdentifier,
-      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(
-          PROJECT_KEY) @ProjectIdentifier String projectIdentifier,
+  list(@Parameter(description = ACCOUNT_PARAM_MESSAGE, required = true) @NotNull @QueryParam(ACCOUNT_KEY)
+       String accountIdentifier, @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) String orgIdentifier,
+      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(PROJECT_KEY) String projectIdentifier,
       @Parameter(description = "Page number of navigation. The default value is 0.") @QueryParam(
           PAGE_KEY) @DefaultValue("0") int page,
       @Parameter(description = "Number of entries per page. The default value is 100.") @QueryParam(
@@ -167,10 +161,9 @@ public interface VariableResource {
       })
   ResponseDTO<Boolean>
   delete(@Parameter(description = ACCOUNT_PARAM_MESSAGE, required = true) @QueryParam(
-             ACCOUNT_KEY) @NotNull @AccountIdentifier String accountIdentifier,
-      @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) @OrgIdentifier String orgIdentifier,
-      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(
-          PROJECT_KEY) @ProjectIdentifier String projectIdentifier,
+             ACCOUNT_KEY) @NotNull String accountIdentifier,
+      @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) String orgIdentifier,
+      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(PROJECT_KEY) String projectIdentifier,
       @Parameter(description = "Variable ID") @PathParam(IDENTIFIER_KEY) @NotBlank String variableIdentifier);
 
   @GET
@@ -185,8 +178,7 @@ public interface VariableResource {
   @Hidden
   ResponseDTO<List<String>>
   expressions(@Parameter(description = ACCOUNT_PARAM_MESSAGE, required = true) @NotNull @QueryParam(
-                  ACCOUNT_KEY) @AccountIdentifier String accountIdentifier,
-      @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) @OrgIdentifier String orgIdentifier,
-      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(
-          PROJECT_KEY) @ProjectIdentifier String projectIdentifier);
+                  ACCOUNT_KEY) String accountIdentifier,
+      @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(ORG_KEY) String orgIdentifier,
+      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(PROJECT_KEY) String projectIdentifier);
 }

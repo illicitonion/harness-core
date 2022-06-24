@@ -12,7 +12,10 @@ import static io.harness.ng.core.variable.VariablePermissions.VARIABLE_EDIT_PERM
 import static io.harness.ng.core.variable.VariablePermissions.VARIABLE_RESOURCE_TYPE;
 import static io.harness.ng.core.variable.VariablePermissions.VARIABLE_VIEW_PERMISSION;
 
+import io.harness.accesscontrol.AccountIdentifier;
 import io.harness.accesscontrol.NGAccessControlCheck;
+import io.harness.accesscontrol.OrgIdentifier;
+import io.harness.accesscontrol.ProjectIdentifier;
 import io.harness.accesscontrol.acl.api.Resource;
 import io.harness.accesscontrol.acl.api.ResourceScope;
 import io.harness.accesscontrol.clients.AccessControlClient;
@@ -41,8 +44,8 @@ public class VariableResourceImpl implements VariableResource {
 
   @Override
   @NGAccessControlCheck(resourceType = VARIABLE_RESOURCE_TYPE, permission = VARIABLE_VIEW_PERMISSION)
-  public ResponseDTO<VariableResponseDTO> get(
-      String identifier, String accountIdentifier, String orgIdentifier, String projectIdentifier) {
+  public ResponseDTO<VariableResponseDTO> get(String identifier, @AccountIdentifier String accountIdentifier,
+      @OrgIdentifier String orgIdentifier, @ProjectIdentifier String projectIdentifier) {
     Optional<VariableResponseDTO> variable =
         variableService.get(accountIdentifier, orgIdentifier, projectIdentifier, identifier);
     if (!variable.isPresent()) {
@@ -65,8 +68,9 @@ public class VariableResourceImpl implements VariableResource {
 
   @Override
   @NGAccessControlCheck(resourceType = VARIABLE_RESOURCE_TYPE, permission = VARIABLE_VIEW_PERMISSION)
-  public ResponseDTO<PageResponse<VariableResponseDTO>> list(String accountIdentifier, String orgIdentifier,
-      String projectIdentifier, int page, int size, String searchTerm, boolean includeVariablesFromEverySubScope) {
+  public ResponseDTO<PageResponse<VariableResponseDTO>> list(@AccountIdentifier String accountIdentifier,
+      @OrgIdentifier String orgIdentifier, @ProjectIdentifier String projectIdentifier, int page, int size,
+      String searchTerm, boolean includeVariablesFromEverySubScope) {
     return ResponseDTO.newResponse(variableService.list(accountIdentifier, orgIdentifier, projectIdentifier, page, size,
         searchTerm, includeVariablesFromEverySubScope));
   }
@@ -83,8 +87,8 @@ public class VariableResourceImpl implements VariableResource {
 
   @Override
   @NGAccessControlCheck(resourceType = VARIABLE_RESOURCE_TYPE, permission = VARIABLE_DELETE_PERMISSION)
-  public ResponseDTO<Boolean> delete(
-      String accountIdentifier, String orgIdentifier, String projectIdentifier, String variableIdentifier) {
+  public ResponseDTO<Boolean> delete(@AccountIdentifier String accountIdentifier, @OrgIdentifier String orgIdentifier,
+      @ProjectIdentifier String projectIdentifier, String variableIdentifier) {
     boolean deleted = variableService.delete(accountIdentifier, orgIdentifier, projectIdentifier, variableIdentifier);
     return ResponseDTO.newResponse(deleted);
   }
