@@ -1055,8 +1055,8 @@ public class ApprovalState extends State implements SweepingOutputStateMixin {
     }
 
     String displayText = createSlackApprovalMessage(slackApprovalParams, notificationTemplateUrl);
-    String validatedMessage = validateMessageLength(
-        displayText, slackApprovalParams, notificationTemplateUrl, serviceDetails, artifacts, infraDetails, environments);
+    String validatedMessage = validateMessageLength(displayText, slackApprovalParams, notificationTemplateUrl,
+        serviceDetails, artifacts, infraDetails, environments);
     String buttonValue = customData.toString();
     buttonValue = StringEscapeUtils.escapeJson(buttonValue);
     placeHolderValues.put(SlackApprovalMessageKeys.SLACK_APPROVAL_PARAMS, buttonValue);
@@ -1066,7 +1066,8 @@ public class ApprovalState extends State implements SweepingOutputStateMixin {
 
   @VisibleForTesting
   String validateMessageLength(String displayText, SlackApprovalParams slackApprovalParams, URL notificationTemplateUrl,
-      WorkflowNotificationDetails serviceDetails, StringBuilder artifacts, WorkflowNotificationDetails infraDetails, StringBuilder environments) {
+      WorkflowNotificationDetails serviceDetails, StringBuilder artifacts, WorkflowNotificationDetails infraDetails,
+      StringBuilder environments) {
     // Current caller never send notificationTemplateUrl argument as null
     if (displayText.length() < 1900) {
       return displayText;
@@ -1099,7 +1100,6 @@ public class ApprovalState extends State implements SweepingOutputStateMixin {
         areEnvsTrimmed = trimEnvironments(environments, envCount);
       }
 
-
       SlackApprovalParams params =
           slackApprovalParams.toBuilder()
               .servicesInvolved(areServicesTrimmed
@@ -1111,7 +1111,9 @@ public class ApprovalState extends State implements SweepingOutputStateMixin {
               .infraDefinitionsInvolved(areInfrasTrimmed ? String.format("*Infrastructure Definitions*: %s... %s more",
                                             infraDetails.getName(), infraCount - 3)
                                                          : slackApprovalParams.getInfraDefinitionsInvolved())
-              .environmentsInvolved(areEnvsTrimmed ? String.format("*Environments*: %s... %s more", environments, envCount - 3) : slackApprovalParams.getEnvironmentsInvolved())
+              .environmentsInvolved(areEnvsTrimmed
+                      ? String.format("*Environments*: %s... %s more", environments, envCount - 3)
+                      : slackApprovalParams.getEnvironmentsInvolved())
               .build();
       return createSlackApprovalMessage(params, notificationTemplateUrl);
     }
