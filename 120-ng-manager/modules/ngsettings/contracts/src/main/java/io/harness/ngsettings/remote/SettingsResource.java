@@ -4,14 +4,11 @@ import static io.harness.NGCommonEntityConstants.*;
 import static io.harness.annotations.dev.HarnessTeam.PL;
 
 import io.harness.NGCommonEntityConstants;
-import io.harness.NGResourceFilterConstants;
 import io.harness.annotations.dev.OwnedBy;
-import io.harness.ng.beans.PageRequest;
-import io.harness.ng.beans.PageResponse;
-import io.harness.ng.core.accountsetting.dto.AccountSettingResponseDTO;
 import io.harness.ng.core.dto.ErrorDTO;
 import io.harness.ng.core.dto.FailureDTO;
 import io.harness.ng.core.dto.ResponseDTO;
+import io.harness.ng.core.setting.SettingCategory;
 import io.harness.ngsettings.beans.*;
 
 import io.swagger.annotations.Api;
@@ -26,12 +23,18 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import javax.validation.constraints.NotNull;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import retrofit2.http.Body;
 
 @OwnedBy(PL)
-@Api("settings")
-@Path("settings")
+@Api("/settings")
+@Path("/settings")
 @Produces({"application/json", "application/yaml"})
 @Consumes({"application/json", "application/yaml"})
 @ApiResponses(value =
@@ -54,7 +57,6 @@ import retrofit2.http.Body;
     })
 public interface SettingsResource {
   @GET
-  @Path("{identifier}")
   @ApiOperation(value = "Resolves and gets a setting value by Identifier", nickname = "getSettingValue")
   @Operation(operationId = "getSettingValue", summary = "Get a setting value by identifier",
       responses =
@@ -74,6 +76,7 @@ public interface SettingsResource {
           description = SettingConstants.FETCH_VALUE_DTO) @Body @NotNull SettingValueRequestDTO settingValueRequetDTO);
 
   @GET
+  @Path("{category}")
   @ApiOperation(value = "Get list of settings", nickname = "getSettingsList")
   @Operation(operationId = "getSettingsList", summary = "Get list of settings",
       responses =
@@ -81,17 +84,12 @@ public interface SettingsResource {
         @io.swagger.v3.oas.annotations.responses.
         ApiResponse(responseCode = "default", description = "This contains a list of Settings")
       })
-  ResponseDTO<PageResponse<AccountSettingResponseDTO>>
+  ResponseDTO<List<SettingResponseDTO>>
   list(@Parameter(description = ACCOUNT_PARAM_MESSAGE, required = true) @NotNull @QueryParam(
            NGCommonEntityConstants.ACCOUNT_KEY) String accountIdentifier,
       @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
-      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(
-          NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier,
-      @Parameter(
-          description =
-              "Details of all the resource groups having this string in their name or identifier will be returned.")
-      @QueryParam(NGResourceFilterConstants.SEARCH_TERM_KEY) String searchTerm,
-      @BeanParam PageRequest pageRequest);
+      @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(NGCommonEntityConstants.PROJECT_KEY)
+      String projectIdentifier, @PathParam(SettingConstants.CATEGORY) SettingCategory category);
 
   @PUT
   @ApiOperation(value = "Updates the settings", nickname = "getSettingValue")
@@ -101,10 +99,10 @@ public interface SettingsResource {
         @io.swagger.v3.oas.annotations.responses.
         ApiResponse(responseCode = "default", description = "This updates the settings")
       })
-  ResponseDTO<PageResponse<SettingResponseDTO>>
+  ResponseDTO<List<SettingResponseDTO>>
   update(@Parameter(description = ACCOUNT_PARAM_MESSAGE, required = true) @NotNull @QueryParam(
              NGCommonEntityConstants.ACCOUNT_KEY) String accountIdentifier,
       @Parameter(description = ORG_PARAM_MESSAGE) @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
       @Parameter(description = PROJECT_PARAM_MESSAGE) @QueryParam(NGCommonEntityConstants.PROJECT_KEY)
-      String projectIdentifier, @RequestBody @Body @NotNull List<SettingRequestDTO> settingRequestDTO);
+      String projectIdentifier, @RequestBody @Body @NotNull List<SettingRequestDTO> settingRequestDTOList);
 }
