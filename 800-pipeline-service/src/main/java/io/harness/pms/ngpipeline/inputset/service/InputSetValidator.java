@@ -106,23 +106,31 @@ public class InputSetValidator {
 
   String getPipelineYamlForOldGitSyncFlow(PMSPipelineService pmsPipelineService, String accountId, String orgIdentifier,
       String projectIdentifier, String pipelineIdentifier, String pipelineBranch, String pipelineRepoID) {
+    if (EmptyPredicate.isEmpty(pipelineBranch) || EmptyPredicate.isEmpty(pipelineRepoID)) {
+      return getPipelineYamlForOldGitSyncFlowInternal(
+          pmsPipelineService, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier);
+    }
     GitSyncBranchContext gitSyncBranchContext =
         GitSyncBranchContext.builder()
             .gitBranchInfo(GitEntityInfo.builder().branch(pipelineBranch).yamlGitConfigId(pipelineRepoID).build())
             .build();
 
-    String pipelineYaml;
     try (PmsGitSyncBranchContextGuard ignored = new PmsGitSyncBranchContextGuard(gitSyncBranchContext, true)) {
-      Optional<PipelineEntity> pipelineEntity =
-          pmsPipelineService.get(accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, false);
-      if (pipelineEntity.isPresent()) {
-        pipelineYaml = pipelineEntity.get().getYaml();
-      } else {
-        throw new InvalidRequestException(PipelineCRUDErrorResponse.errorMessageForPipelineNotFound(
-            orgIdentifier, projectIdentifier, pipelineIdentifier));
-      }
+      return getPipelineYamlForOldGitSyncFlowInternal(
+          pmsPipelineService, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier);
     }
-    return pipelineYaml;
+  }
+
+  String getPipelineYamlForOldGitSyncFlowInternal(PMSPipelineService pmsPipelineService, String accountId,
+      String orgIdentifier, String projectIdentifier, String pipelineIdentifier) {
+    Optional<PipelineEntity> pipelineEntity =
+        pmsPipelineService.get(accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, false);
+    if (pipelineEntity.isPresent()) {
+      return pipelineEntity.get().getYaml();
+    } else {
+      throw new InvalidRequestException(PipelineCRUDErrorResponse.errorMessageForPipelineNotFound(
+          orgIdentifier, projectIdentifier, pipelineIdentifier));
+    }
   }
 
   void validateIdentifyingFieldsInYAML(

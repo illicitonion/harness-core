@@ -30,7 +30,8 @@ public interface PMSInputSetService {
       String pipelineIdentifier, String identifier, boolean deleted);
 
   // pipeline branch and repo ID are needed for old git sync
-  InputSetEntity update(InputSetEntity inputSetEntity, ChangeType changeType);
+  InputSetEntity update(
+      InputSetEntity inputSetEntity, ChangeType changeType, String pipelineBranch, String pipelineRepoID);
 
   InputSetEntity syncInputSetWithGit(EntityDetailProtoDTO entityDetail);
 

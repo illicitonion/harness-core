@@ -371,7 +371,8 @@ public class InputSetResourcePMS {
     InputSetEntity entity = PMSInputSetElementMapper.toInputSetEntity(
         accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, yaml);
     InputSetEntity entityWithVersion = entity.withVersion(isNumeric(ifMatch) ? parseLong(ifMatch) : null);
-    InputSetEntity updatedEntity = pmsInputSetService.update(entityWithVersion, ChangeType.MODIFY);
+    InputSetEntity updatedEntity =
+        pmsInputSetService.update(entityWithVersion, ChangeType.MODIFY, pipelineBranch, pipelineRepoID);
     return ResponseDTO.newResponse(
         updatedEntity.getVersion().toString(), PMSInputSetElementMapper.toInputSetResponseDTOPMS(updatedEntity));
   }
@@ -413,7 +414,8 @@ public class InputSetResourcePMS {
         accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, yaml);
     InputSetEntity entityWithVersion = entity.withVersion(isNumeric(ifMatch) ? parseLong(ifMatch) : null);
 
-    InputSetEntity updatedEntity = pmsInputSetService.update(entityWithVersion, ChangeType.MODIFY);
+    // overlay input set validation does not require pipeline branch and repo, hence sending null here
+    InputSetEntity updatedEntity = pmsInputSetService.update(entityWithVersion, ChangeType.MODIFY, null, null);
     return ResponseDTO.newResponse(
         updatedEntity.getVersion().toString(), PMSInputSetElementMapper.toOverlayInputSetResponseDTOPMS(updatedEntity));
   }
@@ -676,7 +678,7 @@ public class InputSetResourcePMS {
 
     InputSetEntity entity = PMSInputSetElementMapper.toInputSetEntity(
         accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, newInputSetYaml);
-    InputSetEntity updatedEntity = pmsInputSetService.update(entity, ChangeType.MODIFY);
+    InputSetEntity updatedEntity = pmsInputSetService.update(entity, ChangeType.MODIFY, pipelineBranch, pipelineRepoID);
     return ResponseDTO.newResponse(
         InputSetSanitiseResponseDTO.builder()
             .shouldDeleteInputSet(false)

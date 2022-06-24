@@ -131,11 +131,13 @@ public class InputSetEntityGitSyncHelperTest extends CategoryTest {
   @Owner(developers = BRIJESH)
   @Category(UnitTests.class)
   public void testUpdate() throws IOException {
-    doReturn(InputSetEntity.builder().yaml(inputSetYaml).build()).when(pmsInputSetService).update(any(), any());
+    doReturn(InputSetEntity.builder().yaml(inputSetYaml).build())
+        .when(pmsInputSetService)
+        .update(any(), any(), any(), any());
     doReturn(null).when(validateAndMergeHelper).validateInputSet(any(), any(), any(), any(), any(), any(), any());
     doReturn(null).when(validateAndMergeHelper).validateOverlayInputSet(any(), any(), any(), any(), any());
     InputSetYamlDTO inputSetYamlDTO = inputSetEntityGitSyncHelper.update(accountId, inputSetYaml, ChangeType.NONE);
-    verify(pmsInputSetService, times(1)).update(any(), any());
+    verify(pmsInputSetService, times(1)).update(any(), any(), any(), any());
     assertEquals(inputSetYamlDTO, YamlUtils.read(inputSetYaml, InputSetYamlDTO.class));
   }
 

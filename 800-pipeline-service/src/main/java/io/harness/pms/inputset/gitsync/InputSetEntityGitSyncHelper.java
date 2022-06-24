@@ -91,7 +91,9 @@ public class InputSetEntityGitSyncHelper extends AbstractGitSdkEntityHandler<Inp
   @Override
   public InputSetYamlDTO update(String accountIdentifier, String yaml, ChangeType changeType) {
     InputSetEntity inputSetEntity = PMSInputSetElementMapper.toInputSetEntity(accountIdentifier, yaml);
-    InputSetEntity updatedEntity = pmsInputSetService.update(inputSetEntity, changeType);
+    GitEntityInfo gitEntityInfo = GitContextHelper.getGitEntityInfo();
+    InputSetEntity updatedEntity = pmsInputSetService.update(
+        inputSetEntity, changeType, gitEntityInfo.getBranch(), gitEntityInfo.getYamlGitConfigId());
     return InputSetYamlDTOMapper.toDTO(updatedEntity);
   }
 

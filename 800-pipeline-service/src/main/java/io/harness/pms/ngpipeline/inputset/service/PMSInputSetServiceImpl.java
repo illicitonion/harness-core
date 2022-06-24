@@ -134,14 +134,15 @@ public class PMSInputSetServiceImpl implements PMSInputSetService {
   }
 
   @Override
-  public InputSetEntity update(InputSetEntity inputSetEntity, ChangeType changeType) {
+  public InputSetEntity update(
+      InputSetEntity inputSetEntity, ChangeType changeType, String pipelineBranch, String pipelineRepoID) {
     boolean isOldGitSync = gitSyncSdkService.isGitSyncEnabled(inputSetEntity.getAccountIdentifier(),
         inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier());
     if (isOldGitSync) {
       InputSetValidator.validateInputSetForOldGitSync(this, pmsPipelineService, inputSetEntity.getAccountId(),
           inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
-          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), inputSetEntity.getInputSetEntityType(), "",
-          "");
+          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), inputSetEntity.getInputSetEntityType(),
+          pipelineBranch, pipelineRepoID);
     } else {
       InputSetValidator.validateInputSet(this, pmsPipelineService, inputSetEntity.getAccountId(),
           inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
