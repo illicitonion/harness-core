@@ -20,7 +20,6 @@ import lombok.Data;
 public class K8sRolloutStatusDTO {
   ApiClient apiClient;
   Kubectl client;
-  LogCallback logCallback;
   K8sDelegateTaskParams k8sDelegateTaskParams;
   boolean isErrorFrameworkEnabled;
   String statusFormat;

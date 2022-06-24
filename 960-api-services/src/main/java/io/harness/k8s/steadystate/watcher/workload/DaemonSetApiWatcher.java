@@ -17,6 +17,7 @@ import io.harness.k8s.steadystate.statusviewer.DaemonSetStatusViewer;
 import io.harness.logging.LogCallback;
 import io.harness.logging.LogLevel;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -43,6 +44,7 @@ public class DaemonSetApiWatcher implements WorkloadWatcher {
 
   private boolean watchDaemonSet(ApiClient apiClient, KubernetesResourceId workload, LogCallback executionLogCallback,
       boolean errorFrameworkEnabled) throws Exception {
+    Preconditions.checkNotNull(apiClient, "K8s API Client cannot be null.");
     AppsV1Api appsV1Api = new AppsV1Api(apiClient);
     while (true) {
       try (Watch<V1DaemonSet> watch = Watch.createWatch(apiClient,

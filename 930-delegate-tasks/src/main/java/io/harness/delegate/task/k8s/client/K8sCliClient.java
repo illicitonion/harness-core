@@ -19,7 +19,7 @@ import io.harness.k8s.model.K8sSteadyStateDTO;
 import io.harness.k8s.model.KubernetesResourceId;
 import io.harness.k8s.steadystate.model.K8sEventWatchDTO;
 import io.harness.k8s.steadystate.model.K8sRolloutStatusDTO;
-import io.harness.k8s.steadystate.watcher.event.KubectlEventWatcher;
+import io.harness.k8s.steadystate.watcher.event.K8sCliEventWatcher;
 import io.harness.k8s.steadystate.watcher.workload.K8sWorkloadWatcherFactory;
 import io.harness.k8s.steadystate.watcher.workload.WorkloadWatcher;
 import io.harness.logging.CommandExecutionStatus;
@@ -33,36 +33,36 @@ import lombok.extern.slf4j.Slf4j;
 import org.zeroturnaround.exec.StartedProcess;
 
 @Slf4j
-public class KubernetesCliClient implements KubernetesClient {
-  @Inject KubernetesClientHelper kubernetesClientHelper;
-  @Inject KubectlEventWatcher kubectlEventWatcher;
+public class K8sCliClient implements K8sClient {
+  @Inject private K8sClientHelper k8sClientHelper;
+  @Inject private K8sCliEventWatcher k8sCliEventWatcher;
   @Inject private K8sWorkloadWatcherFactory workloadWatcherFactory;
 
   @Override
   public boolean performSteadyStateCheck(K8sSteadyStateDTO steadyStateDTO) throws Exception {
-    List<KubernetesResourceId> resourceIds = steadyStateDTO.getResourceIds();
-    if (EmptyPredicate.isEmpty(resourceIds)) {
+    List<KubernetesResourceId> workloads = steadyStateDTO.getResourceIds();
+    if (EmptyPredicate.isEmpty(workloads)) {
       return true;
     }
     K8sDelegateTaskParams k8sDelegateTaskParams = steadyStateDTO.getK8sDelegateTaskParams();
     Kubectl client = Kubectl.client(k8sDelegateTaskParams.getKubectlPath(), k8sDelegateTaskParams.getKubeconfigPath());
 
-    Set<String> namespaces = kubernetesClientHelper.getNamespacesToMonitor(resourceIds, steadyStateDTO.getNamespace());
+    Set<String> namespaces = k8sClientHelper.getNamespacesToMonitor(workloads, steadyStateDTO.getNamespace());
     LogCallback executionLogCallback = steadyStateDTO.getExecutionLogCallback();
 
-    K8sEventWatchDTO eventWatchDTO = kubernetesClientHelper.createNamespaceEventWatchDTO(steadyStateDTO, null, client);
-    K8sRolloutStatusDTO rolloutStatusDTO = kubernetesClientHelper.createRolloutStatusDTO(steadyStateDTO, null, client);
+    K8sEventWatchDTO eventWatchDTO = k8sClientHelper.createNamespaceEventWatchDTO(steadyStateDTO, null, client);
+    K8sRolloutStatusDTO rolloutStatusDTO = k8sClientHelper.createRolloutStatusDTO(steadyStateDTO, null, client);
 
     List<StartedProcess> processRefs = new ArrayList<>();
     boolean success = false;
 
     try {
       for (String ns : namespaces) {
-        StartedProcess processRef = kubectlEventWatcher.watchForEvents(ns, eventWatchDTO, executionLogCallback);
+        StartedProcess processRef = k8sCliEventWatcher.watchForEvents(ns, eventWatchDTO, executionLogCallback);
         processRefs.add(processRef);
       }
 
-      for (KubernetesResourceId workload : resourceIds) {
+      for (KubernetesResourceId workload : workloads) {
         WorkloadWatcher workloadWatcher = workloadWatcherFactory.getWorkloadWatcher(workload.getKind(), false);
         success = workloadWatcher.watchRolloutStatus(rolloutStatusDTO, workload, executionLogCallback);
         if (!success) {
@@ -80,7 +80,7 @@ public class KubernetesCliClient implements KubernetesClient {
       executionLogCallback.saveExecutionLog("\nFailed.", INFO, FAILURE);
       return false;
     } finally {
-      kubectlEventWatcher.destroyRunning(processRefs);
+      k8sCliEventWatcher.destroyRunning(processRefs);
       if (success) {
         if (steadyStateDTO.isDenoteOverallSuccess()) {
           executionLogCallback.saveExecutionLog("\nDone.", INFO, CommandExecutionStatus.SUCCESS);

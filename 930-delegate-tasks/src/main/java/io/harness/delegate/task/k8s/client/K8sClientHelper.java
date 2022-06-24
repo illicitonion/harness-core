@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 @Singleton
-public class KubernetesClientHelper {
+public class K8sClientHelper {
   @Inject private KubernetesHelperService kubernetesHelperService;
   @Inject private ContainerDeploymentDelegateBaseHelper containerDeploymentDelegateBaseHelper;
 
@@ -39,7 +39,6 @@ public class KubernetesClientHelper {
     return K8sEventWatchDTO.builder()
         .apiClient(apiClient)
         .client(client)
-        .executionLogCallback(steadyStateDTO.getExecutionLogCallback())
         .eventInfoFormat(eventInfoFormat)
         .eventErrorFormat(eventErrorFormat)
         .resourceIds(steadyStateDTO.getResourceIds())
@@ -55,7 +54,6 @@ public class KubernetesClientHelper {
     return K8sRolloutStatusDTO.builder()
         .apiClient(apiClient)
         .client(client)
-        .logCallback(steadyStateDTO.getExecutionLogCallback())
         .k8sDelegateTaskParams(steadyStateDTO.getK8sDelegateTaskParams())
         .isErrorFrameworkEnabled(steadyStateDTO.isErrorFrameworkEnabled())
         .statusFormat(statusFormat)

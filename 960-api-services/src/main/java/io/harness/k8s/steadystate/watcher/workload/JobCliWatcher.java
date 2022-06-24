@@ -29,6 +29,7 @@ import io.harness.k8s.model.KubernetesResourceId;
 import io.harness.k8s.steadystate.model.K8sRolloutStatusDTO;
 import io.harness.logging.LogCallback;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import org.zeroturnaround.exec.ProcessResult;
@@ -42,6 +43,7 @@ public class JobCliWatcher implements WorkloadWatcher {
       LogCallback executionLogCallback) throws Exception {
     String statusFormat = k8sRolloutStatusDTO.getStatusFormat();
     Kubectl client = k8sRolloutStatusDTO.getClient();
+    Preconditions.checkNotNull(client, "K8s CLI Client cannot be null.");
     K8sDelegateTaskParams k8sDelegateTaskParams = k8sRolloutStatusDTO.getK8sDelegateTaskParams();
 
     try (LogOutputStream statusInfoStream =

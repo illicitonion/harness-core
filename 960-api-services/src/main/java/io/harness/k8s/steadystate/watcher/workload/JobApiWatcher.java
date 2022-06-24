@@ -25,6 +25,7 @@ import io.harness.k8s.steadystate.statusviewer.JobStatusViewer;
 import io.harness.logging.LogCallback;
 import io.harness.logging.LogLevel;
 
+import com.google.common.base.Preconditions;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import io.kubernetes.client.openapi.ApiClient;
@@ -46,6 +47,7 @@ public class JobApiWatcher implements WorkloadWatcher {
 
   private boolean watchJobStatus(ApiClient apiClient, KubernetesResourceId workload, LogCallback executionLogCallback,
       boolean errorFrameworkEnabled) throws Exception {
+    Preconditions.checkNotNull(apiClient, "K8s API Client cannot be null.");
     BatchV1Api batchV1Api = new BatchV1Api(apiClient);
     while (true) {
       try {
