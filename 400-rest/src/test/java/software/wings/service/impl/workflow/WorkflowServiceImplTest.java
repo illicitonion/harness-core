@@ -1195,7 +1195,7 @@ public class WorkflowServiceImplTest extends WingsBaseTest {
   @Test
   @Owner(developers = ERSHAD_MOHAMMAD)
   @Category(UnitTests.class)
-  public void cloneWorkFlowShouldHaveEmptyServiceIdsForPhasesWhenClonedToDifferentApp() {
+  public void cloneWorkflowShouldHaveEmptyServiceIdsForPhasesWhenClonedToDifferentApp() {
     WorkflowServiceImpl workflowServiceImpl = (WorkflowServiceImpl) workflowService;
     WorkflowPhase workflowPhase = aWorkflowPhase().uuid(PHASE_ID).serviceId(SERVICE_ID).infraDefinitionId(INFRA_DEFINITION_ID).build();
     CanaryOrchestrationWorkflow canaryOrchestrationWorkflow = aCanaryOrchestrationWorkflow().addWorkflowPhase(workflowPhase).build();
@@ -1217,8 +1217,8 @@ public class WorkflowServiceImplTest extends WingsBaseTest {
     when(updateOperations.set(anyString(),any())).thenReturn(updateOperations);
     Workflow updatedWorkFLow = workflowServiceImpl.cloneWorkflow(APP_ID,oldWorkflow,cloneMetadata);
 
-    CanaryOrchestrationWorkflow canaryWorkFlow= (CanaryOrchestrationWorkflow) updatedWorkFLow.getOrchestrationWorkflow();
-    canaryWorkFlow.getWorkflowPhases().forEach(updatedWorkflowPhase -> {
+    CanaryOrchestrationWorkflow canaryWorkflow= (CanaryOrchestrationWorkflow) updatedWorkFLow.getOrchestrationWorkflow();
+    canaryWorkflow.getWorkflowPhases().forEach(updatedWorkflowPhase -> {
       assertThat(updatedWorkflowPhase.getInfraDefinitionId()).isNull();
       assertThat(updatedWorkflowPhase.getServiceId()).isNull();
     });
