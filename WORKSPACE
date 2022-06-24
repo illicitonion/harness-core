@@ -8,8 +8,11 @@ rules_pmd_dependencies()
 
 http_archive(
     name = "contrib_rules_jvm",
-    strip_prefix = "rules_jvm-main",
-    url = "https://github.com/gn-harness/rules_jvm/archive/refs/heads/main.zip",
+    patches = ["//:tools/bazel/patch-rules_jvm-timeout.patch"],
+    patch_args = ["-p1"],
+    sha256 = "e8edde2bf68aa3d706915f255259690be9dd5681348afa54f16280815030afdf",
+    strip_prefix = "rules_jvm-ed3619f54e7fb19948928fe8516617aecd88a58c",
+    url = "https://github.com/bazel-contrib/rules_jvm/archive/ed3619f54e7fb19948928fe8516617aecd88a58c.zip",
 )
 
 load("@contrib_rules_jvm//:repositories.bzl", "contrib_rules_jvm_deps", "contrib_rules_jvm_gazelle_deps")
