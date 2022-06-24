@@ -94,7 +94,7 @@ public class AzureHelperService {
   }
 
   public boolean isAzureConnector(@NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.AZURE == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.AZURE == (connectorResponseDTO.getConnector().getType());
   }
 
   public BaseNGAccess getBaseNGAccess(String accountId, String orgIdentifier, String projectIdentifier) {

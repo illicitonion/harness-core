@@ -86,7 +86,7 @@ public class ConnectorUtils {
         ngAccess.getAccountIdentifier(), ngAccess.getOrgIdentifier(), ngAccess.getProjectIdentifier());
 
     ConnectorDTO connectorDTO = getConnector(connectorRef);
-    ConnectorType connectorType = connectorDTO.getConnectorInfo().getConnectorType();
+    ConnectorType connectorType = connectorDTO.getConnectorInfo().getType();
 
     ConnectorDetailsBuilder connectorDetailsBuilder =
         ConnectorDetails.builder()

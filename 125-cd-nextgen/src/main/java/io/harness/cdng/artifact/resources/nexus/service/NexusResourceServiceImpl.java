@@ -152,7 +152,7 @@ public class NexusResourceServiceImpl implements NexusResourceService {
   }
 
   private boolean isANexusConnector(@NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.NEXUS == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.NEXUS == (connectorResponseDTO.getConnector().getType());
   }
 
   private BaseNGAccess getBaseNGAccess(String accountId, String orgIdentifier, String projectIdentifier) {

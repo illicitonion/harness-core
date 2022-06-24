@@ -58,7 +58,7 @@ public class CEKubernetesClusterConfigSerializationDeserializationTest extends C
   public void testDeserializationOfJsonResponse() throws IOException {
     final ConnectorDTO sampleConnector = objectMapper.readValue(jsonResponse(), ConnectorDTO.class);
 
-    assertThat(sampleConnector.getConnectorInfo().getConnectorType()).isEqualTo(ConnectorType.CE_KUBERNETES_CLUSTER);
+    assertThat(sampleConnector.getConnectorInfo().getType()).isEqualTo(ConnectorType.CE_KUBERNETES_CLUSTER);
     assertThat(sampleConnector).isEqualTo(createConnectorDTO());
   }
 

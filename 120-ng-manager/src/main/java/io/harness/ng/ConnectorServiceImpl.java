@@ -192,17 +192,17 @@ public class ConnectorServiceImpl implements ConnectorService {
       if (connectorHeartbeatTaskId != null || isHarnessManagedSecretManager || !isDefaultBranchConnector
           || !executeOnDelegate) {
         if (gitChangeType != null) {
-          connectorResponse = getConnectorService(connectorInfo.getConnectorType())
+          connectorResponse = getConnectorService(connectorInfo.getType())
                                   .create(connectorDTO, accountIdentifier, gitChangeType);
         } else {
           connectorResponse =
-              getConnectorService(connectorInfo.getConnectorType()).create(connectorDTO, accountIdentifier);
+              getConnectorService(connectorInfo.getType()).create(connectorDTO, accountIdentifier);
         }
         if (connectorResponse != null && isDefaultBranchConnector) {
           ConnectorInfoDTO savedConnector = connectorResponse.getConnector();
           createConnectorCreationActivity(accountIdentifier, savedConnector);
           publishEvent(accountIdentifier, savedConnector.getOrgIdentifier(), savedConnector.getProjectIdentifier(),
-              savedConnector.getIdentifier(), savedConnector.getConnectorType(),
+              savedConnector.getIdentifier(), savedConnector.getType(),
               EventsFrameworkMetadataConstants.CREATE_ACTION);
           runTestConnectionAsync(connectorDTO, accountIdentifier);
           if (connectorHeartbeatTaskId != null) {
@@ -292,12 +292,12 @@ public class ConnectorServiceImpl implements ConnectorService {
       }
 
       connectorResponse =
-          getConnectorService(connectorInfo.getConnectorType()).update(connectorDTO, accountIdentifier, gitChangeType);
+          getConnectorService(connectorInfo.getType()).update(connectorDTO, accountIdentifier, gitChangeType);
       if (isDefaultBranchConnector) {
         ConnectorInfoDTO savedConnector = connectorResponse.getConnector();
         createConnectorUpdateActivity(accountIdentifier, savedConnector);
         publishEvent(accountIdentifier, savedConnector.getOrgIdentifier(), savedConnector.getProjectIdentifier(),
-            savedConnector.getIdentifier(), savedConnector.getConnectorType(),
+            savedConnector.getIdentifier(), savedConnector.getType(),
             EventsFrameworkMetadataConstants.UPDATE_ACTION);
       }
       if (connectorResponse != null) {
@@ -330,7 +330,7 @@ public class ConnectorServiceImpl implements ConnectorService {
           USER);
     }
     ConnectorInfoDTO existingConnector = connectorDTO.get().getConnector();
-    validateTheConnectorTypeIsNotChanged(existingConnector.getConnectorType(), connectorInfo.getConnectorType(),
+    validateTheConnectorTypeIsNotChanged(existingConnector.getType(), connectorInfo.getType(),
         accountIdentifier, connectorInfo.getOrgIdentifier(), connectorInfo.getProjectIdentifier(),
         connectorInfo.getIdentifier());
   }
@@ -529,7 +529,7 @@ public class ConnectorServiceImpl implements ConnectorService {
         ConnectorResponseDTO connectorResponse = connectorDTO.get();
         ConnectorInfoDTO connectorInfoDTO = connectorResponse.getConnector();
         connectorValidationResult =
-            getConnectorService(connectorInfoDTO.getConnectorType())
+            getConnectorService(connectorInfoDTO.getType())
                 .testConnection(accountIdentifier, orgIdentifier, projectIdentifier, connectorIdentifier);
         return connectorValidationResult;
       } else {

@@ -222,6 +222,6 @@ public class AwsConnectorTest extends ConnectorsTestBase {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(AWS);
+    assertThat(connector.getType()).isEqualTo(AWS);
   }
 }

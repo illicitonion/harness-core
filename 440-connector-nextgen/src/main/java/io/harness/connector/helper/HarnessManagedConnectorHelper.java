@@ -24,7 +24,7 @@ public class HarnessManagedConnectorHelper {
     if (connector == null) {
       return false;
     }
-    switch (connector.getConnectorType()) {
+    switch (connector.getType()) {
       case GCP_KMS:
         return ((GcpKmsConnectorDTO) connector.getConnectorConfig()).isHarnessManaged();
       case AWS_KMS:

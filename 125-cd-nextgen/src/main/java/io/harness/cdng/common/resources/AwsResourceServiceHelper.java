@@ -73,7 +73,7 @@ public class AwsResourceServiceHelper {
   }
 
   private boolean isAAwsConnector(@Valid @NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.AWS == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.AWS == (connectorResponseDTO.getConnector().getType());
   }
 
   public BaseNGAccess getBaseNGAccess(String accountId, String orgIdentifier, String projectIdentifier) {

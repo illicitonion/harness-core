@@ -126,7 +126,7 @@ public class SplunkConnectorTest extends CategoryTest {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(SPLUNK);
+    assertThat(connector.getType()).isEqualTo(SPLUNK);
     SplunkConnectorDTO splunkConnectorDTO = (SplunkConnectorDTO) connector.getConnectorConfig();
     assertThat(splunkConnectorDTO).isNotNull();
     assertThat(splunkConnectorDTO.getUsername()).isEqualTo(userName);

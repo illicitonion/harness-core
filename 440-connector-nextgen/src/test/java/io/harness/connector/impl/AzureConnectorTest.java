@@ -162,6 +162,6 @@ public class AzureConnectorTest extends ConnectorsTestBase {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(AZURE);
+    assertThat(connector.getType()).isEqualTo(AZURE);
   }
 }

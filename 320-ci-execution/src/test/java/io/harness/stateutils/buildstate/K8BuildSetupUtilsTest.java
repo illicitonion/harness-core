@@ -307,7 +307,7 @@ public class K8BuildSetupUtilsTest extends CIExecutionTestBase {
             .connectorConfig(
                 ciExecutionPlanTestHelper.getAwsCodeCommitConnectorDTO().getConnectorInfo().getConnectorConfig())
             .connectorType(
-                ciExecutionPlanTestHelper.getAwsCodeCommitConnectorDTO().getConnectorInfo().getConnectorType())
+                ciExecutionPlanTestHelper.getAwsCodeCommitConnectorDTO().getConnectorInfo().getType())
             .build();
     doNothing().when(pipelineRbacHelper).checkRuntimePermissions(any(), any(), any());
     CodeBase codeBase = CodeBase.builder().repoName(ParameterField.createValueField("test")).build();

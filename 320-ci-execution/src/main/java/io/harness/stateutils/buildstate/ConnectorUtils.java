@@ -247,7 +247,7 @@ public class ConnectorUtils {
         ngAccess.getAccountIdentifier(), ngAccess.getOrgIdentifier(), ngAccess.getProjectIdentifier());
 
     ConnectorDTO connectorDTO = getConnector(connectorRef);
-    ConnectorType connectorType = connectorDTO.getConnectorInfo().getConnectorType();
+    ConnectorType connectorType = connectorDTO.getConnectorInfo().getType();
 
     ConnectorDetailsBuilder connectorDetailsBuilder =
         ConnectorDetails.builder()
@@ -437,21 +437,21 @@ public class ConnectorUtils {
 
   private ConnectorDetails getGitConnectorDetails(
       NGAccess ngAccess, ConnectorDTO connectorDTO, ConnectorDetailsBuilder connectorDetailsBuilder) {
-    if (connectorDTO.getConnectorInfo().getConnectorType() == GITHUB) {
+    if (connectorDTO.getConnectorInfo().getType() == GITHUB) {
       return buildGithubConnectorDetails(ngAccess, connectorDTO, connectorDetailsBuilder);
-    } else if (connectorDTO.getConnectorInfo().getConnectorType() == AZURE_REPO) {
+    } else if (connectorDTO.getConnectorInfo().getType() == AZURE_REPO) {
       return buildAzureRepoConnectorDetails(ngAccess, connectorDTO, connectorDetailsBuilder);
-    } else if (connectorDTO.getConnectorInfo().getConnectorType() == GITLAB) {
+    } else if (connectorDTO.getConnectorInfo().getType() == GITLAB) {
       return buildGitlabConnectorDetails(ngAccess, connectorDTO, connectorDetailsBuilder);
-    } else if (connectorDTO.getConnectorInfo().getConnectorType() == BITBUCKET) {
+    } else if (connectorDTO.getConnectorInfo().getType() == BITBUCKET) {
       return buildBitBucketConnectorDetails(ngAccess, connectorDTO, connectorDetailsBuilder);
-    } else if (connectorDTO.getConnectorInfo().getConnectorType() == CODECOMMIT) {
+    } else if (connectorDTO.getConnectorInfo().getType() == CODECOMMIT) {
       return buildAwsCodeCommitConnectorDetails(ngAccess, connectorDTO, connectorDetailsBuilder);
-    } else if (connectorDTO.getConnectorInfo().getConnectorType() == GIT) {
+    } else if (connectorDTO.getConnectorInfo().getType() == GIT) {
       return buildGitConnectorDetails(ngAccess, connectorDTO, connectorDetailsBuilder);
     } else {
       throw new CIStageExecutionException(
-          "Unsupported git connector " + connectorDTO.getConnectorInfo().getConnectorType());
+          "Unsupported git connector " + connectorDTO.getConnectorInfo().getType());
     }
   }
 

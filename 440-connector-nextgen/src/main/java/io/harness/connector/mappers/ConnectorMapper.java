@@ -54,7 +54,7 @@ public class ConnectorMapper {
   public Connector toConnector(ConnectorDTO connectorRequestDTO, String accountIdentifier) {
     ConnectorInfoDTO connectorInfo = connectorRequestDTO.getConnectorInfo();
     ConnectorDTOToEntityMapper connectorDTOToEntityMapper =
-        connectorDTOToEntityMapperMap.get(connectorInfo.getConnectorType().toString());
+        connectorDTOToEntityMapperMap.get(connectorInfo.getType().toString());
     Connector connector = connectorDTOToEntityMapper.toConnectorEntity(connectorInfo.getConnectorConfig());
     connector.setIdentifier(connectorInfo.getIdentifier());
     connector.setName(connectorInfo.getName());
@@ -66,7 +66,7 @@ public class ConnectorMapper {
         connectorInfo.getOrgIdentifier(), connectorInfo.getProjectIdentifier(), connectorInfo.getIdentifier()));
     connector.setTags(TagMapper.convertToList(connectorInfo.getTags()));
     connector.setDescription(connectorInfo.getDescription());
-    connector.setType(connectorInfo.getConnectorType());
+    connector.setType(connectorInfo.getType());
     connector.setEntityInvalid(false);
     connector.setYaml(null);
     connector.setCategories(Arrays.asList(ConnectorRegistryFactory.getConnectorCategory(connector.getType())));

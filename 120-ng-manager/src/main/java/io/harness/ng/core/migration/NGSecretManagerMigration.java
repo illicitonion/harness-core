@@ -277,7 +277,7 @@ public class NGSecretManagerMigration {
       SecretRefData secretRefData = getSecretRefData(connectorConfig, field);
       if (null != secretRefData) {
         if (isNotEmpty(secretRefData.getIdentifier())) {
-          if (AWS_KMS == connectorInfoDTO.getConnectorType()) {
+          if (AWS_KMS == connectorInfoDTO.getType()) {
             NGEncryptedData encryptedData =
                 ngEncryptedDataService.get(accountIdentifier, connectorInfoDTO.getOrgIdentifier(),
                     connectorInfoDTO.getProjectIdentifier(), secretRefData.getIdentifier());

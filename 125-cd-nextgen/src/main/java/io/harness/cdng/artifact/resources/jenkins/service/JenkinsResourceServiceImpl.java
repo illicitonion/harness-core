@@ -215,7 +215,7 @@ public class JenkinsResourceServiceImpl implements JenkinsResourceService {
   }
 
   private boolean isAJenkinsConnector(@Valid @NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.JENKINS == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.JENKINS == (connectorResponseDTO.getConnector().getType());
   }
 
   private BaseNGAccess getBaseNGAccess(String accountId, String orgIdentifier, String projectIdentifier) {

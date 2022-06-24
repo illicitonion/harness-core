@@ -270,7 +270,7 @@ public class ConnectorInstrumentationHelperTest {
     propertiesMap.put(DELEGATE_ID, delegateId);
     propertiesMap.put(ACCOUNT_ID, accountIdentifier);
     propertiesMap.put(CONNECTOR_ID, connectorInfo.getIdentifier());
-    propertiesMap.put(CONNECTOR_TYPE, connectorInfo.getConnectorType());
+    propertiesMap.put(CONNECTOR_TYPE, connectorInfo.getType());
     propertiesMap.put(CONNECTOR_NAME, connectorInfo.getName());
     propertiesMap.put(CONNECTIVITY_STATUS, ConnectivityStatus.FAILURE);
     propertiesMap.put(ERROR_SUMMARY, errorSummary);
@@ -281,7 +281,7 @@ public class ConnectorInstrumentationHelperTest {
     propertiesMap.put(DELEGATE_ID, delegateId);
     propertiesMap.put(ACCOUNT_ID, accountIdentifier);
     propertiesMap.put(CONNECTOR_ID, connectorInfo.getIdentifier());
-    propertiesMap.put(CONNECTOR_TYPE, connectorInfo.getConnectorType());
+    propertiesMap.put(CONNECTOR_TYPE, connectorInfo.getType());
     propertiesMap.put(CONNECTOR_NAME, connectorInfo.getName());
     propertiesMap.put(CONNECTIVITY_STATUS, ConnectivityStatus.SUCCESS);
   }

@@ -274,7 +274,7 @@ public class CIExecutionPlanTestHelper {
   private ConnectorDetails buildConnector(ConnectorInfoDTO connectorInfo) {
     return ConnectorDetails.builder()
         .connectorConfig(connectorInfo.getConnectorConfig())
-        .connectorType(connectorInfo.getConnectorType())
+        .connectorType(connectorInfo.getType())
         .identifier(connectorInfo.getIdentifier())
         .projectIdentifier(connectorInfo.getProjectIdentifier())
         .orgIdentifier(connectorInfo.getOrgIdentifier())

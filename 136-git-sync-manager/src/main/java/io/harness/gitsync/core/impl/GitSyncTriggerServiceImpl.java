@@ -74,7 +74,7 @@ public class GitSyncTriggerServiceImpl implements GitSyncTriggerService {
   String getGitConnectorIdByWebhookToken(List<ConnectorInfoDTO> connectors, String webhookToken) {
     String gitConnectorId = null;
     for (ConnectorInfoDTO connector : connectors) {
-      final ConnectorType type = connector.getConnectorType();
+      final ConnectorType type = connector.getType();
       // TODO(abhinav): Change name to webhook token
       if (type.equals(ConnectorType.GIT) && webhookToken.equals(connector.getName())) {
         return connector.getIdentifier();

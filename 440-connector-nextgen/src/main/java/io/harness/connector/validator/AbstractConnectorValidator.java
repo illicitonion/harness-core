@@ -93,7 +93,7 @@ public abstract class AbstractConnectorValidator implements ConnectionValidator 
             .map(connectorResponse -> {
               ConnectorInfoDTO connectorInfoDTO = connectorResponse.getConnector();
               connectorInfoDTO.setConnectorConfig(connectorConfigDTO);
-              ConnectorType connectorType = connectorInfoDTO.getConnectorType();
+              ConnectorType connectorType = connectorInfoDTO.getType();
               connectorValidationHandler.set(
                   connectorTypeToConnectorValidationHandlerMap.get(connectorType.getDisplayName()));
               return connectorValidationParamsProviderMap.get(connectorType.getDisplayName())

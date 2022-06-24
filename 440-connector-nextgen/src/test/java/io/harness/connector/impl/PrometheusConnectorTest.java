@@ -128,7 +128,7 @@ public class PrometheusConnectorTest extends CategoryTest {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(PROMETHEUS);
+    assertThat(connector.getType()).isEqualTo(PROMETHEUS);
     PrometheusConnectorDTO prometheusConnectorDTO = (PrometheusConnectorDTO) connector.getConnectorConfig();
     assertThat(prometheusConnectorDTO).isNotNull();
     assertThat(prometheusConnectorDTO.getUrl()).isEqualTo(url);

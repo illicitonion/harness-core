@@ -62,7 +62,7 @@ public class K8sEntityHelper {
   @Named(DEFAULT_CONNECTOR_SERVICE) @Inject private ConnectorService connectorService;
   public List<EncryptedDataDetail> getEncryptionDataDetails(
       @Nonnull ConnectorInfoDTO connectorDTO, @Nonnull NGAccess ngAccess) {
-    switch (connectorDTO.getConnectorType()) {
+    switch (connectorDTO.getType()) {
       case KUBERNETES_CLUSTER:
         KubernetesClusterConfigDTO connectorConfig = (KubernetesClusterConfigDTO) connectorDTO.getConnectorConfig();
         if (connectorConfig.getCredential().getKubernetesCredentialType()
@@ -126,7 +126,7 @@ public class K8sEntityHelper {
       case GIT:
       default:
         throw new UnsupportedOperationException(
-            format("Unsupported connector type : [%s]", connectorDTO.getConnectorType()));
+            format("Unsupported connector type : [%s]", connectorDTO.getType()));
     }
   }
 

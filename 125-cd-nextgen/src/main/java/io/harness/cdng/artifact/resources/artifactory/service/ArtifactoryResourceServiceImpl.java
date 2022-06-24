@@ -103,7 +103,7 @@ public class ArtifactoryResourceServiceImpl implements ArtifactoryResourceServic
     Optional<ConnectorResponseDTO> connectorDTO = connectorService.get(connectorRef.getAccountIdentifier(),
         connectorRef.getOrgIdentifier(), connectorRef.getProjectIdentifier(), connectorRef.getIdentifier());
     if (!connectorDTO.isPresent()
-        || ConnectorType.ARTIFACTORY != connectorDTO.get().getConnector().getConnectorType()) {
+        || ConnectorType.ARTIFACTORY != connectorDTO.get().getConnector().getType()) {
       throw new InvalidRequestException(String.format("Connector not found for identifier : [%s] with scope: [%s]",
                                             connectorRef.getIdentifier(), connectorRef.getScope()),
           WingsException.USER);
@@ -134,7 +134,7 @@ public class ArtifactoryResourceServiceImpl implements ArtifactoryResourceServic
     Optional<ConnectorResponseDTO> connectorDTO = connectorService.get(connectorRef.getAccountIdentifier(),
         connectorRef.getOrgIdentifier(), connectorRef.getProjectIdentifier(), connectorRef.getIdentifier());
     if (!connectorDTO.isPresent()
-        || ConnectorType.ARTIFACTORY != connectorDTO.get().getConnector().getConnectorType()) {
+        || ConnectorType.ARTIFACTORY != connectorDTO.get().getConnector().getType()) {
       throw new InvalidRequestException(String.format("Connector not found for identifier : [%s] with scope: [%s]",
                                             connectorRef.getIdentifier(), connectorRef.getScope()),
           WingsException.USER);
@@ -280,7 +280,7 @@ public class ArtifactoryResourceServiceImpl implements ArtifactoryResourceServic
   }
 
   private boolean isAArtifactoryConnector(@NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.ARTIFACTORY == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.ARTIFACTORY == (connectorResponseDTO.getConnector().getType());
   }
 
   private BaseNGAccess getBaseNGAccess(String accountId, String orgIdentifier, String projectIdentifier) {

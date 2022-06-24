@@ -127,7 +127,7 @@ public class ConnectorHeartbeatServiceImpl implements ConnectorHeartbeatService 
         connectorService.get(accountIdentifier, orgIdentifier, projectIdentifier, connectorIdentifier);
     return connectorResponseDTO
         .map(connectorResponse -> {
-          final ConnectorType connectorType = connectorResponse.getConnector().getConnectorType();
+          final ConnectorType connectorType = connectorResponse.getConnector().getType();
           ConnectorValidationParams connectorValidationParams =
               connectorValidationParamsProviderMap.get(connectorType.getDisplayName())
                   .getConnectorValidationParams(connectorResponse.getConnector(),

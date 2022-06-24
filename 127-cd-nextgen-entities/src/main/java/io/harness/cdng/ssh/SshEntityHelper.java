@@ -172,7 +172,7 @@ public class SshEntityHelper {
 
   public List<EncryptedDataDetail> getArtifactEncryptionDataDetails(
       @Nonnull ConnectorInfoDTO connectorDTO, @Nonnull NGAccess ngAccess) {
-    switch (connectorDTO.getConnectorType()) {
+    switch (connectorDTO.getType()) {
       case ARTIFACTORY:
         ArtifactoryConnectorDTO artifactoryConnectorDTO = (ArtifactoryConnectorDTO) connectorDTO.getConnectorConfig();
         List<DecryptableEntity> artifactoryDecryptableEntities = artifactoryConnectorDTO.getDecryptableEntities();
@@ -184,7 +184,7 @@ public class SshEntityHelper {
         }
       default:
         throw new UnsupportedOperationException(
-            format("Unsupported connector type : [%s]", connectorDTO.getConnectorType()));
+            format("Unsupported connector type : [%s]", connectorDTO.getType()));
     }
   }
 }

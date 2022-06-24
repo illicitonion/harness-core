@@ -136,6 +136,6 @@ public class GcpHelperService {
   }
 
   private boolean isGcpConnector(@Valid @NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.GCP == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.GCP == (connectorResponseDTO.getConnector().getType());
   }
 }

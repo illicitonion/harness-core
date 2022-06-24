@@ -117,7 +117,7 @@ public class NgGlobalKmsServiceImpl implements NgGlobalKmsService {
 
   private void checkConnectorTypeAndCredentialsMatch(ConnectorDTO connectorDTO, SecretDTOV2 secretDTO) {
     if (!HARNESS_SECRET_MANAGER_IDENTIFIER.equals(connectorDTO.getConnectorInfo().getIdentifier())
-        || !ConnectorType.GCP_KMS.equals(connectorDTO.getConnectorInfo().getConnectorType())) {
+        || !ConnectorType.GCP_KMS.equals(connectorDTO.getConnectorInfo().getType())) {
       throw new InvalidRequestException("Update operation not supported");
     }
     GcpKmsConnectorDTO gcpKmsConnectorDTO = (GcpKmsConnectorDTO) connectorDTO.getConnectorInfo().getConnectorConfig();
@@ -140,7 +140,7 @@ public class NgGlobalKmsServiceImpl implements NgGlobalKmsService {
     Optional<ConnectorResponseDTO> existingConnector =
         connectorService.get(GLOBAL_ACCOUNT_ID, null, null, connector.getConnectorInfo().getIdentifier());
     if (!existingConnector.isPresent()
-        || !existingConnector.get().getConnector().getConnectorType().equals(ConnectorType.GCP_KMS)) {
+        || !existingConnector.get().getConnector().getType().equals(ConnectorType.GCP_KMS)) {
       throw new NotFoundException(String.format("Global connector of type %s not found", ConnectorType.GCP_KMS));
     }
     return existingConnector.get();

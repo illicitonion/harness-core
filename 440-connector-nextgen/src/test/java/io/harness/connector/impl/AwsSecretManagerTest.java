@@ -176,6 +176,6 @@ public class AwsSecretManagerTest extends ConnectorsTestBase {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(AWS_SECRET_MANAGER);
+    assertThat(connector.getType()).isEqualTo(AWS_SECRET_MANAGER);
   }
 }

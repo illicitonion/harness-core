@@ -148,7 +148,7 @@ public class SecretManagerConnectorServiceImpl implements ConnectorService {
   }
 
   private boolean isDefaultSecretManager(ConnectorInfoDTO connector) {
-    switch (connector.getConnectorType()) {
+    switch (connector.getType()) {
       case VAULT:
         return ((VaultConnectorDTO) connector.getConnectorConfig()).isDefault();
       case AZURE_KEY_VAULT:
@@ -163,7 +163,7 @@ public class SecretManagerConnectorServiceImpl implements ConnectorService {
         return ((LocalConnectorDTO) connector.getConnectorConfig()).isDefault();
       default:
         throw new SecretManagementException(ErrorCode.SECRET_MANAGEMENT_ERROR,
-            String.format("Unsupported Secret Manager type [%s]", connector.getConnectorType()), WingsException.USER);
+            String.format("Unsupported Secret Manager type [%s]", connector.getType()), WingsException.USER);
     }
   }
 

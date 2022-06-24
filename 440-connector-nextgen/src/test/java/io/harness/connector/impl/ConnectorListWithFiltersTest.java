@@ -305,7 +305,7 @@ public class ConnectorListWithFiltersTest extends ConnectorsTestBase {
     assertThat(connectorDTOS.getTotalElements()).isEqualTo(3);
     List<ConnectorType> connectorTypes =
         connectorDTOS.stream()
-            .map(connectorResponseDTO -> connectorResponseDTO.getConnector().getConnectorType())
+            .map(connectorResponseDTO -> connectorResponseDTO.getConnector().getType())
             .collect(Collectors.toList());
     assertThat(connectorTypes.containsAll(Arrays.asList(KUBERNETES_CLUSTER, DOCKER))).isTrue();
   }

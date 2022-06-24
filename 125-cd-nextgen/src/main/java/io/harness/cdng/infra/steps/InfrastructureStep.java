@@ -226,7 +226,7 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
     if (InfrastructureKind.KUBERNETES_GCP.equals(infrastructure.getKind())) {
       if (!(connectorInfo.getConnectorConfig() instanceof GcpConnectorDTO)) {
         throw new InvalidRequestException(format("Invalid connector type [%s] for identifier: [%s], expected [%s]",
-            connectorInfo.getConnectorType().name(), infrastructure.getConnectorReference().getValue(),
+            connectorInfo.getType().name(), infrastructure.getConnectorReference().getValue(),
             ConnectorType.GCP.name()));
       }
     }
@@ -234,7 +234,7 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
     if (InfrastructureKind.SERVERLESS_AWS_LAMBDA.equals(infrastructure.getKind())) {
       if (!(connectorInfo.getConnectorConfig() instanceof AwsConnectorDTO)) {
         throw new InvalidRequestException(format("Invalid connector type [%s] for identifier: [%s], expected [%s]",
-            connectorInfo.getConnectorType().name(), infrastructure.getConnectorReference().getValue(),
+            connectorInfo.getType().name(), infrastructure.getConnectorReference().getValue(),
             ConnectorType.AWS.name()));
       }
 
@@ -248,21 +248,21 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
     if (InfrastructureKind.KUBERNETES_AZURE.equals(infrastructure.getKind())
         && !(connectorInfo.getConnectorConfig() instanceof AzureConnectorDTO)) {
       throw new InvalidRequestException(format("Invalid connector type [%s] for identifier: [%s], expected [%s]",
-          connectorInfo.getConnectorType().name(), infrastructure.getConnectorReference().getValue(),
+          connectorInfo.getType().name(), infrastructure.getConnectorReference().getValue(),
           ConnectorType.AZURE.name()));
     }
 
     if (InfrastructureKind.SSH_WINRM_AZURE.equals(infrastructure.getKind())
         && !(connectorInfo.getConnectorConfig() instanceof AzureConnectorDTO)) {
       throw new InvalidRequestException(format("Invalid connector type [%s] for identifier: [%s], expected [%s]",
-          connectorInfo.getConnectorType().name(), infrastructure.getConnectorReference().getValue(),
+          connectorInfo.getType().name(), infrastructure.getConnectorReference().getValue(),
           ConnectorType.AZURE.name()));
     }
 
     if (InfrastructureKind.AZURE_WEB_APP.equals(infrastructure.getKind())
         && !(connectorInfo.getConnectorConfig() instanceof AzureConnectorDTO)) {
       throw new InvalidRequestException(format("Invalid connector type [%s] for identifier: [%s], expected [%s]",
-          connectorInfo.getConnectorType().name(), infrastructure.getConnectorReference().getValue(),
+          connectorInfo.getType().name(), infrastructure.getConnectorReference().getValue(),
           ConnectorType.AZURE.name()));
     }
 
@@ -295,10 +295,10 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
           saveExecutionLog(logCallback, color(format("Connector Name: %s", connectorInfoDTO.getName()), Yellow));
         }
 
-        if (connectorInfoDTO.getConnectorType() != null
-            && EmptyPredicate.isNotEmpty(connectorInfoDTO.getConnectorType().name())) {
+        if (connectorInfoDTO.getType() != null
+            && EmptyPredicate.isNotEmpty(connectorInfoDTO.getType().name())) {
           saveExecutionLog(
-              logCallback, color(format("Connector Type: %s", connectorInfoDTO.getConnectorType().name()), Yellow));
+              logCallback, color(format("Connector Type: %s", connectorInfoDTO.getType().name()), Yellow));
         }
       }
 

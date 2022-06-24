@@ -97,7 +97,7 @@ public class ConnectorMapperTest extends ConnectorsTestBase {
     assertThat(connectorDTO.getOrgIdentifier()).isEqualTo(orgIdentifier);
     assertThat(connectorDTO.getProjectIdentifier()).isEqualTo(projectIdentifier);
     assertThat(connectorDTO.getIdentifier()).isEqualTo(identifier);
-    assertThat(connectorDTO.getConnectorType()).isEqualTo(DOCKER);
+    assertThat(connectorDTO.getType()).isEqualTo(DOCKER);
     assertThat(connectorDTO.getName()).isEqualTo(name);
     assertThat(connectorDTO.getDescription()).isEqualTo(description);
     Map<String, String> tagsMap = connectorDTO.getTags();

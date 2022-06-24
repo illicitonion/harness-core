@@ -283,7 +283,7 @@ public class TerraformApplyStepTest extends CategoryTest {
     TerraformTaskNGParameters taskParameters =
         (TerraformTaskNGParameters) taskDataArgumentCaptor.getValue().getParameters()[0];
     assertThat(taskParameters.getTaskType()).isEqualTo(TFTaskType.APPLY);
-    assertThat(taskParameters.getFileStoreConfigFiles().getConnectorDTO().getConnectorType().toString())
+    assertThat(taskParameters.getFileStoreConfigFiles().getConnectorDTO().getType().toString())
         .isEqualTo(ConnectorType.ARTIFACTORY.toString());
   }
   @Test(expected = NullPointerException.class) // configFile is Absent

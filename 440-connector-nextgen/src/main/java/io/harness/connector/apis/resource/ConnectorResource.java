@@ -297,7 +297,7 @@ public class ConnectorResource {
       throw new InvalidRequestException(
           String.format("%s cannot be used as connector identifier", HARNESS_SECRET_MANAGER_IDENTIFIER), USER);
     }
-    if (connector.getConnectorInfo().getConnectorType() == ConnectorType.LOCAL) {
+    if (connector.getConnectorInfo().getType() == ConnectorType.LOCAL) {
       throw new InvalidRequestException("Local Secret Manager creation not supported", USER);
     }
     return ResponseDTO.newResponse(connectorService.create(connector, accountIdentifier));

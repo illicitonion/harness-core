@@ -52,7 +52,7 @@ public class CEAzureConnectorSerializationDeserializationTest extends CategoryTe
   public void testDeserializationOfJsonResponse() throws IOException {
     final ConnectorDTO sampleConnector = objectMapper.readValue(jsonResponse(), ConnectorDTO.class);
 
-    assertThat(sampleConnector.getConnectorInfo().getConnectorType()).isEqualTo(ConnectorType.CE_AZURE);
+    assertThat(sampleConnector.getConnectorInfo().getType()).isEqualTo(ConnectorType.CE_AZURE);
     assertThat(sampleConnector).isEqualTo(AzureConnectorTestHelper.createConnectorDTO());
   }
 

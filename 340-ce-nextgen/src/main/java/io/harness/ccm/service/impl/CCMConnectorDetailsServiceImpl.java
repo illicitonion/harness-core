@@ -81,7 +81,7 @@ public class CCMConnectorDetailsServiceImpl implements CCMConnectorDetailsServic
 
   private CCMConnectorDetails getConnectorDetails(ConnectorResponseDTO connector, String accountId) {
     if (connector != null) {
-      ConnectorType connectorType = connector.getConnector().getConnectorType();
+      ConnectorType connectorType = connector.getConnector().getType();
       AbstractCEConnectorValidator ceConnectorValidator = ceConnectorValidatorFactory.getValidator(connectorType);
       ConnectorValidationResult validationResult = null;
       if (ceConnectorValidator != null) {

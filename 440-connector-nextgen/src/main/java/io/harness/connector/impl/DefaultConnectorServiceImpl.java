@@ -807,10 +807,10 @@ public class DefaultConnectorServiceImpl implements ConnectorService {
   private ConnectorValidationResult validateSafely(ConnectorResponseDTO connectorResponseDTO,
       ConnectorInfoDTO connectorInfo, String accountIdentifier, String orgIdentifier, String projectIdentifier,
       String identifier) {
-    ConnectionValidator connectionValidator = connectionValidatorMap.get(connectorInfo.getConnectorType().toString());
+    ConnectionValidator connectionValidator = connectionValidatorMap.get(connectorInfo.getType().toString());
     ConnectorValidationResult validationResult;
     try {
-      log.info("connectorInfo.getConnectorType() {}", connectorInfo.getConnectorType());
+      log.info("connectorInfo.getConnectorType() {}", connectorInfo.getType());
       if (isCCMConnector(connectorInfo)) {
         validationResult = connectionValidator.validate(
             connectorResponseDTO, accountIdentifier, orgIdentifier, projectIdentifier, identifier);
@@ -847,9 +847,9 @@ public class DefaultConnectorServiceImpl implements ConnectorService {
   }
 
   private boolean isCCMConnector(ConnectorInfoDTO connectorInfo) {
-    return connectorInfo.getConnectorType().equals(ConnectorType.CE_AWS)
-        || connectorInfo.getConnectorType().equals(ConnectorType.GCP_CLOUD_COST)
-        || connectorInfo.getConnectorType().equals(ConnectorType.CE_AZURE);
+    return connectorInfo.getType().equals(ConnectorType.CE_AWS)
+        || connectorInfo.getType().equals(ConnectorType.GCP_CLOUD_COST)
+        || connectorInfo.getType().equals(ConnectorType.CE_AZURE);
   }
 
   private ConnectorValidationResult createValidationResultWithGenericError(Exception ex) {

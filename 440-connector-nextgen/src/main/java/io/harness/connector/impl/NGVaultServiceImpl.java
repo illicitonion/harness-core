@@ -300,7 +300,7 @@ public class NGVaultServiceImpl implements NGVaultService {
   public void processAppRole(ConnectorDTO connectorDTO, ConnectorConfigDTO existingConnectorConfigDTO,
       String accountIdentifier, boolean create) {
     if (null != connectorDTO.getConnectorInfo()
-        && ConnectorType.VAULT == connectorDTO.getConnectorInfo().getConnectorType()) {
+        && ConnectorType.VAULT == connectorDTO.getConnectorInfo().getType()) {
       ConnectorInfoDTO connectorInfo = connectorDTO.getConnectorInfo();
       VaultConnectorDTO vaultConnectorDTO = (VaultConnectorDTO) connectorInfo.getConnectorConfig();
       if (AccessType.APP_ROLE == vaultConnectorDTO.getAccessType()) {

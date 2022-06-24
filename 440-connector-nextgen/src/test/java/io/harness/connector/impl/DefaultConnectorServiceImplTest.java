@@ -234,7 +234,7 @@ public class DefaultConnectorServiceImplTest extends ConnectorsTestBase {
     assertThat(connectorInfo).isNotNull();
     assertThat(connectorInfo.getName()).isEqualTo(updatedName);
     assertThat(connectorInfo.getIdentifier()).isEqualTo(identifier);
-    assertThat(connectorInfo.getConnectorType()).isEqualTo(KUBERNETES_CLUSTER);
+    assertThat(connectorInfo.getType()).isEqualTo(KUBERNETES_CLUSTER);
     KubernetesClusterConfigDTO kubernetesCluster = (KubernetesClusterConfigDTO) connectorInfo.getConnectorConfig();
     assertThat(kubernetesCluster).isNotNull();
     assertThat(kubernetesCluster.getCredential().getConfig()).isNotNull();
@@ -343,7 +343,7 @@ public class DefaultConnectorServiceImplTest extends ConnectorsTestBase {
     assertThat(connectorInfo).isNotNull();
     assertThat(connectorInfo.getName()).isEqualTo(name);
     assertThat(connectorInfo.getIdentifier()).isEqualTo(identifier);
-    assertThat(connectorInfo.getConnectorType()).isEqualTo(KUBERNETES_CLUSTER);
+    assertThat(connectorInfo.getType()).isEqualTo(KUBERNETES_CLUSTER);
     KubernetesClusterConfigDTO kubernetesCluster = (KubernetesClusterConfigDTO) connectorInfo.getConnectorConfig();
     assertThat(kubernetesCluster).isNotNull();
     assertThat(kubernetesCluster.getCredential().getConfig()).isNotNull();

@@ -11,6 +11,7 @@ import static io.harness.ConnectorConstants.CONNECTOR_TYPES;
 import static io.harness.annotations.dev.HarnessTeam.DX;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
 
+import com.fasterxml.jackson.annotation.JsonTypeId;
 import io.harness.ConnectorConstants;
 import io.harness.NGCommonEntityConstants;
 import io.harness.annotations.dev.OwnedBy;
@@ -54,11 +55,12 @@ public class ConnectorInfoDTO {
   @NotNull
   @JsonProperty(CONNECTOR_TYPES)
   @Schema(description = ConnectorConstants.CONNECTOR_TYPE)
-  io.harness.delegate.beans.connector.ConnectorType connectorType;
+  @JsonTypeId
+  io.harness.delegate.beans.connector.ConnectorType type;
 
   @JsonProperty("spec")
-  @JsonTypeInfo(
-          use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "connectorType", visible = true)
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = CONNECTOR_TYPES, include = JsonTypeInfo.As.EXTERNAL_PROPERTY,
+          visible = true)
   @Valid
   @NotNull
   io.harness.delegate.beans.connector.ConnectorConfigDTO connectorConfig;
@@ -82,7 +84,7 @@ public class ConnectorInfoDTO {
     this.orgIdentifier = isEmpty(orgIdentifier) ? null : orgIdentifier;
     this.projectIdentifier = isEmpty(projectIdentifier) ? null : projectIdentifier;
     this.tags = tags;
-    this.connectorType = connectorType;
+    this.type = connectorType;
     this.connectorConfig = connectorConfig;
   }
 }

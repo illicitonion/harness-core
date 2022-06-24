@@ -162,7 +162,7 @@ public class JiraResourceServiceImpl implements JiraResourceService {
   }
 
   private boolean isJiraConnector(ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.JIRA == connectorResponseDTO.getConnector().getConnectorType();
+    return ConnectorType.JIRA == connectorResponseDTO.getConnector().getType();
   }
 
   private List<EncryptedDataDetail> getEncryptionDetails(JiraConnectorDTO jiraConnectorDTO, NGAccess ngAccess) {

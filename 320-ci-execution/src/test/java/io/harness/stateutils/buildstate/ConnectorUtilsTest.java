@@ -140,7 +140,7 @@ public class ConnectorUtilsTest extends CIExecutionTestBase {
     ConnectorDetails connectorDetails = connectorUtils.getConnectorDetails(ngAccess, connectorId01);
     assertThat(connectorDetails.getConnectorConfig())
         .isEqualTo(gitHubConnectorDto.getConnectorInfo().getConnectorConfig());
-    assertThat(connectorDetails.getConnectorType()).isEqualTo(gitHubConnectorDto.getConnectorInfo().getConnectorType());
+    assertThat(connectorDetails.getConnectorType()).isEqualTo(gitHubConnectorDto.getConnectorInfo().getType());
     assertThat(connectorDetails.getIdentifier()).isEqualTo(gitHubConnectorDto.getConnectorInfo().getIdentifier());
     assertThat(connectorDetails.getOrgIdentifier()).isEqualTo(gitHubConnectorDto.getConnectorInfo().getOrgIdentifier());
     assertThat(connectorDetails.getProjectIdentifier())
@@ -166,7 +166,7 @@ public class ConnectorUtilsTest extends CIExecutionTestBase {
     ConnectorDetails connectorDetails = connectorUtils.getConnectorDetails(ngAccess, connectorId02);
     assertThat(connectorDetails.getConnectorConfig())
         .isEqualTo(dockerConnectorDto.getConnectorInfo().getConnectorConfig());
-    assertThat(connectorDetails.getConnectorType()).isEqualTo(dockerConnectorDto.getConnectorInfo().getConnectorType());
+    assertThat(connectorDetails.getConnectorType()).isEqualTo(dockerConnectorDto.getConnectorInfo().getType());
     assertThat(connectorDetails.getIdentifier()).isEqualTo(dockerConnectorDto.getConnectorInfo().getIdentifier());
     assertThat(connectorDetails.getOrgIdentifier()).isEqualTo(dockerConnectorDto.getConnectorInfo().getOrgIdentifier());
     assertThat(connectorDetails.getProjectIdentifier())
@@ -194,7 +194,7 @@ public class ConnectorUtilsTest extends CIExecutionTestBase {
 
     assertThat(connectorDetails.getConnectorConfig())
         .isEqualTo(k8sConnectorDto.getConnectorInfo().getConnectorConfig());
-    assertThat(connectorDetails.getConnectorType()).isEqualTo(k8sConnectorDto.getConnectorInfo().getConnectorType());
+    assertThat(connectorDetails.getConnectorType()).isEqualTo(k8sConnectorDto.getConnectorInfo().getType());
     assertThat(connectorDetails.getIdentifier()).isEqualTo(k8sConnectorDto.getConnectorInfo().getIdentifier());
     assertThat(connectorDetails.getOrgIdentifier()).isEqualTo(k8sConnectorDto.getConnectorInfo().getOrgIdentifier());
     assertThat(connectorDetails.getProjectIdentifier())
@@ -223,7 +223,7 @@ public class ConnectorUtilsTest extends CIExecutionTestBase {
     assertThat(connectorDetails.getConnectorConfig())
         .isEqualTo(k8sConnectorFromDelegate.getConnectorInfo().getConnectorConfig());
     assertThat(connectorDetails.getConnectorType())
-        .isEqualTo(k8sConnectorFromDelegate.getConnectorInfo().getConnectorType());
+        .isEqualTo(k8sConnectorFromDelegate.getConnectorInfo().getType());
     assertThat(connectorDetails.getIdentifier()).isEqualTo(k8sConnectorFromDelegate.getConnectorInfo().getIdentifier());
     assertThat(connectorDetails.getOrgIdentifier())
         .isEqualTo(k8sConnectorFromDelegate.getConnectorInfo().getOrgIdentifier());
@@ -327,7 +327,7 @@ public class ConnectorUtilsTest extends CIExecutionTestBase {
     assertThat(connectorDetails.getConnectorConfig())
         .isEqualTo(awsCodeCommitConnectorDto.getConnectorInfo().getConnectorConfig());
     assertThat(connectorDetails.getConnectorType())
-        .isEqualTo(awsCodeCommitConnectorDto.getConnectorInfo().getConnectorType());
+        .isEqualTo(awsCodeCommitConnectorDto.getConnectorInfo().getType());
     assertThat(connectorDetails.getIdentifier())
         .isEqualTo(awsCodeCommitConnectorDto.getConnectorInfo().getIdentifier());
     assertThat(connectorDetails.getOrgIdentifier())
@@ -387,7 +387,7 @@ public class ConnectorUtilsTest extends CIExecutionTestBase {
     assertThat(connectorDetails.getConnectorConfig())
         .isEqualTo(azureRepoConnectorDto.getConnectorInfo().getConnectorConfig());
     assertThat(connectorDetails.getConnectorType())
-        .isEqualTo(azureRepoConnectorDto.getConnectorInfo().getConnectorType());
+        .isEqualTo(azureRepoConnectorDto.getConnectorInfo().getType());
     assertThat(connectorDetails.getIdentifier()).isEqualTo(azureRepoConnectorDto.getConnectorInfo().getIdentifier());
     assertThat(connectorDetails.getOrgIdentifier())
         .isEqualTo(azureRepoConnectorDto.getConnectorInfo().getOrgIdentifier());

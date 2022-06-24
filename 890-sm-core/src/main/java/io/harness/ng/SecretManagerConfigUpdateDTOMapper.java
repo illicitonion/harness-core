@@ -33,17 +33,17 @@ public class SecretManagerConfigUpdateDTOMapper {
   public static SecretManagerConfigUpdateDTO fromConnectorDTO(
       ConnectorDTO connectorRequestDTO, ConnectorConfigDTO connectorConfigDTO) {
     ConnectorInfoDTO connector = connectorRequestDTO.getConnectorInfo();
-    if (connector.getConnectorType() == ConnectorType.VAULT) {
+    if (connector.getType() == ConnectorType.VAULT) {
       return getVaultConfigUpdateDTO(connectorRequestDTO, (VaultConnectorDTO) connectorConfigDTO);
-    } else if (connector.getConnectorType() == ConnectorType.GCP_KMS) {
+    } else if (connector.getType() == ConnectorType.GCP_KMS) {
       return getGcpKmsConfigUpdateDTO(connectorRequestDTO, (GcpKmsConnectorDTO) connectorConfigDTO);
-    } else if (connector.getConnectorType() == ConnectorType.AWS_KMS) {
+    } else if (connector.getType() == ConnectorType.AWS_KMS) {
       return getAwsKmsConfigUpdateDTO(connectorRequestDTO, (AwsKmsConnectorDTO) connectorConfigDTO);
-    } else if (connector.getConnectorType() == ConnectorType.AZURE_KEY_VAULT) {
+    } else if (connector.getType() == ConnectorType.AZURE_KEY_VAULT) {
       return getAzureKeyVaultConfigUpdateDTO(connectorRequestDTO, (AzureKeyVaultConnectorDTO) connectorConfigDTO);
-    } else if (connector.getConnectorType() == ConnectorType.LOCAL) {
+    } else if (connector.getType() == ConnectorType.LOCAL) {
       throw new InvalidRequestException("Update operation not supported for Local Secret Manager");
     }
-    throw new IllegalArgumentException("This is not a valid secret manager type: " + connector.getConnectorType());
+    throw new IllegalArgumentException("This is not a valid secret manager type: " + connector.getType());
   }
 }

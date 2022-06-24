@@ -125,7 +125,7 @@ public class ServiceNowResourceServiceImpl implements ServiceNowResourceService 
     Optional<ConnectorResponseDTO> connectorDTO =
         connectorService.get(serviceNowConnectorRef.getAccountIdentifier(), serviceNowConnectorRef.getOrgIdentifier(),
             serviceNowConnectorRef.getProjectIdentifier(), serviceNowConnectorRef.getIdentifier());
-    if (!connectorDTO.isPresent() || ConnectorType.SERVICENOW != connectorDTO.get().getConnector().getConnectorType()) {
+    if (!connectorDTO.isPresent() || ConnectorType.SERVICENOW != connectorDTO.get().getConnector().getType()) {
       throw new InvalidRequestException(
           String.format("ServiceNow connector not found for identifier : [%s] with scope: [%s]",
               serviceNowConnectorRef.getIdentifier(), serviceNowConnectorRef.getScope()),

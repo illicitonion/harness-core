@@ -143,7 +143,7 @@ public class CEMetaDataRecordUpdateService {
       boolean connectorPresent, ConnectorType connectorType, List<ConnectorResponseDTO> nextGenConnectorResponses) {
     if (!connectorPresent) {
       connectorPresent = nextGenConnectorResponses.stream().anyMatch(
-          connectorResponseDTO -> connectorResponseDTO.getConnector().getConnectorType().equals(connectorType));
+          connectorResponseDTO -> connectorResponseDTO.getConnector().getType().equals(connectorType));
     }
     return connectorPresent;
   }

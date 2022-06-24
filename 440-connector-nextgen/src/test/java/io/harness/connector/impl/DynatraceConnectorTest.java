@@ -125,7 +125,7 @@ public class DynatraceConnectorTest extends CategoryTest {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(DYNATRACE);
+    assertThat(connector.getType()).isEqualTo(DYNATRACE);
     DynatraceConnectorDTO dynatraceConnectorDTO = (DynatraceConnectorDTO) connector.getConnectorConfig();
     assertThat(dynatraceConnectorDTO).isNotNull();
     assertThat(dynatraceConnectorDTO.getUrl()).isEqualTo(url);

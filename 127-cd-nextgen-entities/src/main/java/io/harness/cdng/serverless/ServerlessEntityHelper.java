@@ -54,7 +54,7 @@ public class ServerlessEntityHelper {
 
   public List<EncryptedDataDetail> getEncryptionDataDetails(
       @Nonnull ConnectorInfoDTO connectorDTO, @Nonnull NGAccess ngAccess) {
-    switch (connectorDTO.getConnectorType()) {
+    switch (connectorDTO.getType()) {
       case AWS:
         AwsConnectorDTO awsConnectorDTO = (AwsConnectorDTO) connectorDTO.getConnectorConfig();
         List<DecryptableEntity> awsDecryptableEntities = awsConnectorDTO.getDecryptableEntities();
@@ -74,7 +74,7 @@ public class ServerlessEntityHelper {
         }
       default:
         throw new UnsupportedOperationException(
-            format("Unsupported connector type : [%s]", connectorDTO.getConnectorType()));
+            format("Unsupported connector type : [%s]", connectorDTO.getType()));
     }
   }
   public ConnectorInfoDTO getConnectorInfoDTO(String connectorId, NGAccess ngAccess) {

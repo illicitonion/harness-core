@@ -58,7 +58,7 @@ public class ConnectorInstrumentationHelper extends InstrumentationHelper {
         }
         eventPropertiesMap.put(ACCOUNT_ID, accountId);
         eventPropertiesMap.put(CONNECTOR_ID, connector.getIdentifier());
-        eventPropertiesMap.put(CONNECTOR_TYPE, connector.getConnectorType().getDisplayName());
+        eventPropertiesMap.put(CONNECTOR_TYPE, connector.getType().getDisplayName());
         eventPropertiesMap.put(CONNECTOR_NAME, connector.getName());
         String userId = getUserId();
         return CompletableFuture.runAsync(
@@ -131,7 +131,7 @@ public class ConnectorInstrumentationHelper extends InstrumentationHelper {
         }
         eventPropertiesMap.put(ACCOUNT_ID, accountId);
         eventPropertiesMap.put(CONNECTOR_ID, connector.getIdentifier());
-        eventPropertiesMap.put(CONNECTOR_TYPE, connector.getConnectorType());
+        eventPropertiesMap.put(CONNECTOR_TYPE, connector.getType());
         eventPropertiesMap.put(CONNECTOR_NAME, connector.getName());
         eventPropertiesMap.put(CONNECTIVITY_STATUS, connectorValidationResult.getStatus());
         if (connectorValidationResult.getStatus() == ConnectivityStatus.SUCCESS) {

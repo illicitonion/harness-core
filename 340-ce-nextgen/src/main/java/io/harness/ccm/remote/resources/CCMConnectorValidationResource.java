@@ -55,7 +55,7 @@ public class CCMConnectorValidationResource {
       @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId, ConnectorResponseDTO connectorResponseDTO) {
     // Implement validation methods for each connector type
     log.info("Connector dto from ngmanager in request {}", connectorResponseDTO.toString());
-    ConnectorType connectorType = connectorResponseDTO.getConnector().getConnectorType();
+    ConnectorType connectorType = connectorResponseDTO.getConnector().getType();
     AbstractCEConnectorValidator ceConnectorValidator = ceConnectorValidatorFactory.getValidator(connectorType);
     if (ceConnectorValidator != null) {
       return ResponseDTO.newResponse(ceConnectorValidator.validate(connectorResponseDTO, accountId));

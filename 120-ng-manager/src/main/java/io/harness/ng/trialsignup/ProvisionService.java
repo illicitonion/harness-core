@@ -300,10 +300,10 @@ public class ProvisionService {
     SecretDTOV2 secretDTOV2 = scmConnectorDTO.getSecret();
     ConnectorInfoDTO connectorInfoDTO = scmConnectorDTO.getConnectorInfo();
 
-    if (connectorInfoDTO.getConnectorType() != ConnectorType.GITHUB
-        && connectorInfoDTO.getConnectorType() != ConnectorType.BITBUCKET
-        && connectorInfoDTO.getConnectorType() != ConnectorType.GITLAB) {
-      log.error("Connector type for SCM not valid: {}", connectorInfoDTO.getConnectorType());
+    if (connectorInfoDTO.getType() != ConnectorType.GITHUB
+        && connectorInfoDTO.getType() != ConnectorType.BITBUCKET
+        && connectorInfoDTO.getType() != ConnectorType.GITLAB) {
+      log.error("Connector type for SCM not valid: {}", connectorInfoDTO.getType());
       return ScmConnectorResponse.builder()
           .connectorValidationResult(ConnectorValidationResult.builder()
                                          .status(ConnectivityStatus.FAILURE)

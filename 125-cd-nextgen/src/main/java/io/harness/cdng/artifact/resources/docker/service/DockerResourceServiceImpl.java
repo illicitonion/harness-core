@@ -183,7 +183,7 @@ public class DockerResourceServiceImpl implements DockerResourceService {
   }
 
   private boolean isADockerConnector(@Valid @NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.DOCKER == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.DOCKER == (connectorResponseDTO.getConnector().getType());
   }
 
   private BaseNGAccess getBaseNGAccess(String accountId, String orgIdentifier, String projectIdentifier) {

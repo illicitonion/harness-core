@@ -159,7 +159,7 @@ public class GcrResourceServiceImpl implements GcrResourceService {
   }
 
   private boolean isAGcpConnector(@Valid @NotNull ConnectorResponseDTO connectorResponseDTO) {
-    return ConnectorType.GCP == (connectorResponseDTO.getConnector().getConnectorType());
+    return ConnectorType.GCP == (connectorResponseDTO.getConnector().getType());
   }
 
   private BaseNGAccess getBaseNGAccess(String accountId, String orgIdentifier, String projectIdentifier) {

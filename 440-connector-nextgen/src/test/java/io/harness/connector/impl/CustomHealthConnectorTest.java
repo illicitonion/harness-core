@@ -280,7 +280,7 @@ public class CustomHealthConnectorTest extends CategoryTest {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(CUSTOM_HEALTH);
+    assertThat(connector.getType()).isEqualTo(CUSTOM_HEALTH);
     CustomHealthConnectorDTO customHealthConnectorDTO = (CustomHealthConnectorDTO) connector.getConnectorConfig();
     assertThat(customHealthConnectorDTO).isNotNull();
     assertThat(customHealthConnectorDTO.getBaseURL()).isEqualTo(baseURL);

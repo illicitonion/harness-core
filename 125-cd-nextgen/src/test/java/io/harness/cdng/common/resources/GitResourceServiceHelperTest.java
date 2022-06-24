@@ -72,7 +72,7 @@ public class GitResourceServiceHelperTest extends CategoryTest {
     doReturn(connectorResponseDTOOptional).when(connectorService).get(any(), any(), any(), any());
     ConnectorInfoDTO response = gitResourceServiceHelper.getConnectorInfoDTO(
         "foo", BaseNGAccess.builder().accountIdentifier("bar").orgIdentifier("baz").projectIdentifier("zar").build());
-    assertThat(response.getConnectorType()).isEqualTo(ConnectorType.GIT);
+    assertThat(response.getType()).isEqualTo(ConnectorType.GIT);
   }
 
   @Test(expected = InvalidRequestException.class)
@@ -83,7 +83,7 @@ public class GitResourceServiceHelperTest extends CategoryTest {
     doReturn(connectorResponseDTOOptional).when(connectorService).get(any(), any(), any(), any());
     ConnectorInfoDTO response = gitResourceServiceHelper.getConnectorInfoDTO(
         "foo", BaseNGAccess.builder().accountIdentifier("bar").orgIdentifier("baz").projectIdentifier("zar").build());
-    assertThat(response.getConnectorType()).isEqualTo(ConnectorType.GIT);
+    assertThat(response.getType()).isEqualTo(ConnectorType.GIT);
   }
 
   @Test

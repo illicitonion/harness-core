@@ -159,14 +159,14 @@ public class CENGTelemetryServiceImpl implements CENGTelemetryService {
       List<ConnectorResponseDTO> nextGenConnectors, ConnectorType connectorType, ConnectivityStatus status) {
     return nextGenConnectors.stream()
         .filter(connector
-            -> connector.getConnector().getConnectorType() == connectorType
+            -> connector.getConnector().getType() == connectorType
                 && connector.getStatus().getStatus() == status)
         .count();
   }
 
   private long getConnectorCount(List<ConnectorResponseDTO> nextGenConnectors, ConnectorType connectorType) {
     return nextGenConnectors.stream()
-        .filter(connector -> connector.getConnector().getConnectorType() == connectorType)
+        .filter(connector -> connector.getConnector().getType() == connectorType)
         .count();
   }
 }

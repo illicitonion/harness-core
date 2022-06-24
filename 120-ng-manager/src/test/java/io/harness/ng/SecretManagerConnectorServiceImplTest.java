@@ -76,7 +76,7 @@ public class SecretManagerConnectorServiceImplTest extends CategoryTest {
     SecretRefData secretRefData = new SecretRefData(randomAlphabetic(10));
     secretRefData.setDecryptedValue(randomAlphabetic(5).toCharArray());
     ConnectorInfoDTO connectorInfo = ConnectorInfoDTO.builder().build();
-    connectorInfo.setConnectorType(ConnectorType.VAULT);
+    connectorInfo.setType(ConnectorType.VAULT);
     connectorInfo.setConnectorConfig(VaultConnectorDTO.builder()
                                          .vaultUrl("http://abc.com:8200")
                                          .secretEngineVersion(1)

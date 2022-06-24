@@ -84,7 +84,7 @@ public abstract class DataCollectionRequest<T extends ConnectorConfigDTO> implem
   @Override
   public List<ExecutionCapability> fetchRequiredExecutionCapabilities(ExpressionEvaluator maskingEvaluator) {
     // TODO: this is a stop gap fix, we will be refactoring it once DX team works on their proposal
-    switch (connectorInfoDTO.getConnectorType()) {
+    switch (connectorInfoDTO.getType()) {
       case KUBERNETES_CLUSTER:
         return K8sTaskCapabilityHelper.fetchRequiredExecutionCapabilities(
             connectorInfoDTO.getConnectorConfig(), maskingEvaluator);

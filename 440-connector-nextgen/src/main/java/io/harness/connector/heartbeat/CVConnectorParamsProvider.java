@@ -42,7 +42,7 @@ public class CVConnectorParamsProvider implements ConnectorValidationParamsProvi
         .connectorConfigDTO(connectorInfoDTO.getConnectorConfig())
         .connectorName(connectorName)
         .encryptedDataDetails(encryptionDetails)
-        .connectorType(connectorInfoDTO.getConnectorType())
+        .connectorType(connectorInfoDTO.getType())
         .build();
   }
 }

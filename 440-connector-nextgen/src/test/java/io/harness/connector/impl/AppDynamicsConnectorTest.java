@@ -143,7 +143,7 @@ public class AppDynamicsConnectorTest extends CategoryTest {
     assertThat(connector).isNotNull();
     assertThat(connector.getName()).isEqualTo(name);
     assertThat(connector.getIdentifier()).isEqualTo(identifier);
-    assertThat(connector.getConnectorType()).isEqualTo(APP_DYNAMICS);
+    assertThat(connector.getType()).isEqualTo(APP_DYNAMICS);
     AppDynamicsConnectorDTO appDynamicsConnectorDTO = (AppDynamicsConnectorDTO) connector.getConnectorConfig();
     assertThat(appDynamicsConnectorDTO).isNotNull();
     assertThat(appDynamicsConnectorDTO.getUsername()).isEqualTo(userName);
