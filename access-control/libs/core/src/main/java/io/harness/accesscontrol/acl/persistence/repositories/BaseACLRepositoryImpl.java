@@ -26,7 +26,6 @@ import com.mongodb.client.model.IndexModel;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.RenameCollectionOptions;
-import com.mongodb.client.result.DeleteResult;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -105,21 +104,18 @@ public abstract class BaseACLRepositoryImpl implements ACLRepository {
   public long deleteByRoleAssignmentIdAndResourceSelectors(
       String roleAssignmentId, Set<ResourceSelector> resourceSelectorsToDelete) {
     Criteria criteria = Criteria.where(ACLKeys.roleAssignmentId).is(roleAssignmentId);
-    Query query = new Query();
-    query.addCriteria(criteria);
-    return mongoTemplate.find(query, ACL.class, getCollectionName())
-        .stream()
-        .filter(acl -> {
-          ResourceSelector resourceSelector = ResourceSelector.builder()
-                                                  .selector(acl.getResourceSelector())
-                                                  .conditional(acl.isConditional())
-                                                  .condition(acl.getCondition())
-                                                  .build();
-          return resourceSelectorsToDelete.contains(resourceSelector);
-        })
-        .map(acl -> mongoTemplate.remove(acl, getCollectionName()))
-        .mapToLong(DeleteResult::getDeletedCount)
-        .sum();
+
+    Criteria[] resourceSelectorCriteria = resourceSelectorsToDelete.stream()
+                                              .map(resourceSelector
+                                                  -> Criteria.where(ACLKeys.resourceSelector)
+                                                         .is(resourceSelector.getSelector())
+                                                         .and(ACLKeys.conditional)
+                                                         .is(resourceSelector.isConditional())
+                                                         .and(ACLKeys.condition)
+                                                         .is(resourceSelector.getCondition()))
+                                              .toArray(Criteria[] ::new);
+    criteria.orOperator(resourceSelectorCriteria);
+    return mongoTemplate.remove(new Query(criteria), ACL.class, getCollectionName()).getDeletedCount();
   }
 
   @Override
