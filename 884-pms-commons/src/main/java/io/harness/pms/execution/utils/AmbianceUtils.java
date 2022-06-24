@@ -225,7 +225,10 @@ public class AmbianceUtils {
       return StringUtils.EMPTY;
     }
     if (!level.getStrategyMetadata().hasMatrixMetadata()) {
-      return "_" + level.getStrategyMetadata().getCurrentIteration();
+      if (level.getStrategyMetadata().getTotalIterations() != 0) {
+        return "_" + level.getStrategyMetadata().getCurrentIteration();
+      }
+      return StringUtils.EMPTY;
     }
     if (level.getStrategyMetadata().getMatrixMetadata().getMatrixCombinationList().isEmpty()) {
       return StringUtils.EMPTY;
@@ -237,5 +240,8 @@ public class AmbianceUtils {
               .stream()
               .map(String::valueOf)
               .collect(Collectors.joining("_"));
+  }
+  public boolean isCurrentLevelAtStage(Ambiance ambiance) {
+    return ambiance.getLevelsCount() <= 4;
   }
 }

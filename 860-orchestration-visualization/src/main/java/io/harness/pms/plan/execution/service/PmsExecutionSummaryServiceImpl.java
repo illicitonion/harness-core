@@ -62,6 +62,9 @@ public class PmsExecutionSummaryServiceImpl implements PmsExecutionSummaryServic
               nodeExecution.getEndTs());
         }
       } else {
+        if (!AmbianceUtils.isCurrentLevelAtStage(nodeExecution.getAmbiance())) {
+          continue;
+        }
         if (pipelineExecutionSummaryEntity == null) {
           Optional<PipelineExecutionSummaryEntity> entity =
               getPipelineExecutionSummary(AmbianceUtils.getAccountId(nodeExecution.getAmbiance()),

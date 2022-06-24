@@ -28,6 +28,7 @@ import io.harness.plan.Node;
 import io.harness.plan.Plan;
 import io.harness.pms.contracts.steps.StepCategory;
 import io.harness.pms.execution.ExecutionStatus;
+import io.harness.pms.execution.utils.AmbianceUtils;
 import io.harness.pms.merger.YamlConfig;
 import io.harness.pms.merger.fqn.FQN;
 import io.harness.pms.merger.helpers.InputSetMergeHelper;
@@ -262,15 +263,11 @@ public class RetryExecutionHelper {
             break;
           }
 
-          JsonNode currentResumableStrategyJsonNode =
-              currentRootJsonNode.get("pipeline").get("stages").get(stageCounter).get("stage").get("strategy");
+          JsonNode currentResumableStrategyJsonNode = currentResumableStagejsonNode.get("strategy");
           if (currentResumableStrategyJsonNode != null) {
             stageCounter++;
             isStrategyNodeProcessed = true;
-            //            ((ObjectNode) currentResumableStrategyJsonNode).set("__uuid",
-            //            previousExecutionStageNodeJson.get("strategy").get("__uuid"));
           } else {
-            // here onwards we need to retry the pipeline, no further copy of nodes required
             break;
           }
         }
@@ -425,6 +422,7 @@ public class RetryExecutionHelper {
               .filter(o
                   -> o.getStageFqn().equals(node.getStageFqn())
                       && node.getIdentifier().equals(o.getNode().getIdentifier()))
+              .filter(o -> AmbianceUtils.isCurrentLevelAtStage(o.getAmbiance()))
               .collect(Collectors.toList());
       if (strategyNodeExecution.isEmpty()) {
         processedNodes.add(node);

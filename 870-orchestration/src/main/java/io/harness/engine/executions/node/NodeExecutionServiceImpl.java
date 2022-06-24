@@ -707,7 +707,7 @@ public class NodeExecutionServiceImpl implements NodeExecutionService {
   public List<NodeExecution> fetchStageExecutions(String planExecutionId) {
     Query query = query(where(NodeExecutionKeys.planExecutionId).is(planExecutionId))
                       .addCriteria(where(NodeExecutionKeys.status).ne(Status.SKIPPED))
-                      .addCriteria(where(NodeExecutionKeys.stepCategory).is(StepCategory.STAGE));
+                      .addCriteria(where(NodeExecutionKeys.stepCategory).in(StepCategory.STAGE, StepCategory.STRATEGY));
     query.with(by(NodeExecutionKeys.createdAt));
     return mongoTemplate.find(query, NodeExecution.class);
   }
@@ -749,12 +749,43 @@ public class NodeExecutionServiceImpl implements NodeExecutionService {
       throw new InvalidRequestException("No stage to retry");
     }
 
+    List<NodeExecution> stageNodeExecutions = new ArrayList<>();
+    List<NodeExecution> strategyNodeExecutions = new ArrayList<>();
+    Set<String> strategyNodeExecutionIds = new HashSet<>();
     for (NodeExecution nodeExecution : nodeExecutionList) {
+      if (nodeExecution.getStepType().getStepCategory() == StepCategory.STRATEGY) {
+        if (AmbianceUtils.isCurrentLevelAtStage(nodeExecution.getAmbiance())) {
+          strategyNodeExecutions.add(nodeExecution);
+          strategyNodeExecutionIds.add(nodeExecution.getUuid());
+        }
+      } else {
+        stageNodeExecutions.add(nodeExecution);
+      }
+    }
+
+    for (NodeExecution nodeExecution : strategyNodeExecutions) {
       String nextId = nodeExecution.getNextId();
       String parentId = nodeExecution.getParentId();
       RetryStageInfo stageDetail = RetryStageInfo.builder()
-                                       .name(nodeExecution.getNode().getName())
-                                       .identifier(nodeExecution.getNode().getIdentifier())
+                                       .name(nodeExecution.getName())
+                                       .identifier(nodeExecution.getIdentifier())
+                                       .parentId(parentId)
+                                       .createdAt(nodeExecution.getCreatedAt())
+                                       .status(ExecutionStatus.getExecutionStatus(nodeExecution.getStatus()))
+                                       .nextId(nextId != null ? nextId : get(parentId).getNextId())
+                                       .build();
+      stageDetails.add(stageDetail);
+    }
+
+    for (NodeExecution nodeExecution : stageNodeExecutions) {
+      String nextId = nodeExecution.getNextId();
+      String parentId = nodeExecution.getParentId();
+      if (strategyNodeExecutionIds.contains(parentId)) {
+        continue;
+      }
+      RetryStageInfo stageDetail = RetryStageInfo.builder()
+                                       .name(nodeExecution.getName())
+                                       .identifier(nodeExecution.getIdentifier())
                                        .parentId(parentId)
                                        .createdAt(nodeExecution.getCreatedAt())
                                        .status(ExecutionStatus.getExecutionStatus(nodeExecution.getStatus()))
