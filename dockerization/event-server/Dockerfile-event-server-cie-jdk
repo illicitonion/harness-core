@@ -16,7 +16,6 @@ COPY --chown=65534:65534 protocol.info /opt/harness/
 
 COPY scripts /opt/harness
 
-RUN chmod 744 -R /opt/harness/
 # RUN chmod +x /opt/harness/*.sh && chmod 700 -R /opt/harness/ && chown -R 65534:65534 /opt/harness/
 
 RUN GRPC_HEALTH_PROBE_VERSION=v0.3.0 \
