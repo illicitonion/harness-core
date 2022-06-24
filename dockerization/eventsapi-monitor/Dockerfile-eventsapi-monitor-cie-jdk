@@ -20,7 +20,7 @@ RUN chmod +x /opt/harness/install_redis.sh && sh /opt/harness/install_redis.sh
 
 COPY --chown=65534:65534 scripts /opt/harness
 
-RUN chmod +x /opt/harness/*.sh && chmod 700 -R /opt/harness/ && chown -R 65534:65534 /opt/harness/
+# RUN chmod +x /opt/harness/*.sh && chmod 700 -R /opt/harness/ && chown -R 65534:65534 /opt/harness/
 
 WORKDIR /opt/harness
 
