@@ -40,7 +40,6 @@ import io.harness.AccessControlClientModule;
 import io.harness.GitopsModule;
 import io.harness.Microservice;
 import io.harness.NgIteratorsConfig;
-import io.harness.OrchestrationStepsModule;
 import io.harness.YamlBaseUrlServiceImpl;
 import io.harness.accesscontrol.AccessControlAdminClientConfiguration;
 import io.harness.accesscontrol.AccessControlAdminClientModule;
@@ -608,7 +607,6 @@ public class NextGenModule extends AbstractModule {
         return appConfig.getBaseUrls();
       }
     });
-    install(OrchestrationStepsModule.getInstance(null));
     install(EntitySetupUsageModule.getInstance());
     install(PersistentLockModule.getInstance());
     install(new TransactionOutboxModule(

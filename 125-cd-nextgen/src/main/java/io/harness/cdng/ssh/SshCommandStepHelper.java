@@ -27,6 +27,7 @@ import io.harness.cdng.manifest.yaml.harness.HarnessStore;
 import io.harness.cdng.manifest.yaml.harness.HarnessStoreFile;
 import io.harness.cdng.manifest.yaml.storeConfig.StoreConfig;
 import io.harness.common.ParameterFieldHelper;
+import io.harness.data.structure.EmptyPredicate;
 import io.harness.delegate.beans.storeconfig.HarnessStoreDelegateConfig;
 import io.harness.delegate.beans.storeconfig.StoreDelegateConfig;
 import io.harness.delegate.task.shell.SshCommandTaskParameters;
@@ -49,7 +50,8 @@ import io.harness.ng.core.entities.NGEncryptedData;
 import io.harness.ng.core.filestore.NGFileType;
 import io.harness.pms.contracts.ambiance.Ambiance;
 import io.harness.pms.execution.utils.AmbianceUtils;
-import io.harness.steps.shellscript.ShellScriptHelperService;
+import io.harness.pms.yaml.ParameterField;
+import io.harness.shell.ScriptType;
 import io.harness.steps.shellscript.ShellScriptInlineSource;
 import io.harness.steps.shellscript.ShellScriptSourceWrapper;
 import io.harness.utils.IdentifierRefHelper;
@@ -58,15 +60,19 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import lombok.extern.slf4j.Slf4j;
 
 @Singleton
 @OwnedBy(CDP)
+@Slf4j
 public class SshCommandStepHelper extends CDStepHelper {
-  @Inject private ShellScriptHelperService shellScriptHelperService;
   @Inject private SshEntityHelper sshEntityHelper;
   @Inject private FileStoreService fileStoreService;
   @Inject private NGEncryptedDataService ngEncryptedDataService;
@@ -81,8 +87,7 @@ public class SshCommandStepHelper extends CDStepHelper {
     return builder.accountId(AmbianceUtils.getAccountId(ambiance))
         .executeOnDelegate(onDelegate)
         .executionId(AmbianceUtils.obtainCurrentRuntimeId(ambiance))
-        .environmentVariables(
-            shellScriptHelperService.getEnvironmentVariables(executeCommandStepParameters.getEnvironmentVariables()))
+        .environmentVariables(getEnvironmentVariables(executeCommandStepParameters.getEnvironmentVariables()))
         .sshInfraDelegateConfig(sshEntityHelper.getSshInfraDelegateConfig(infrastructure, ambiance))
         .artifactDelegateConfig(artifactOutcome.isPresent()
                 ? sshEntityHelper.getArtifactDelegateConfigConfig(artifactOutcome.get(), ambiance)
@@ -200,8 +205,7 @@ public class SshCommandStepHelper extends CDStepHelper {
         .script(getShellScript(spec.getSource()))
         .scriptType(spec.getShell().getScriptType())
         .tailFilePatterns(mapTailFilePatterns(spec.getTailFiles()))
-        .workingDirectory(shellScriptHelperService.getWorkingDirectory(
-            spec.getWorkingDirectory(), spec.getShell().getScriptType(), onDelegate))
+        .workingDirectory(getWorkingDirectory(spec.getWorkingDirectory(), spec.getShell().getScriptType(), onDelegate))
         .build();
   }
 
@@ -239,5 +243,44 @@ public class SshCommandStepHelper extends CDStepHelper {
   private String getShellScript(@Nonnull ShellScriptSourceWrapper shellScriptSourceWrapper) {
     ShellScriptInlineSource shellScriptInlineSource = (ShellScriptInlineSource) shellScriptSourceWrapper.getSpec();
     return (String) shellScriptInlineSource.getScript().fetchFinalValue();
+  }
+
+  Map<String, String> getEnvironmentVariables(Map<String, Object> inputVariables) {
+    if (EmptyPredicate.isEmpty(inputVariables)) {
+      return new HashMap<>();
+    }
+    Map<String, String> res = new LinkedHashMap<>();
+    inputVariables.forEach((key, value) -> {
+      if (value instanceof ParameterField) {
+        ParameterField<?> parameterFieldValue = (ParameterField<?>) value;
+        if (parameterFieldValue.getValue() == null) {
+          throw new InvalidRequestException(String.format("Env. variable [%s] value found to be null", key));
+        }
+        res.put(key, parameterFieldValue.getValue().toString());
+      } else if (value instanceof String) {
+        res.put(key, (String) value);
+      } else {
+        log.error(String.format(
+            "Value other than String or ParameterField found for env. variable [%s]. value: [%s]", key, value));
+      }
+    });
+    return res;
+  }
+
+  String getWorkingDirectory(
+      ParameterField<String> workingDirectory, @Nonnull ScriptType scriptType, boolean onDelegate) {
+    if (workingDirectory != null && EmptyPredicate.isNotEmpty(workingDirectory.getValue())) {
+      return workingDirectory.getValue();
+    }
+    String commandPath = null;
+    if (scriptType == ScriptType.BASH) {
+      commandPath = "/tmp";
+    } else if (scriptType == ScriptType.POWERSHELL) {
+      commandPath = "%TEMP%";
+      if (onDelegate) {
+        commandPath = "/tmp";
+      }
+    }
+    return commandPath;
   }
 }
