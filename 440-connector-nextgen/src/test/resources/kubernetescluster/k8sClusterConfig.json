@@ -1,5 +1,6 @@
 {
   "delegateSelectors": null,
+  "type": "K8sCluster",
   "credential": {
     "type": "ManualConfig",
     "spec": {
