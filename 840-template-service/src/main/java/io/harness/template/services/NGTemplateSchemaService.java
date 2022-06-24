@@ -19,7 +19,7 @@ import static io.harness.annotations.dev.HarnessTeam.CDC;
 @OwnedBy(CDC)
 public interface NGTemplateSchemaService {
 
-    JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, EntityType entityType, TemplateEntityType templateEntityType);
+    JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, String templateChildType, TemplateEntityType templateEntityType);
 
     void validateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, TemplateEntity templateEntity, String templateYaml);
 }

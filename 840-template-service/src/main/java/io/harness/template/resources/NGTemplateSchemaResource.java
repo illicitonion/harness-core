@@ -88,9 +88,9 @@ public class NGTemplateSchemaResource {
     getTemplateSchema(@QueryParam("templateEntityType") @NotNull TemplateEntityType templateEntityType,
                       @QueryParam(PROJECT_KEY) String projectIdentifier, @QueryParam(ORG_KEY) String orgIdentifier,
                       @QueryParam("scope") Scope scope, @NotNull @QueryParam(ACCOUNT_KEY) String accountIdentifier,
-                      @QueryParam(ENTITY_TYPE) @NotNull String entityType) {
+                      @QueryParam(ENTITY_TYPE) String templateChildType) {
         JsonNode schema = null;
-        schema = ngTemplateSchemaService.getTemplateSchema(accountIdentifier, projectIdentifier, orgIdentifier, scope, entityType, templateEntityType);
+        schema = ngTemplateSchemaService.getTemplateSchema(accountIdentifier, projectIdentifier, orgIdentifier, scope, templateChildType, templateEntityType);
         return ResponseDTO.newResponse(schema);
     }
 }

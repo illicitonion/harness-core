@@ -61,16 +61,16 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
     }
 
     @Override
-    public JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, EntityType entityType, TemplateEntityType templateEntityType) {
+    public JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, String templateChildType, TemplateEntityType templateEntityType) {
         try {
-            return getTemplateYamlSchemaInternal(accountIdentifier, projectIdentifier, orgIdentifier, scope, entityType, templateEntityType);
+            return getTemplateYamlSchemaInternal(accountIdentifier, projectIdentifier, orgIdentifier, scope, templateChildType, templateEntityType);
         } catch (Exception e) {
             log.error("[Template] Failed to get pipeline yaml schema", e);
             throw new JsonSchemaException(e.getMessage());
         }
     }
 
-    private JsonNode getTemplateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, EntityType entityType, TemplateEntityType templateEntityType) {
+    private JsonNode getTemplateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, String templateChildType, TemplateEntityType templateEntityType) {
 
         if(!schemaValidationSupported(templateEntityType)){
             return null;
@@ -79,11 +79,16 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
         JsonNode templateSchema =
                 yamlSchemaProvider.getYamlSchema(EntityType.TEMPLATE, orgIdentifier, projectIdentifier, scope);
 
+        if(templateChildType == null){
+            return templateSchema;
+        }
+
+        EntityType entityType = TemplateChildEntityTypeToEntityTypeMapper.getInstance().getEntityType(templateChildType);
+
         String yamlGroup = getYamlGroup(templateEntityType);
         //TODO: add a handler here to fetch for schemas that we can't get from pipeline as discussed. and refactor
         JsonNode specSchema = NGRestUtils
                 .getResponse(yamlSchemaServiceClient.getYamlSchema(accountIdentifier, orgIdentifier, projectIdentifier, yamlGroup, entityType, scope)).getSchema();
-        //TODO: owner of TemplateEntityGroup pipeline we can map yamlGroup
 
         YamlSchemaMergeHelper.mergeYamlSchema(templateSchema, specSchema, entityType, templateEntityType);
         return templateSchema;
@@ -119,14 +124,10 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
     public void validateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, TemplateEntity templateEntity, String templateYaml) {
         long start = System.currentTimeMillis();
         try {
-            EntityType entityType = TemplateChildEntityTypeToEntityTypeMapper.getInstance().getEntityType(templateEntity.getChildType());
-            if(entityType == null){
-                throw new UnsupportedOperationException("TemplateEntityChildType " + templateEntity.getChildType() + " not supported");
-            }
             if(scope == null){
                 scope = projectIdentifier != null ? Scope.PROJECT : orgIdentifier != null ? Scope.ORG : Scope.ACCOUNT;
             }
-            JsonNode schema = getTemplateSchema(accountIdentifier, projectIdentifier, orgIdentifier, scope, entityType, templateEntity.getTemplateEntityType());
+            JsonNode schema = getTemplateSchema(accountIdentifier, projectIdentifier, orgIdentifier, scope, templateEntity.getChildType(), templateEntity.getTemplateEntityType());
             String schemaString = JsonPipelineUtils.writeJsonString(schema);
             yamlSchemaValidator.validate(templateYaml, schemaString,
                     YamlSchemaMergeHelper.isFeatureFlagEnabled(FeatureName.DONT_RESTRICT_PARALLEL_STAGE_COUNT, accountIdentifier, accountClient),

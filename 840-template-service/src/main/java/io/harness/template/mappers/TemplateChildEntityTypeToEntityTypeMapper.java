@@ -46,23 +46,7 @@ public class TemplateChildEntityTypeToEntityTypeMapper {
     }
 
     private static EntityType getEntityTypeFromTemplateChildType(String templateChildType) {
-        if(isValidEnum(EntityType.class, templateChildType)){
-            return EntityType.valueOf(templateChildType);
-        }else{
-            return null;
-        }
-
+        return EntityType.fromString(templateChildType);
     }
 
-    private static boolean isValidEnum(Class enumClass, String enumValue){
-        if (enumValue == null) {
-            return false;
-        }
-        try {
-            Enum.valueOf(enumClass, enumValue);
-            return true;
-        } catch (IllegalArgumentException ex) {
-            return false;
-        }
-    }
 }
