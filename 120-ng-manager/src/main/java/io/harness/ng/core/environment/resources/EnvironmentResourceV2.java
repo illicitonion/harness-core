@@ -631,16 +631,16 @@ public class EnvironmentResourceV2 {
 
   @GET
   @Hidden
-  @Path("{environmentIdentifier}/attributes")
-  @ApiOperation(hidden = true, value = "Get Environment Attributes", nickname = "getEnvironmentAttributes")
+  @Path("/attributes")
+  @ApiOperation(hidden = true, value = "Get Environments Attributes", nickname = "getEnvironmentsAttributes")
   @InternalApi
-  public ResponseDTO<Map<String, String>> getEnvironmentAttributes(
+  public ResponseDTO<List<Map<String, String>>> getEnvironmentsAttributes(
       @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId,
       @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
       @QueryParam(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier,
-      @PathParam(NGCommonEntityConstants.ENVIRONMENT_IDENTIFIER_KEY) String environmentIdentifier) {
+      @QueryParam("envIdentifiers") List<String> envIdentifiers) {
     return ResponseDTO.newResponse(environmentService.getAttributes(
-        accountId, orgIdentifier, projectIdentifier, environmentIdentifier));
+        accountId, orgIdentifier, projectIdentifier, envIdentifiers));
   }
 
   private void checkForServiceOverrideUpdateAccess(

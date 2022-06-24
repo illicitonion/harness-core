@@ -11,6 +11,7 @@ import io.harness.accesscontrol.acl.persistence.ACL;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +33,7 @@ public interface ACLRepository {
 
   List<String> getDistinctPrincipalsInACLsForRoleAssignment(String id);
 
-  List<ACL> getByAclQueryStringInAndEnabled(List<String> aclQueryStrings, boolean enabled);
+  List<ACL> getByAclQueryStringInAndEnabled(Collection<String> aclQueryStrings, boolean enabled);
 
   void cleanCollection();
 

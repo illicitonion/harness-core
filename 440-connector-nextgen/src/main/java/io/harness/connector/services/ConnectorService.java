@@ -44,5 +44,5 @@ public interface ConnectorService extends ConnectorCrudService, ConnectorValidat
 
   ConnectorResponseDTO updateGitFilePath(ConnectorDTO connectorDTO, String accountIdentifier, String newFilePath);
 
-  Map<String, String> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, String connectorIdentifier);
+  List<Map<String, String>> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, List<String> connectorIdentifiers);
 }

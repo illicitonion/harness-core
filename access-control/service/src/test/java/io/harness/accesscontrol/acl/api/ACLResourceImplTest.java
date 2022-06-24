@@ -37,7 +37,8 @@ public class ACLResourceImplTest extends AccessControlTestBase {
     AccessControlPreferenceService accessControlPreferenceService = mock(AccessControlPreferenceService.class);
     PrivilegedRoleAssignmentService privilegedRoleAssignmentService = mock(PrivilegedRoleAssignmentService.class);
     ResourceAttributeProvider resourceAttributeProvider = mock(ResourceAttributeProvider.class);
-    aclResource = new ACLResourceImpl(aclService, accessControlPreferenceService, privilegedRoleAssignmentService, resourceAttributeProvider);
+    aclResource = new ACLResourceImpl(
+        aclService, accessControlPreferenceService, privilegedRoleAssignmentService, resourceAttributeProvider);
   }
 
   @Test

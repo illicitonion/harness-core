@@ -7,6 +7,7 @@
 
 package io.harness.accesscontrol.acl;
 
+import io.harness.accesscontrol.ResourceInfo;
 import io.harness.accesscontrol.scopes.core.Scope;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
@@ -23,4 +24,12 @@ public class PermissionCheck {
   @NotEmpty String resourceType;
   String resourceIdentifier;
   @NotEmpty String permission;
+
+  public ResourceInfo getResourceInfo() {
+    return ResourceInfo.builder()
+        .resourceIdentifier(resourceIdentifier)
+        .resourceScope(resourceScope)
+        .resourceType(resourceType)
+        .build();
+  }
 }

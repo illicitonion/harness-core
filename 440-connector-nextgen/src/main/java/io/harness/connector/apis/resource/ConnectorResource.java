@@ -557,15 +557,15 @@ public class ConnectorResource {
 
   @GET
   @Hidden
-  @Path("{identifier}/attributes")
-  @ApiOperation(hidden = true, value = "Get Connector Attributes", nickname = "getConnectorAttributes")
+  @Path("/attributes")
+  @ApiOperation(hidden = true, value = "Get Connectors Attributes", nickname = "getConnectorsAttributes")
   @InternalApi
-  public ResponseDTO<Map<String, String>> getConnectorAttributes(
+  public ResponseDTO<List<Map<String, String>>> getConnectorsAttributes(
       @QueryParam(NGCommonEntityConstants.ACCOUNT_KEY) String accountId,
       @QueryParam(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
       @QueryParam(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier,
-      @PathParam(NGCommonEntityConstants.IDENTIFIER_KEY) String connectorIdentifier) {
+      @QueryParam("connectorIdentifiers") List<String> connectorIdentifiers) {
     return ResponseDTO.newResponse(connectorService.getAttributes(
-        accountId, orgIdentifier, projectIdentifier, connectorIdentifier));
+        accountId, orgIdentifier, projectIdentifier, connectorIdentifiers));
   }
 }

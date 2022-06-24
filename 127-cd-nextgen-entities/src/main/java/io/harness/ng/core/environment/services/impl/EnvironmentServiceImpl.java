@@ -16,6 +16,7 @@ import static io.harness.outbox.TransactionOutboxModule.OUTBOX_TRANSACTION_TEMPL
 import static io.harness.springdata.TransactionUtils.DEFAULT_TRANSACTION_RETRY_POLICY;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import io.harness.EntityType;
@@ -38,6 +39,7 @@ import io.harness.ng.core.entitysetupusage.dto.EntitySetupUsageDTO;
 import io.harness.ng.core.entitysetupusage.service.EntitySetupUsageService;
 import io.harness.ng.core.environment.beans.Environment;
 import io.harness.ng.core.environment.beans.Environment.EnvironmentKeys;
+import io.harness.ng.core.environment.beans.EnvironmentType;
 import io.harness.ng.core.environment.services.EnvironmentService;
 import io.harness.ng.core.events.EnvironmentCreateEvent;
 import io.harness.ng.core.events.EnvironmentDeleteEvent;
@@ -63,6 +65,8 @@ import com.google.inject.name.Named;
 import com.google.protobuf.StringValue;
 import com.mongodb.client.result.UpdateResult;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -371,20 +375,15 @@ public class EnvironmentServiceImpl implements EnvironmentService {
   }
 
   @Override
-  public Map<String, String> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, String environmentIdentifier) {
-    Optional<Environment> environment = get(accountId, orgIdentifier, projectIdentifier, environmentIdentifier, false);
-    Map<String, String> attributes = new HashMap<>();
-    if (environment.isPresent()) {
-      switch (environment.get().getType()) {
-        case PreProduction:
-          attributes.put("type", "PreProduction");
-          break;
-        case Production:
-          attributes.put("type", "Production");
-          break;
-        default:
-          attributes.put("type", "Unknown");
-          break;
+  public List<Map<String, String>> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, List<String> envIdentifiers) {
+    Map<String, List<Environment>> environments = fetchesNonDeletedEnvironmentFromListOfIdentifiers(accountId, orgIdentifier, projectIdentifier, envIdentifiers).stream().collect(groupingBy(Environment::getIdentifier));
+
+    List<Map<String, String>> attributes = new ArrayList<>();
+    for (String envId : envIdentifiers) {
+      if (environments.containsKey(envId)) {
+        attributes.add(ImmutableMap.of("type", environments.get(envId).get(0).getType().name()));
+      } else {
+        attributes.add(Collections.emptyMap());
       }
     }
 

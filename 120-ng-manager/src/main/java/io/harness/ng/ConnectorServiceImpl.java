@@ -764,7 +764,7 @@ public class ConnectorServiceImpl implements ConnectorService {
   }
 
   @Override
-  public Map<String, String> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, String connectorIdentifier) {
-    return defaultConnectorService.getAttributes(accountId,orgIdentifier,projectIdentifier, connectorIdentifier);
+  public List<Map<String, String>> getAttributes(String accountId, String orgIdentifier, String projectIdentifier, List<String> connectorIdentifiers) {
+    return defaultConnectorService.getAttributes(accountId,orgIdentifier,projectIdentifier, connectorIdentifiers);
   }
 }

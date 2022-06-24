@@ -1,9 +1,10 @@
 package io.harness.accesscontrol.acl;
 
-import io.harness.accesscontrol.scopes.core.Scope;
+import io.harness.accesscontrol.ResourceInfo;
 
 import java.util.Map;
+import java.util.Set;
 
 public interface ResourceAttributeProvider {
-  Map<String, String> getAttributes(Scope resourceScope, String resourceType, String resourceIdentifier);
+  Map<ResourceInfo, Map<String, String>> getAttributes(Set<ResourceInfo> resources);
 }

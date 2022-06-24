@@ -62,10 +62,10 @@ public interface ConnectorResourceClient {
       @Query(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
       @Query(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier);
 
-  @GET(CONNECTORS_API + "/{identifier}/attributes")
-  Call<ResponseDTO<Map<String, String>>> getConnectorAttributes(
+  @GET(CONNECTORS_API + "/attributes")
+  Call<ResponseDTO<List<Map<String, String>>>> getConnectorsAttributes(
       @Query(NGCommonEntityConstants.ACCOUNT_KEY) String accountId,
       @Query(NGCommonEntityConstants.ORG_KEY) String orgIdentifier,
       @Query(NGCommonEntityConstants.PROJECT_KEY) String projectIdentifier,
-      @Path(NGCommonEntityConstants.IDENTIFIER_KEY) String connectorIdentifier);
+      @Query("connectorIdentifiers") List<String> connectorIdentifiers);
 }
