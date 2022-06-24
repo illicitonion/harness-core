@@ -43,7 +43,6 @@ import software.wings.beans.ServiceVariable;
 import software.wings.service.intfc.security.ManagerDecryptionService;
 import software.wings.service.intfc.security.SecretManager;
 
-import com.google.inject.Inject;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;

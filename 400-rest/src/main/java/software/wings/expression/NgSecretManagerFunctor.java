@@ -45,7 +45,6 @@ import io.harness.utils.IdentifierRefHelper;
 
 import software.wings.service.intfc.security.SecretManager;
 
-import com.google.inject.Inject;
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
