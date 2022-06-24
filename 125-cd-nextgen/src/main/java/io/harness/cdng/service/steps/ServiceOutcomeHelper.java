@@ -27,9 +27,9 @@ import static io.harness.annotations.dev.HarnessTeam.CDC;
 @UtilityClass
 @OwnedBy(CDC)
 public class ServiceOutcomeHelper {
-  public ServiceOutcome createOutcome(
+  public ServiceConfigStepOutcome createOutcome(
       Ambiance ambiance, OutcomeService outcomeService, ExecutionSweepingOutputService executionSweepingOutputService) {
-    return ServiceOutcome.builder()
+    return ServiceConfigStepOutcome.builder()
         .serviceResult(getServiceOutcome(ambiance, outcomeService))
         .variablesResult(getVariablesSweepingOutput(ambiance, executionSweepingOutputService))
         .artifactResults(getArtifactsOutcome(ambiance, outcomeService))

@@ -27,7 +27,7 @@ import org.springframework.data.annotation.TypeAlias;
 @TypeAlias("serviceConfigOutcome")
 @JsonTypeName("serviceConfigOutcome")
 @RecasterAlias("io.harness.cdng.service.steps.ServiceConfigStepOutcome")
-public class ServiceOutcome implements Outcome {
+public class ServiceConfigStepOutcome implements Outcome {
   ServiceStepOutcome serviceResult;
   VariablesSweepingOutput variablesResult;
   ArtifactsOutcome artifactResults;
