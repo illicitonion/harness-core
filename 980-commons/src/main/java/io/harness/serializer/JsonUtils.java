@@ -481,4 +481,14 @@ public class JsonUtils {
     JsonElement jsonElement = jsonParser.parse(jsonString);
     return gson.toJson(jsonElement);
   }
+  @JsonDeserialize
+  public static <T> T asObject1(String jsonString, Class<T> classToConvert) throws JsonProcessingException {
+    try {
+      return mapper.readValue(jsonString, classToConvert);
+    } catch (JsonProcessingException exception) {
+      throw exception;
+    } catch (Exception exception) {
+      throw new RuntimeException(exception);
+    }
+  }
 }
