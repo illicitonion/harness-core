@@ -11,8 +11,15 @@ import static io.harness.annotations.dev.HarnessTeam.CDC;
 import static io.harness.beans.ExecutionStatus.SUCCESS;
 import static io.harness.beans.PageResponse.PageResponseBuilder.aPageResponse;
 
-import static io.harness.rule.OwnerRule.*;
-import static org.mockito.Mockito.*;
+import static io.harness.rule.OwnerRule.AGORODETKI;
+import static io.harness.rule.OwnerRule.BUHA;
+import static io.harness.rule.OwnerRule.ERSHAD_MOHAMMAD;
+import static io.harness.rule.OwnerRule.MOUNIK;
+import static io.harness.rule.OwnerRule.PRABU;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static software.wings.beans.BasicOrchestrationWorkflow.BasicOrchestrationWorkflowBuilder.aBasicOrchestrationWorkflow;
 import static software.wings.beans.CanaryOrchestrationWorkflow.CanaryOrchestrationWorkflowBuilder.aCanaryOrchestrationWorkflow;
 import static software.wings.beans.PhaseStep.PhaseStepBuilder.aPhaseStep;
@@ -28,7 +35,29 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Matchers.eq;
-import static software.wings.utils.WingsTestConstants.*;
+import static software.wings.utils.WingsTestConstants.ACCOUNT_ID;
+import static software.wings.utils.WingsTestConstants.APP_ID;
+import static software.wings.utils.WingsTestConstants.APP_MANIFEST_NAME;
+import static software.wings.utils.WingsTestConstants.ARTIFACT_ID;
+import static software.wings.utils.WingsTestConstants.ARTIFACT_SOURCE_NAME;
+import static software.wings.utils.WingsTestConstants.ARTIFACT_STREAM_ID;
+import static software.wings.utils.WingsTestConstants.ARTIFACT_STREAM_ID_ARTIFACTORY;
+import static software.wings.utils.WingsTestConstants.BUILD_NO;
+import static software.wings.utils.WingsTestConstants.ENV_ID;
+import static software.wings.utils.WingsTestConstants.ENV_ID_CHANGED;
+import static software.wings.utils.WingsTestConstants.HELM_CHART_ID;
+import static software.wings.utils.WingsTestConstants.INFRA_DEFINITION_ID;
+import static software.wings.utils.WingsTestConstants.MANIFEST_ID;
+import static software.wings.utils.WingsTestConstants.PHASE_ID;
+import static software.wings.utils.WingsTestConstants.PIPELINE_EXECUTION_ID;
+import static software.wings.utils.WingsTestConstants.PIPELINE_ID;
+import static software.wings.utils.WingsTestConstants.PIPELINE_NAME;
+import static software.wings.utils.WingsTestConstants.SERVICE_ID;
+import static software.wings.utils.WingsTestConstants.SERVICE_NAME;
+import static software.wings.utils.WingsTestConstants.SETTING_ID;
+import static software.wings.utils.WingsTestConstants.UUID;
+import static software.wings.utils.WingsTestConstants.WORKFLOW_ID;
+import static software.wings.utils.WingsTestConstants.WORKFLOW_NAME;
 
 import io.harness.annotations.dev.HarnessModule;
 import io.harness.annotations.dev.OwnedBy;
@@ -47,9 +76,23 @@ import io.harness.limits.LimitEnforcementUtils;
 import io.harness.rule.Owner;
 
 import software.wings.WingsBaseTest;
-import software.wings.beans.*;
+import software.wings.beans.CanaryOrchestrationWorkflow;
+import software.wings.beans.FailureStrategy;
+import software.wings.beans.GraphNode;
+import software.wings.beans.HelmChartConfig;
+import software.wings.beans.LastDeployedArtifactInformation;
+import software.wings.beans.ManifestVariable;
+import software.wings.beans.PhaseStep;
+import software.wings.beans.PhaseStepType;
+import software.wings.beans.Pipeline;
+import software.wings.beans.PipelineStage;
 import software.wings.beans.PipelineStage.PipelineStageElement;
+import software.wings.beans.Service;
+import software.wings.beans.VariableType;
+import software.wings.beans.Workflow;
+import software.wings.beans.WorkflowExecution;
 import software.wings.beans.WorkflowExecution.WorkflowExecutionKeys;
+import software.wings.beans.WorkflowPhase;
 import software.wings.beans.appmanifest.AppManifestKind;
 import software.wings.beans.appmanifest.ApplicationManifest;
 import software.wings.beans.appmanifest.HelmChart;
@@ -77,7 +120,10 @@ import software.wings.sm.states.EnvState.EnvStateKeys;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.Inject;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
@@ -1153,7 +1199,7 @@ public class WorkflowServiceImplTest extends WingsBaseTest {
     WorkflowServiceImpl workflowServiceImpl = (WorkflowServiceImpl) workflowService;
     WorkflowPhase workflowPhase = aWorkflowPhase().uuid(PHASE_ID).serviceId(SERVICE_ID).infraDefinitionId(INFRA_DEFINITION_ID).build();
     CanaryOrchestrationWorkflow canaryOrchestrationWorkflow = aCanaryOrchestrationWorkflow().addWorkflowPhase(workflowPhase).build();
-    Workflow workflow = aWorkflow().name(WORKFLOW_NAME).uuid(WORKFLOW_ID).accountId(ACCOUNT_ID).appId(APP_ID).orchestrationWorkflow(canaryOrchestrationWorkflow).build();
+    Workflow oldWorkflow = aWorkflow().name(WORKFLOW_NAME).uuid(WORKFLOW_ID).accountId(ACCOUNT_ID).appId(APP_ID).orchestrationWorkflow(canaryOrchestrationWorkflow).build();
     Workflow newWorkflow = aWorkflow().name("Cloned").uuid(WORKFLOW_ID).accountId(ACCOUNT_ID).appId("NewApp").build();
 
     Map<String,String> serviceMappings = new HashMap<>();
@@ -1169,7 +1215,7 @@ public class WorkflowServiceImplTest extends WingsBaseTest {
     when(workflowQuery.filter(anyString(), any())).thenReturn(workflowQuery);
     when(wingsPersistence.createUpdateOperations(Workflow.class)).thenReturn(updateOperations);
     when(updateOperations.set(anyString(),any())).thenReturn(updateOperations);
-    Workflow updatedWorkFLow = workflowServiceImpl.cloneWorkflow(APP_ID,workflow,cloneMetadata);
+    Workflow updatedWorkFLow = workflowServiceImpl.cloneWorkflow(APP_ID,oldWorkflow,cloneMetadata);
 
     CanaryOrchestrationWorkflow canaryWorkFlow= (CanaryOrchestrationWorkflow) updatedWorkFLow.getOrchestrationWorkflow();
     canaryWorkFlow.getWorkflowPhases().forEach(updatedWorkflowPhase -> {
