@@ -17,4 +17,6 @@ public interface SettingsService {
   SettingValueResponseDTO get(String accountIdentifier, String orgIdentifier, String projectIdentifier,
       SettingValueRequestDTO settingValueRequestDTO);
   List<SettingConfiguration> listDefaultSettings();
+  void deleteConfig(String identifier);
+  SettingConfiguration upsertConfig(SettingConfiguration settingConfiguration);
 }

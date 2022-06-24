@@ -15,11 +15,11 @@ import io.harness.persistence.PersistentEntity;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.google.common.collect.ImmutableList;
 import java.util.List;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
-import org.hibernate.validator.constraints.NotEmpty;
 import org.mongodb.morphia.annotations.Entity;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -37,7 +37,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Persistent
 public class Setting implements PersistentEntity, NGAccountAccess {
   @Id @org.mongodb.morphia.annotations.Id String id;
-  @NotEmpty @EntityIdentifier String identifier;
+  @NotEmpty
+  @EntityIdentifier String identifier;
   @Trimmed @NotEmpty String accountIdentifier;
   @Trimmed String orgIdentifier;
   @Trimmed String projectIdentifier;

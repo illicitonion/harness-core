@@ -2,6 +2,7 @@ package io.harness.ngsettings.api.impl;
 
 import static io.harness.annotations.dev.HarnessTeam.PL;
 import static io.harness.outbox.TransactionOutboxModule.OUTBOX_TRANSACTION_TEMPLATE;
+import static io.harness.springdata.TransactionUtils.DEFAULT_TRANSACTION_RETRY_POLICY;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.encryption.Scope;
@@ -22,8 +23,8 @@ import com.google.inject.name.Named;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.jodah.failsafe.Failsafe;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @OwnedBy(PL)
@@ -93,6 +94,7 @@ public class SettingsServiceImpl implements SettingsService {
   public List<SettingResponseDTO> update(String accountIdentifier, String orgIdentifier, String projectIdentifier,
       List<SettingRequestDTO> settingRequestDTOList) {
     ListIterator<SettingRequestDTO> settingRequestDTOListIterator = settingRequestDTOList.listIterator();
+    Failsafe.with(DEFAULT_TRANSACTION_RETRY_POLICY).get(() -> transactionTemplate.execute(status -> {
     while (settingRequestDTOListIterator.hasNext()) {
       SettingRequestDTO settingRequestDTO = settingRequestDTOListIterator.next();
       Optional<Setting> existingSetting =
@@ -137,6 +139,8 @@ public class SettingsServiceImpl implements SettingsService {
         }
       }
     }
+      return null;
+    }));
     return null;
   }
 
@@ -166,6 +170,19 @@ public class SettingsServiceImpl implements SettingsService {
       settingConfigurationList.add(settingConfigurationIterator.next());
     }
     return settingConfigurationList;
+  }
+
+  @Override
+  public void deleteConfig(String identifier) {
+    Optional<SettingConfiguration> exisingSetting = settingConfigurationRepository.findById(identifier);
+    if(exisingSetting.isPresent()) {
+      settingConfigurationRepository.delete(exisingSetting.get());
+    }
+  }
+
+  @Override
+  public SettingConfiguration upsertConfig(SettingConfiguration settingConfiguration) {
+    return (SettingConfiguration) settingConfigurationRepository.save(settingConfiguration);
   }
 
   public String getScope(String orgIdentifier, String projectIdentifier) {
