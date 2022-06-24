@@ -9,6 +9,7 @@ package io.harness.delegate.beans.connector;
 
 import static io.harness.annotations.dev.HarnessTeam.DX;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.beans.DecryptableEntity;
 import io.harness.delegate.beans.connector.appdynamicsconnector.AppDynamicsConnectorDTO;
@@ -101,6 +102,8 @@ import java.util.List;
 })
 @OwnedBy(DX)
 @Schema(name = "ConnectorConfig", description = "This is the view of the ConnectorConfig entity defined in Harness")
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "connectorType", visible = true)
 public abstract class ConnectorConfigDTO implements DecryptableEntity {
   @JsonIgnore public abstract List<DecryptableEntity> getDecryptableEntities();
 
