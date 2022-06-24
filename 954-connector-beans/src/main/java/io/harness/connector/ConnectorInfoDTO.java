@@ -57,8 +57,8 @@ public class ConnectorInfoDTO {
   io.harness.delegate.beans.connector.ConnectorType connectorType;
 
   @JsonProperty("spec")
-  @JsonTypeInfo(
-          use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "connectorType", visible = true)
+  @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.EXTERNAL_PROPERTY, property = "connectorType",
+      visible = true)
   @Valid
   @NotNull
   io.harness.delegate.beans.connector.ConnectorConfigDTO connectorConfig;
