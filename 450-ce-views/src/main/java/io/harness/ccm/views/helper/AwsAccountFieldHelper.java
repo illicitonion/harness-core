@@ -124,7 +124,8 @@ public class AwsAccountFieldHelper {
     final List<QLCEViewFilter> updatedIdFilters = new ArrayList<>();
     idFilters.forEach(idFilter -> {
       if (Objects.nonNull(idFilter.getField()) && AWS_ACCOUNT_FIELD.equals(idFilter.getField().getFieldName())
-          && Objects.nonNull(idFilter.getValues())) {
+          && Objects.nonNull(idFilter.getValues()) && idFilter.getValues().length != 0
+          && !idFilter.getValues()[0].isEmpty()) {
         final String[] updatedValues =
             Arrays.stream(idFilter.getValues())
                 .map(value -> entityMetadataService.getAccountIdAndNameByAccountNameFilter(value, accountId).keySet())
