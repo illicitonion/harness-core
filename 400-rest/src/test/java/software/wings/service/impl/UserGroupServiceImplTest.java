@@ -37,7 +37,9 @@ import static software.wings.beans.User.Builder.anUser;
 import static software.wings.beans.security.UserGroup.DEFAULT_ACCOUNT_ADMIN_USER_GROUP_NAME;
 import static software.wings.beans.security.UserGroup.DEFAULT_READ_ONLY_USER_GROUP_NAME;
 import static software.wings.beans.security.UserGroup.builder;
+import static software.wings.security.AppFilter.FilterType.ALL;
 import static software.wings.security.EnvFilter.FilterType.PROD;
+import static software.wings.security.EnvFilter.FilterType.SELECTED;
 import static software.wings.security.PermissionAttribute.PermissionType.ACCOUNT_MANAGEMENT;
 import static software.wings.security.PermissionAttribute.PermissionType.ALL_APP_ENTITIES;
 import static software.wings.security.PermissionAttribute.PermissionType.APP_TEMPLATE;
@@ -87,6 +89,7 @@ import static org.mockito.Mockito.when;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.annotations.dev.TargetModule;
 import io.harness.beans.FeatureName;
+import io.harness.beans.PageRequest;
 import io.harness.beans.PageRequest.PageRequestBuilder;
 import io.harness.beans.PageResponse;
 import io.harness.category.element.UnitTests;
@@ -102,20 +105,16 @@ import io.harness.persistence.HPersistence;
 import io.harness.rule.Owner;
 
 import software.wings.WingsBaseTest;
-import software.wings.beans.Account;
+import software.wings.beans.*;
 import software.wings.beans.Account.Builder;
-import software.wings.beans.EntityType;
 import software.wings.beans.Event.Type;
-import software.wings.beans.LicenseInfo;
-import software.wings.beans.Role;
-import software.wings.beans.User;
-import software.wings.beans.UserGroupEntityReference;
 import software.wings.beans.notification.NotificationSettings;
 import software.wings.beans.notification.SlackNotificationSetting;
 import software.wings.beans.security.AccountPermissions;
 import software.wings.beans.security.AppPermission;
 import software.wings.beans.security.UserGroup;
 import software.wings.beans.security.UserGroup.UserGroupKeys;
+import software.wings.beans.security.UserGroupSearchTermType;
 import software.wings.features.api.UsageLimitedFeature;
 import software.wings.helpers.ext.mail.EmailData;
 import software.wings.security.AppFilter;
@@ -137,12 +136,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.validation.constraints.NotNull;
 import org.junit.Before;
@@ -158,9 +152,11 @@ public class UserGroupServiceImplTest extends WingsBaseTest {
   private String accountId = generateUuid();
   private String userGroupId = generateUuid();
   private String userGroup2Id = generateUuid();
+  private String userGroup3Id = generateUuid();
   private String description = "test description";
   private String userGroupName = "userGroup1";
   private String userGroupName2 = "userGroup2";
+  private String userGroupName3 = "userGroup3";
   private String userName1 = "UserName1";
   private String userName2 = "auserName2";
   private String userName = "UserName";
@@ -441,6 +437,62 @@ public class UserGroupServiceImplTest extends WingsBaseTest {
   @Test
   @Owner(developers = RAMA)
   @Category(UnitTests.class)
+  public void testListWithApplicationName() {
+    when(featureFlagService.isEnabled(eq(FeatureName.SEARCH_USERGROUP_BY_APPLICATION), eq(accountId))).thenReturn(true);
+    String applicationId = "applicationId";
+    UserGroup userGroup1 = builder()
+                               .uuid(userGroupId)
+                               .name(userGroupName)
+                               .accountId(accountId)
+                               .description(description)
+                               .memberIds(asList(user1Id))
+                               .members(asList(user))
+                               .build();
+    UserGroup savedUserGroup1 = userGroupService.save(userGroup1);
+    AppPermission selectedApplicationFilter =
+        AppPermission.builder()
+            .appFilter(AppFilter.builder().filterType(SELECTED).ids(Collections.singleton(applicationId)).build())
+            .build();
+    UserGroup userGroup2 = builder()
+                               .name(userGroupName3)
+                               .uuid(userGroup2Id)
+                               .accountId(accountId)
+                               .description(description)
+                               .memberIds(asList(user2Id))
+                               .members(asList(user))
+                               .appPermissions(Sets.newHashSet(selectedApplicationFilter))
+                               .build();
+    UserGroup savedUserGroup2 = userGroupService.save(userGroup2);
+
+    AppPermission allApplicationFilter =
+        AppPermission.builder().appFilter(AppFilter.builder().filterType(ALL).build()).build();
+    UserGroup userGroup3 = builder()
+                               .name(userGroupName2)
+                               .uuid(userGroup3Id)
+                               .accountId(accountId)
+                               .description(description)
+                               .memberIds(asList(user2Id))
+                               .members(asList(user))
+                               .appPermissions(Sets.newHashSet(allApplicationFilter))
+                               .build();
+    UserGroup savedUserGroup3 = userGroupService.save(userGroup3);
+    when(appService.list(any()))
+        .thenReturn(PageResponse.PageResponseBuilder.aPageResponse()
+                        .withResponse(
+                            Collections.singletonList(Application.Builder.anApplication().uuid(applicationId).build()))
+                        .build());
+    PageResponse pageResponse = userGroupService.list(accountId, PageRequestBuilder.aPageRequest().build(), true,
+        UserGroupSearchTermType.APPLICATION_NAME, "application");
+    assertThat(pageResponse).isNotNull();
+    List<UserGroup> userGroupList = pageResponse.getResponse();
+    assertThat(userGroupList).isNotNull();
+    assertThat(userGroupList).hasSize(2);
+    assertThat(userGroupList).containsExactlyInAnyOrder(savedUserGroup3, savedUserGroup2);
+  }
+
+  @Test
+  @Owner(developers = RAMA)
+  @Category(UnitTests.class)
   public void testList() {
     UserGroup userGroup1 = builder()
                                .uuid(userGroupId)
@@ -463,7 +515,8 @@ public class UserGroupServiceImplTest extends WingsBaseTest {
                                .build();
     UserGroup savedUserGroup2 = userGroupService.save(userGroup2);
 
-    PageResponse pageResponse = userGroupService.list(accountId, PageRequestBuilder.aPageRequest().build(), true, null, null);
+    PageResponse pageResponse =
+        userGroupService.list(accountId, PageRequestBuilder.aPageRequest().build(), true, null, null);
     assertThat(pageResponse).isNotNull();
     List<UserGroup> userGroupList = pageResponse.getResponse();
     assertThat(userGroupList).isNotNull();
