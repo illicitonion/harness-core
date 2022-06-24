@@ -15,6 +15,7 @@ import io.harness.beans.FeatureName;
 import io.harness.ng.core.dto.secrets.SecretDTOV2;
 import io.harness.ng.opa.OpaEvaluationContext;
 import io.harness.ng.opa.OpaService;
+import io.harness.opaclient.OpaUtils;
 import io.harness.opaclient.model.OpaConstants;
 import io.harness.pms.contracts.governance.GovernanceMetadata;
 import io.harness.remote.client.RestClientUtils;
@@ -35,6 +36,10 @@ public class OpaSecretServiceImpl implements OpaSecretService {
   private OpaService opaService;
   private AccountClient accountClient;
 
+  private SecretOpaEvaluationContext createEvaluationContext(String yaml, String key) throws IOException {
+    return SecretOpaEvaluationContext.builder().secret(OpaUtils.extractObjectFromYamlString(yaml, key)).build();
+  }
+
   public GovernanceMetadata evaluatePoliciesWithEntity(String accountId, SecretDTOV2 secretDTO, String orgIdentifier,
       String projectIdentifier, String action, String identifier) {
     if (!RestClientUtils.getResponse(
@@ -50,7 +55,7 @@ public class OpaSecretServiceImpl implements OpaSecretService {
 
     try {
       String expandedYaml = getSecretYaml(secretDTO);
-      context = opaService.createEvaluationContext(expandedYaml, OpaConstants.OPA_EVALUATION_TYPE_SECRET);
+      context = createEvaluationContext(expandedYaml, OpaConstants.OPA_EVALUATION_TYPE_SECRET);
       return opaService.evaluate(context, accountId, orgIdentifier, projectIdentifier, identifier, action,
           OpaConstants.OPA_EVALUATION_TYPE_SECRET);
     } catch (IOException ex) {
