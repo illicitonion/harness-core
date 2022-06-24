@@ -16,11 +16,8 @@ import io.harness.plancreator.strategy.StageStrategyUtils;
 import io.harness.pms.sdk.core.plan.creation.beans.PlanCreationContext;
 import io.harness.pms.sdk.core.plan.creation.beans.PlanCreationResponse;
 import io.harness.pms.sdk.core.plan.creation.creators.PartialPlanCreator;
-import io.harness.pms.yaml.YAMLFieldNameConstants;
 import io.harness.pms.yaml.YamlField;
 import io.harness.serializer.KryoSerializer;
-import io.harness.steps.matrix.StrategyConstants;
-import io.harness.steps.matrix.StrategyMetadata;
 
 import com.google.inject.Inject;
 import com.google.protobuf.ByteString;
