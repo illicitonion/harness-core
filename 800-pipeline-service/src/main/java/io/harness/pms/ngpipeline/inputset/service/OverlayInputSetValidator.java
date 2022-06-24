@@ -9,8 +9,10 @@ import io.harness.gitsync.helpers.GitContextHelper;
 import io.harness.gitsync.interceptor.GitEntityInfo;
 import io.harness.gitsync.interceptor.GitSyncBranchContext;
 import io.harness.pms.gitsync.PmsGitSyncBranchContextGuard;
+import io.harness.pms.inputset.OverlayInputSetErrorWrapperDTOPMS;
 import io.harness.pms.merger.helpers.InputSetYamlHelper;
 import io.harness.pms.ngpipeline.inputset.beans.entity.InputSetEntity;
+import io.harness.pms.ngpipeline.inputset.exceptions.InvalidOverlayInputSetException;
 import io.harness.pms.ngpipeline.inputset.helpers.InputSetErrorsHelper;
 
 import java.util.ArrayList;
@@ -23,8 +25,8 @@ import lombok.experimental.UtilityClass;
 @OwnedBy(PIPELINE)
 @UtilityClass
 public class OverlayInputSetValidator {
-  public Map<String, String> validateOverlayInputSet(PMSInputSetService inputSetService, String accountId,
-      String orgIdentifier, String projectIdentifier, String pipelineIdentifier, String yaml) {
+  public void validateOverlayInputSet(PMSInputSetService inputSetService, String accountId, String orgIdentifier,
+      String projectIdentifier, String pipelineIdentifier, String yaml) {
     String identifier = InputSetYamlHelper.getStringField(yaml, "identifier", "overlayInputSet");
     if (EmptyPredicate.isEmpty(identifier)) {
       throw new InvalidRequestException("Identifier cannot be empty");
@@ -56,7 +58,14 @@ public class OverlayInputSetValidator {
       inputSets = findAllReferredInputSets(
           inputSetService, inputSetReferences, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier);
     }
-    return InputSetErrorsHelper.getInvalidInputSetReferences(inputSets, inputSetReferences);
+    Map<String, String> invalidReferences =
+        InputSetErrorsHelper.getInvalidInputSetReferences(inputSets, inputSetReferences);
+    if (!invalidReferences.isEmpty()) {
+      OverlayInputSetErrorWrapperDTOPMS overlayInputSetErrorWrapperDTOPMS =
+          OverlayInputSetErrorWrapperDTOPMS.builder().invalidReferences(invalidReferences).build();
+      throw new InvalidOverlayInputSetException(
+          "Exception in creating the Overlay Input Set", overlayInputSetErrorWrapperDTOPMS);
+    }
   }
 
   private List<Optional<InputSetEntity>> findAllReferredInputSets(PMSInputSetService inputSetService,

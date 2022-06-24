@@ -26,6 +26,8 @@ import io.harness.gitsync.FullSyncChangeSet;
 import io.harness.gitsync.ScopeDetails;
 import io.harness.gitsync.entityInfo.AbstractGitSdkEntityHandler;
 import io.harness.gitsync.entityInfo.GitSdkEntityHandlerInterface;
+import io.harness.gitsync.helpers.GitContextHelper;
+import io.harness.gitsync.interceptor.GitEntityInfo;
 import io.harness.gitsync.sdk.EntityGitDetails;
 import io.harness.gitsync.sdk.EntityGitDetailsMapper;
 import io.harness.grpc.utils.StringValueUtils;
@@ -88,7 +90,9 @@ public class InputSetEntityGitSyncHelper extends AbstractGitSdkEntityHandler<Inp
   public InputSetYamlDTO save(String accountIdentifier, String yaml) {
     InputSetEntity initEntity = PMSInputSetElementMapper.toInputSetEntity(accountIdentifier, yaml);
     validateInputSetEntity(accountIdentifier, initEntity);
-    InputSetEntity savedEntity = pmsInputSetService.create(initEntity);
+    GitEntityInfo gitEntityInfo = GitContextHelper.getGitEntityInfo();
+    InputSetEntity savedEntity =
+        pmsInputSetService.create(initEntity, gitEntityInfo.getBranch(), gitEntityInfo.getYamlGitConfigId());
     return InputSetYamlDTOMapper.toDTO(savedEntity);
   }
 

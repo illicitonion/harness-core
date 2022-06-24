@@ -280,7 +280,7 @@ public class InputSetResourcePMS {
     log.info(String.format("Create input set with identifier %s for pipeline %s in project %s, org %s, account %s",
         entity.getIdentifier(), pipelineIdentifier, projectIdentifier, orgIdentifier, accountId));
 
-    InputSetEntity createdEntity = pmsInputSetService.create(entity);
+    InputSetEntity createdEntity = pmsInputSetService.create(entity, pipelineBranch, pipelineRepoID);
     return ResponseDTO.newResponse(
         createdEntity.getVersion().toString(), PMSInputSetElementMapper.toInputSetResponseDTOPMS(createdEntity));
   }
@@ -318,7 +318,8 @@ public class InputSetResourcePMS {
         String.format("Create overlay input set with identifier %s for pipeline %s in project %s, org %s, account %s",
             entity.getIdentifier(), pipelineIdentifier, projectIdentifier, orgIdentifier, accountId));
 
-    InputSetEntity createdEntity = pmsInputSetService.create(entity);
+    // overlay input set validation does not require pipeline branch and repo, hence sending null here
+    InputSetEntity createdEntity = pmsInputSetService.create(entity, null, null);
     return ResponseDTO.newResponse(
         createdEntity.getVersion().toString(), PMSInputSetElementMapper.toOverlayInputSetResponseDTOPMS(createdEntity));
   }

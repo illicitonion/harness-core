@@ -23,11 +23,13 @@ import org.springframework.data.mongodb.core.query.Criteria;
 
 @OwnedBy(PIPELINE)
 public interface PMSInputSetService {
-  InputSetEntity create(InputSetEntity inputSetEntity);
+  // pipeline branch and repo ID are needed for old git sync
+  InputSetEntity create(InputSetEntity inputSetEntity, String pipelineBranch, String pipelineRepoID);
 
   Optional<InputSetEntity> get(String accountId, String orgIdentifier, String projectIdentifier,
       String pipelineIdentifier, String identifier, boolean deleted);
 
+  // pipeline branch and repo ID are needed for old git sync
   InputSetEntity update(InputSetEntity inputSetEntity, ChangeType changeType);
 
   InputSetEntity syncInputSetWithGit(EntityDetailProtoDTO entityDetail);

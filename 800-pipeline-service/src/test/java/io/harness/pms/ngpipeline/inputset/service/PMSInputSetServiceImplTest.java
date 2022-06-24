@@ -167,7 +167,7 @@ public class PMSInputSetServiceImplTest extends PipelineServiceTestBase {
     List<InputSetEntity> inputSets = ImmutableList.of(inputSetEntity, overlayInputSetEntity);
 
     for (InputSetEntity entity : inputSets) {
-      InputSetEntity createdInputSet = pmsInputSetService.create(entity);
+      InputSetEntity createdInputSet = pmsInputSetService.create(entity, null, null);
       assertThat(createdInputSet).isNotNull();
       assertThat(createdInputSet.getAccountId()).isEqualTo(entity.getAccountId());
       assertThat(createdInputSet.getOrgIdentifier()).isEqualTo(entity.getOrgIdentifier());
@@ -240,8 +240,8 @@ public class PMSInputSetServiceImplTest extends PipelineServiceTestBase {
   @Owner(developers = NAMAN)
   @Category(UnitTests.class)
   public void testList() {
-    pmsInputSetService.create(inputSetEntity);
-    pmsInputSetService.create(overlayInputSetEntity);
+    pmsInputSetService.create(inputSetEntity, null, null);
+    pmsInputSetService.create(overlayInputSetEntity, null, null);
 
     Criteria criteriaFromFilter = PMSInputSetFilterHelper.createCriteriaForGetList(
         ACCOUNT_ID, ORG_IDENTIFIER, PROJ_IDENTIFIER, PIPELINE_IDENTIFIER, InputSetListTypePMS.ALL, "", false);
@@ -265,7 +265,7 @@ public class PMSInputSetServiceImplTest extends PipelineServiceTestBase {
                                          .pipelineIdentifier(PIPELINE_IDENTIFIER)
                                          .build();
 
-    pmsInputSetService.create(inputSetEntity2);
+    pmsInputSetService.create(inputSetEntity2, null, null);
     Page<InputSetEntity> list2 =
         pmsInputSetService.list(criteriaFromFilter, pageRequest, ACCOUNT_ID, ORG_IDENTIFIER, PROJ_IDENTIFIER);
     assertThat(list2.getContent()).isNotNull();

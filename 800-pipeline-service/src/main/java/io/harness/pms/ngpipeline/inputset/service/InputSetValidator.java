@@ -13,6 +13,8 @@ import io.harness.gitsync.interceptor.GitSyncBranchContext;
 import io.harness.pms.gitsync.PmsGitSyncBranchContextGuard;
 import io.harness.pms.inputset.InputSetErrorWrapperDTOPMS;
 import io.harness.pms.merger.helpers.InputSetYamlHelper;
+import io.harness.pms.ngpipeline.inputset.beans.entity.InputSetEntityType;
+import io.harness.pms.ngpipeline.inputset.exceptions.InvalidInputSetException;
 import io.harness.pms.ngpipeline.inputset.helpers.InputSetErrorsHelper;
 import io.harness.pms.pipeline.PipelineEntity;
 import io.harness.pms.pipeline.service.PMSPipelineService;
@@ -25,16 +27,19 @@ import lombok.experimental.UtilityClass;
 @OwnedBy(PIPELINE)
 @UtilityClass
 public class InputSetValidator {
-  public InputSetErrorWrapperDTOPMS validateInputSetDuringCreate(PMSPipelineService pmsPipelineService,
-      String accountId, String orgIdentifier, String projectIdentifier, String pipelineIdentifier, String yaml) {
-    return validateInputSet(
-        pmsPipelineService, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, yaml, true);
-  }
-
-  public InputSetErrorWrapperDTOPMS validateInputSet(PMSPipelineService pmsPipelineService, String accountId,
-      String orgIdentifier, String projectIdentifier, String pipelineIdentifier, String yaml) {
-    return validateInputSet(
-        pmsPipelineService, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, yaml, false);
+  public void validateInputSet(PMSInputSetService inputSetService, PMSPipelineService pipelineService, String accountId,
+      String orgIdentifier, String projectIdentifier, String pipelineIdentifier, String yaml, InputSetEntityType type,
+      boolean checkForStoreType) {
+    if (type.equals(InputSetEntityType.INPUT_SET)) {
+      InputSetErrorWrapperDTOPMS errorWrapperDTO = validateInputSet(
+          pipelineService, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, yaml, checkForStoreType);
+      if (errorWrapperDTO != null) {
+        throw new InvalidInputSetException("Exception in creating the Input Set", errorWrapperDTO);
+      }
+    } else {
+      OverlayInputSetValidator.validateOverlayInputSet(
+          inputSetService, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, yaml);
+    }
   }
 
   InputSetErrorWrapperDTOPMS validateInputSet(PMSPipelineService pmsPipelineService, String accountId,
@@ -73,6 +78,21 @@ public class InputSetValidator {
           orgIdentifier, projectIdentifier, pipelineIdentifier));
     }
     return optionalPipelineEntity.get();
+  }
+
+  public void validateInputSetForOldGitSync(PMSInputSetService inputSetService, PMSPipelineService pipelineService,
+      String accountId, String orgIdentifier, String projectIdentifier, String pipelineIdentifier, String yaml,
+      InputSetEntityType type, String pipelineBranch, String pipelineRepoID) {
+    if (type.equals(InputSetEntityType.INPUT_SET)) {
+      InputSetErrorWrapperDTOPMS errorWrapperDTO = validateInputSetForOldGitSync(pipelineService, accountId,
+          orgIdentifier, projectIdentifier, pipelineIdentifier, yaml, pipelineBranch, pipelineRepoID);
+      if (errorWrapperDTO != null) {
+        throw new InvalidInputSetException("Exception in creating the Input Set", errorWrapperDTO);
+      }
+    } else {
+      OverlayInputSetValidator.validateOverlayInputSet(
+          inputSetService, accountId, orgIdentifier, projectIdentifier, pipelineIdentifier, yaml);
+    }
   }
 
   public InputSetErrorWrapperDTOPMS validateInputSetForOldGitSync(PMSPipelineService pmsPipelineService,

@@ -35,16 +35,11 @@ import io.harness.gitsync.persistance.GitSyncSdkService;
 import io.harness.gitsync.scm.EntityObjectIdUtils;
 import io.harness.grpc.utils.StringValueUtils;
 import io.harness.pms.gitsync.PmsGitSyncBranchContextGuard;
-import io.harness.pms.inputset.InputSetErrorWrapperDTOPMS;
-import io.harness.pms.inputset.OverlayInputSetErrorWrapperDTOPMS;
 import io.harness.pms.inputset.gitsync.InputSetYamlDTOMapper;
 import io.harness.pms.ngpipeline.inputset.beans.entity.InputSetEntity;
 import io.harness.pms.ngpipeline.inputset.beans.entity.InputSetEntity.InputSetEntityKeys;
 import io.harness.pms.ngpipeline.inputset.beans.resource.InputSetImportRequestDTO;
 import io.harness.pms.ngpipeline.inputset.mappers.PMSInputSetElementMapper;
-import io.harness.pms.ngpipeline.inputset.beans.entity.InputSetEntityType;
-import io.harness.pms.ngpipeline.inputset.exceptions.InvalidInputSetException;
-import io.harness.pms.ngpipeline.inputset.exceptions.InvalidOverlayInputSetException;
 import io.harness.pms.pipeline.PipelineEntity;
 import io.harness.pms.pipeline.service.PMSPipelineService;
 import io.harness.pms.pipeline.service.PipelineCRUDErrorResponse;
@@ -56,7 +51,6 @@ import io.harness.yaml.validator.InvalidYamlException;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import java.util.Map;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
@@ -81,34 +75,19 @@ public class PMSInputSetServiceImpl implements PMSInputSetService {
       "Input set [%s] under Project[%s], Organization [%s] for Pipeline [%s] already exists";
 
   @Override
-  public InputSetEntity create(InputSetEntity inputSetEntity) {
+  public InputSetEntity create(InputSetEntity inputSetEntity, String pipelineBranch, String pipelineRepoID) {
     boolean isOldGitSync = gitSyncSdkService.isGitSyncEnabled(inputSetEntity.getAccountIdentifier(),
         inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier());
-    if (inputSetEntity.getInputSetEntityType().equals(InputSetEntityType.INPUT_SET)) {
-      InputSetErrorWrapperDTOPMS errorWrapperDTO;
-      if (isOldGitSync) {
-        errorWrapperDTO = InputSetValidator.validateInputSetForOldGitSync(pmsPipelineService,
-            inputSetEntity.getAccountId(), inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
-            inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), "", "");
-      } else {
-        errorWrapperDTO = InputSetValidator.validateInputSetDuringCreate(pmsPipelineService,
-            inputSetEntity.getAccountId(), inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
-            inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml());
-      }
-      if (errorWrapperDTO != null) {
-        throw new InvalidInputSetException("Exception in creating the Input Set", errorWrapperDTO);
-      }
+    if (isOldGitSync) {
+      InputSetValidator.validateInputSetForOldGitSync(this, pmsPipelineService, inputSetEntity.getAccountId(),
+          inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
+          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), inputSetEntity.getInputSetEntityType(),
+          pipelineBranch, pipelineRepoID);
     } else {
-      Map<String, String> invalidReferences = OverlayInputSetValidator.validateOverlayInputSet(this,
-          inputSetEntity.getAccountId(), inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
-          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml());
-      if (!invalidReferences.isEmpty()) {
-        OverlayInputSetErrorWrapperDTOPMS overlayInputSetErrorWrapperDTOPMS =
-            OverlayInputSetErrorWrapperDTOPMS.builder().invalidReferences(invalidReferences).build();
-
-        throw new InvalidOverlayInputSetException(
-            "Exception in creating the Overlay Input Set", overlayInputSetErrorWrapperDTOPMS);
-      }
+      InputSetValidator.validateInputSet(this, pmsPipelineService, inputSetEntity.getAccountId(),
+          inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
+          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), inputSetEntity.getInputSetEntityType(),
+          true);
     }
     try {
       if (isOldGitSync) {
@@ -158,31 +137,16 @@ public class PMSInputSetServiceImpl implements PMSInputSetService {
   public InputSetEntity update(InputSetEntity inputSetEntity, ChangeType changeType) {
     boolean isOldGitSync = gitSyncSdkService.isGitSyncEnabled(inputSetEntity.getAccountIdentifier(),
         inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier());
-    if (inputSetEntity.getInputSetEntityType().equals(InputSetEntityType.INPUT_SET)) {
-      InputSetErrorWrapperDTOPMS errorWrapperDTO;
-      if (isOldGitSync) {
-        errorWrapperDTO = InputSetValidator.validateInputSetForOldGitSync(pmsPipelineService,
-            inputSetEntity.getAccountId(), inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
-            inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), "", "");
-      } else {
-        errorWrapperDTO = InputSetValidator.validateInputSet(pmsPipelineService, inputSetEntity.getAccountId(),
-            inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
-            inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml());
-      }
-      if (errorWrapperDTO != null) {
-        throw new InvalidInputSetException("Exception in creating the Input Set", errorWrapperDTO);
-      }
+    if (isOldGitSync) {
+      InputSetValidator.validateInputSetForOldGitSync(this, pmsPipelineService, inputSetEntity.getAccountId(),
+          inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
+          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), inputSetEntity.getInputSetEntityType(), "",
+          "");
     } else {
-      Map<String, String> invalidReferences = OverlayInputSetValidator.validateOverlayInputSet(this,
-          inputSetEntity.getAccountId(), inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
-          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml());
-      if (!invalidReferences.isEmpty()) {
-        OverlayInputSetErrorWrapperDTOPMS overlayInputSetErrorWrapperDTOPMS =
-            OverlayInputSetErrorWrapperDTOPMS.builder().invalidReferences(invalidReferences).build();
-
-        throw new InvalidOverlayInputSetException(
-            "Exception in creating the Overlay Input Set", overlayInputSetErrorWrapperDTOPMS);
-      }
+      InputSetValidator.validateInputSet(this, pmsPipelineService, inputSetEntity.getAccountId(),
+          inputSetEntity.getOrgIdentifier(), inputSetEntity.getProjectIdentifier(),
+          inputSetEntity.getPipelineIdentifier(), inputSetEntity.getYaml(), inputSetEntity.getInputSetEntityType(),
+          false);
     }
     if (isOldGitSync) {
       return updateForOldGitSync(inputSetEntity, changeType);
