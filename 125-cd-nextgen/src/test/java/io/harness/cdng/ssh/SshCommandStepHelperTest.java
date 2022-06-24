@@ -37,6 +37,7 @@ import io.harness.delegate.task.ssh.NgCommandUnit;
 import io.harness.delegate.task.ssh.PdcSshInfraDelegateConfig;
 import io.harness.delegate.task.ssh.ScriptCommandUnit;
 import io.harness.delegate.task.ssh.artifact.ArtifactoryArtifactDelegateConfig;
+import io.harness.encryption.Scope;
 import io.harness.exception.InvalidRequestException;
 import io.harness.filestore.dto.node.FileNodeDTO;
 import io.harness.filestore.service.FileStoreService;
@@ -144,9 +145,8 @@ public class SshCommandStepHelperTest extends CategoryTest {
             .store(HarnessStore.builder()
                        .files(ParameterField.createValueField(
                            Arrays.asList(HarnessStoreFile.builder()
-                                             .ref(ParameterField.createValueField("config-file"))
+                                             .scope(ParameterField.createValueField(Scope.ACCOUNT))
                                              .path(ParameterField.createValueField("fs"))
-                                             .isEncrypted(ParameterField.createValueField(false))
                                              .build())))
                        .build())
             .build());
@@ -158,9 +158,9 @@ public class SshCommandStepHelperTest extends CategoryTest {
         .when(sshEntityHelper)
         .getArtifactDelegateConfigConfig(artifactoryArtifact, ambiance);
 
-    doReturn(Optional.of(FileNodeDTO.builder().content("Hello World").name("test.txt").build()))
+    doReturn(Optional.of(FileNodeDTO.builder().content("Hello World").name("test.txt").size(11L).build()))
         .when(fileStoreService)
-        .get(any(), any(), any(), any(), anyBoolean());
+        .getByPath(any(), any(), any(), any(), anyBoolean());
     doReturn(workingDir).when(helper).getWorkingDirectory(eq(workingDirParam), any(ScriptType.class), anyBoolean());
   }
 

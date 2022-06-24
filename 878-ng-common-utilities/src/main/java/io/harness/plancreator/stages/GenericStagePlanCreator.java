@@ -108,7 +108,6 @@ public abstract class GenericStagePlanCreator extends ChildrenPlanCreator<StageE
    *
    * @param ctx
    * @param field
-   * @param dependenciesNodeMap
    * @param metadataMap
    */
   protected void addStrategyFieldDependencyIfPresent(PlanCreationContext ctx, StageElementConfig field,
@@ -124,6 +123,8 @@ public abstract class GenericStagePlanCreator extends ChildrenPlanCreator<StageE
                                                  .adviserObtainments(StageStrategyUtils.getAdviserObtainments(
                                                      ctx.getCurrentField(), kryoSerializer, false))
                                                  .childNodeId(strategyField.getNode().getUuid())
+                                                 .strategyNodeName(field.getName())
+                                                 .strategyNodeIdentifier(field.getIdentifier())
                                                  .build())));
       planCreationResponseMap.put(field.getUuid(),
           PlanCreationResponse.builder()
