@@ -260,6 +260,8 @@ import io.harness.token.TokenClientModule;
 import io.harness.tracing.AbstractPersistenceTracerModule;
 import io.harness.user.UserClientModule;
 import io.harness.version.VersionModule;
+import io.harness.waiter.AbstractWaiterModule;
+import io.harness.waiter.WaiterConfiguration;
 import io.harness.yaml.YamlSdkModule;
 import io.harness.yaml.core.StepSpecType;
 import io.harness.yaml.schema.beans.YamlSchemaRootClass;
@@ -513,6 +515,12 @@ public class NextGenModule extends AbstractModule {
         this.appConfig.getNextGenConfig().getManagerServiceSecret(), NG_MANAGER.getServiceId(),
         appConfig.getSignupNotificationConfiguration(), appConfig.getAccessControlClientConfiguration()));
     install(GitopsModule.getInstance());
+    install(new AbstractWaiterModule() {
+      @Override
+      public WaiterConfiguration waiterConfiguration() {
+        return WaiterConfiguration.builder().persistenceLayer(WaiterConfiguration.PersistenceLayer.SPRING).build();
+      }
+    });
     install(new GitSyncModule());
     install(new GitSyncConfigClientModule(appConfig.getNgManagerClientConfig(),
         appConfig.getNextGenConfig().getNgManagerServiceSecret(), NG_MANAGER.getServiceId()));
