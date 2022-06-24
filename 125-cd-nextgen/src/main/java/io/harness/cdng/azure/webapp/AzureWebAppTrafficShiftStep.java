@@ -8,6 +8,7 @@
 package io.harness.cdng.azure.webapp;
 
 import static io.harness.azure.model.AzureConstants.SLOT_TRAFFIC_PERCENTAGE;
+import static io.harness.steps.StepUtils.prepareCDTaskRequest;
 
 import io.harness.EntityType;
 import io.harness.annotations.dev.HarnessTeam;
@@ -41,7 +42,6 @@ import io.harness.pms.sdk.core.steps.io.StepInputPackage;
 import io.harness.pms.sdk.core.steps.io.StepResponse;
 import io.harness.serializer.KryoSerializer;
 import io.harness.steps.StepHelper;
-import io.harness.steps.StepUtils;
 import io.harness.supplier.ThrowingSupplier;
 import io.harness.utils.IdentifierRefHelper;
 
@@ -128,8 +128,8 @@ public class AzureWebAppTrafficShiftStep extends TaskExecutableWithRollbackAndRb
                             .parameters(new Object[] {azureWebAppTrafficShiftRequest})
                             .build();
 
-    return StepUtils.prepareCDTaskRequest(ambiance, taskData, kryoSerializer,
-        Collections.singletonList(SLOT_TRAFFIC_PERCENTAGE), TaskType.AZURE_WEB_APP_TASK_NG.getDisplayName(),
+    return prepareCDTaskRequest(ambiance, taskData, kryoSerializer, Collections.singletonList(SLOT_TRAFFIC_PERCENTAGE),
+        TaskType.AZURE_WEB_APP_TASK_NG.getDisplayName(),
         TaskSelectorYaml.toTaskSelector(azureWebAppTrafficShiftStepParameters.getDelegateSelectors()),
         stepHelper.getEnvironmentType(ambiance));
   }
