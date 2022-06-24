@@ -11,7 +11,6 @@ import static io.harness.ConnectorConstants.CONNECTOR_TYPES;
 import static io.harness.annotations.dev.HarnessTeam.DX;
 import static io.harness.data.structure.EmptyPredicate.isEmpty;
 
-import com.fasterxml.jackson.annotation.JsonTypeId;
 import io.harness.ConnectorConstants;
 import io.harness.NGCommonEntityConstants;
 import io.harness.annotations.dev.OwnedBy;
