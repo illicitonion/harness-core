@@ -1,9 +1,9 @@
 package io.harness.filestoreclient.remote;
 
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.ng.core.dto.ResponseDTO;
 import io.harness.filestore.dto.node.FileNodeDTO;
 import io.harness.filestore.dto.node.FolderNodeDTO;
-import io.harness.ng.core.dto.ResponseDTO;
 import org.hibernate.validator.constraints.NotBlank;
 import org.hibernate.validator.constraints.NotEmpty;
 import retrofit2.Call;
@@ -19,24 +19,7 @@ import static io.harness.annotations.dev.HarnessTeam.CDP;
 
 @OwnedBy(CDP)
 public interface FileStoreNgClient {
-    String FILE_STORE_CG_API = "file-store-proxy";
     String FILE_STORE_NG_API = "file-store";
-
-    @GET(FILE_STORE_CG_API + "/files/{identifier}")
-    Call<ResponseDTO<FileNodeDTO>> getFile(
-            @Path(IDENTIFIER_KEY) @NotBlank String identifier,
-            @NotEmpty @Query(value = ACCOUNT_KEY) String accountIdentifier,
-            @Query(value = ORG_KEY) String orgIdentifier,
-            @Query(value = PROJECT_KEY) String projectIdentifier,
-            @Query(value = "includeContent") Boolean includeContent);
-
-    @GET(FILE_STORE_CG_API + "/folders/{identifier}")
-    Call<ResponseDTO<FolderNodeDTO>> getFolder(
-            @Path(IDENTIFIER_KEY) @NotBlank String identifier,
-            @NotEmpty @Query(value = ACCOUNT_KEY) String accountIdentifier,
-            @Query(value = ORG_KEY) String orgIdentifier,
-            @Query(value = PROJECT_KEY) String projectIdentifier,
-            @Query(value = "includeContent") Boolean includeContent);
 
     @GET(FILE_STORE_NG_API + "/files/{identifier}")
     Call<ResponseDTO<FileNodeDTO>> getFileNg(

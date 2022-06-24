@@ -9,6 +9,7 @@ package io.harness.filestore.dto.node;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.filestore.dto.node.FileStoreNodeDTO;
 import io.harness.ng.core.dto.EmbeddedUserDetailsDTO;
 import io.harness.ng.core.filestore.NGFileType;
 import io.swagger.v3.oas.annotations.media.Schema;

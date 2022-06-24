@@ -8,7 +8,7 @@ java_library(
     visibility = ["//visibility:public"],
     deps = [
         "//:lombok",
-        "//950-delegate-tasks-beans:module",
+        "//950-ng-core:module"
     ],
 )
 

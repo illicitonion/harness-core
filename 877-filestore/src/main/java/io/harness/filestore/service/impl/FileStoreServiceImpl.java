@@ -46,8 +46,8 @@ import io.harness.filestore.dto.filter.FilesFilterPropertiesDTO;
 import io.harness.filestore.dto.mapper.EmbeddedUserDTOMapper;
 import io.harness.filestore.dto.mapper.FileDTOMapper;
 import io.harness.filestore.dto.mapper.FileStoreNodeDTOMapper;
+import io.harness.ng.core.filestore.dto.FileFilterDTO;
 import io.harness.filestore.dto.node.FileStoreNodeDTO;
-import io.harness.filestore.dto.node.FolderNodeDTO;
 import io.harness.filestore.entities.NGFile;
 import io.harness.filestore.service.FileFailsafeService;
 import io.harness.filestore.service.FileStoreService;
@@ -58,7 +58,7 @@ import io.harness.ng.core.dto.EmbeddedUserDetailsDTO;
 import io.harness.ng.core.entitysetupusage.dto.EntitySetupUsageDTO;
 import io.harness.ng.core.filestore.NGFileType;
 import io.harness.ng.core.filestore.dto.FileDTO;
-import io.harness.ng.core.filestore.dto.FileFilterDTO;
+import io.harness.filestore.dto.node.FolderNodeDTO;
 import io.harness.repositories.spring.FileStoreRepository;
 import io.harness.stream.BoundedInputStream;
 
@@ -144,7 +144,7 @@ public class FileStoreServiceImpl implements FileStoreService {
 
   @Override
   public Optional<FileStoreNodeDTO> getByPath(@NotNull final String accountIdentifier, String orgIdentifier,
-      String projectIdentifier, @NotNull final String path, boolean includeContent) {
+     String projectIdentifier, @NotNull final String path, boolean includeContent) {
     if (isEmpty(accountIdentifier)) {
       throw new InvalidArgumentsException("Account identifier cannot be null or empty");
     }

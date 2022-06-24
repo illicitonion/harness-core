@@ -12,9 +12,6 @@ import static io.harness.data.structure.EmptyPredicate.isEmpty;
 import static io.harness.data.structure.EmptyPredicate.isNotEmpty;
 
 import io.harness.annotations.dev.OwnedBy;
-import io.harness.filestore.dto.node.FileNodeDTO;
-import io.harness.filestore.dto.node.FileStoreNodeDTO;
-import io.harness.filestore.dto.node.FolderNodeDTO;
 import io.harness.ng.core.filestore.NGFileType;
 
 import java.util.Collections;
@@ -22,6 +19,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import io.harness.filestore.dto.node.FileNodeDTO;
+import io.harness.filestore.dto.node.FileStoreNodeDTO;
+import io.harness.filestore.dto.node.FolderNodeDTO;
 import lombok.experimental.UtilityClass;
 import org.apache.commons.lang3.StringUtils;
 
