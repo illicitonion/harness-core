@@ -17,9 +17,9 @@ import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
 import io.harness.cdng.CDNGTestBase;
-import io.harness.cdng.artifact.outcome.DockerArtifactOutcome;
+import io.harness.cdng.artifact.outcome.ArtifactsOutcome;
 import io.harness.cdng.configfile.steps.ConfigFilesOutcome;
-import io.harness.cdng.k8s.K8sCanaryOutcome;
+import io.harness.cdng.manifest.steps.ManifestsOutcome;
 import io.harness.cdng.stepsdependency.constants.OutcomeExpressionConstants;
 import io.harness.pms.contracts.ambiance.Ambiance;
 import io.harness.pms.sdk.core.data.OptionalOutcome;
@@ -39,9 +39,8 @@ public class ServiceOutcomeHelperTest extends CDNGTestBase {
   @Mock private ExecutionSweepingOutputService executionSweepingOutputService;
 
   ServiceStepOutcome serviceStepOutcome = ServiceStepOutcome.builder().name("service").identifier("service").build();
-  K8sCanaryOutcome variablesSweepingOutput = K8sCanaryOutcome.builder().build();
-  DockerArtifactOutcome artifactOutcome =
-      DockerArtifactOutcome.builder().identifier("identifier").image("image").build();
+  ArtifactsOutcome artifactOutcome = ArtifactsOutcome.builder().build();
+  ManifestsOutcome manifestsOutcome = new ManifestsOutcome();
   private final ConfigFilesOutcome configFilesOutCm = new ConfigFilesOutcome();
   @Test
   @Owner(developers = PRASHANTSHARMA)
@@ -49,19 +48,19 @@ public class ServiceOutcomeHelperTest extends CDNGTestBase {
   public void testGetFinalVariablesMap() {
     Ambiance ambiance = Ambiance.newBuilder().build();
 
-    doReturn(OptionalOutcome.builder().outcome(serviceStepOutcome).build())
+    doReturn(OptionalOutcome.builder().found(true).outcome(serviceStepOutcome).build())
         .when(outcomeService)
         .resolveOptional(ambiance, RefObjectUtils.getOutcomeRefObject(OutcomeExpressionConstants.SERVICE));
-    doReturn(OptionalOutcome.builder().outcome(artifactOutcome).build())
+    doReturn(OptionalOutcome.builder().found(true).outcome(artifactOutcome).build())
         .when(outcomeService)
         .resolveOptional(ambiance, RefObjectUtils.getOutcomeRefObject(OutcomeExpressionConstants.ARTIFACTS));
-    doReturn(OptionalOutcome.builder().outcome(artifactOutcome).build())
+    doReturn(OptionalOutcome.builder().found(true).outcome(manifestsOutcome).build())
         .when(outcomeService)
         .resolveOptional(ambiance, RefObjectUtils.getOutcomeRefObject(OutcomeExpressionConstants.MANIFESTS));
-    doReturn(OptionalOutcome.builder().outcome(configFilesOutCm).build())
+    doReturn(OptionalOutcome.builder().found(true).outcome(configFilesOutCm).build())
         .when(outcomeService)
         .resolveOptional(ambiance, RefObjectUtils.getOutcomeRefObject(OutcomeExpressionConstants.CONFIG_FILES));
-    doReturn(OptionalSweepingOutput.builder().output(variablesSweepingOutput).build())
+    doReturn(OptionalSweepingOutput.builder().found(false).build())
         .when(executionSweepingOutputService)
         .resolveOptional(any(), any());
 
@@ -70,7 +69,6 @@ public class ServiceOutcomeHelperTest extends CDNGTestBase {
     assertThat(outcome).isNotNull();
     assertThat(outcome.getServiceResult().getName()).isEqualTo("service");
     assertThat(outcome.getServiceResult().getIdentifier()).isEqualTo("service");
-    assertThat(outcome.getVariablesResult()).isInstanceOf(K8sCanaryOutcome.class);
-    assertThat(outcome.getArtifactResults()).isInstanceOf(DockerArtifactOutcome.class);
+    assertThat(outcome.getArtifactResults()).isEqualTo(artifactOutcome);
   }
 }
