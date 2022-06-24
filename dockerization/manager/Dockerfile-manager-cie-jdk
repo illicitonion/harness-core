@@ -21,6 +21,7 @@ COPY --chown=65534:65534 protocol.info /opt/harness/
 
 COPY --chown=65534:65534 scripts /opt/harness
 
+RUN chmod 744 -R /opt/harness/
 # RUN chmod +x /opt/harness/*.sh && chmod 700 -R /opt/harness/ && chown -R 65534:65534 /opt/harness/
 
 CMD [ "./run.sh" ]
