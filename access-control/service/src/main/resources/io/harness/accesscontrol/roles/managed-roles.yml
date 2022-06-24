@@ -616,6 +616,11 @@ roles:
         - gitops_cert_view
         - gitops_cert_edit
         - gitops_cert_delete
+      managed: true
+      allowedScopeLevels:
+        - account
+        - organization
+        - project
     - identifier: _sto_developer_role
       name: Security Testing Developer Role
       description: Can work with security issues
@@ -643,8 +648,6 @@ roles:
       managed: true
       allowedScopeLevels:
         - account
-        - organization
-        - project
     - identifier: _account_basic
       name: Account Basic
       description: Account Basic
