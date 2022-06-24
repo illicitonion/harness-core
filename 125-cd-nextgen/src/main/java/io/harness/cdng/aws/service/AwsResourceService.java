@@ -96,9 +96,9 @@ public interface AwsResourceService {
    * Get list of AWS VPC ids
    *
    * @param awsConnectorRef the IdentifierRef of the aws connector
-   * @param region AWS region
    * @param orgIdentifier is the org id
    * @param projectIdentifier is the project id
+   * @param region AWS region
    * @return list of AWS VPC ids
    */
   List<AwsVPC> getVPCs(IdentifierRef awsConnectorRef, String orgIdentifier, String projectIdentifier, String region);
@@ -107,9 +107,9 @@ public interface AwsResourceService {
    * Get list of AWS tags
    *
    * @param awsConnectorRef the IdentifierRef of the aws connector
-   * @param region AWS region
    * @param orgIdentifier is the org id
    * @param projectIdentifier is the project id
+   * @param region AWS region
    * @return list of AWS tags
    */
   Map<String, String> getTags(
