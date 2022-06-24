@@ -25,6 +25,7 @@ import io.harness.cdng.infra.beans.InfrastructureOutcome;
 import io.harness.cdng.infra.beans.K8sDirectInfrastructureOutcome;
 import io.harness.cdng.infra.beans.K8sGcpInfrastructureOutcome;
 import io.harness.cdng.infra.yaml.AzureWebAppInfrastructure;
+import io.harness.cdng.infra.yaml.InfraConfigStepParameter;
 import io.harness.cdng.infra.yaml.Infrastructure;
 import io.harness.cdng.infra.yaml.K8SDirectInfrastructure;
 import io.harness.cdng.infra.yaml.K8sAzureInfrastructure;
@@ -44,7 +45,6 @@ import io.harness.connector.utils.ConnectorUtils;
 import io.harness.data.structure.EmptyPredicate;
 import io.harness.delegate.beans.connector.ConnectorType;
 import io.harness.delegate.beans.connector.awsconnector.AwsConnectorDTO;
-import io.harness.delegate.beans.connector.awsconnector.AwsCredentialType;
 import io.harness.delegate.beans.connector.azureconnector.AzureConnectorDTO;
 import io.harness.delegate.beans.connector.gcpconnector.GcpConnectorDTO;
 import io.harness.delegate.task.k8s.K8sInfraDelegateConfig;
@@ -59,7 +59,6 @@ import io.harness.logging.UnitProgress;
 import io.harness.logging.UnitStatus;
 import io.harness.logstreaming.NGLogCallback;
 import io.harness.ng.core.NGAccess;
-import io.harness.ng.core.environment.services.EnvironmentService;
 import io.harness.ng.core.infrastructure.InfrastructureKind;
 import io.harness.ng.core.k8s.ServiceSpecType;
 import io.harness.pms.contracts.ambiance.Ambiance;
@@ -86,7 +85,6 @@ import io.harness.steps.executable.SyncExecutableWithRbac;
 import io.harness.steps.shellscript.K8sInfraDelegateConfigOutput;
 import io.harness.steps.shellscript.SshInfraDelegateConfigOutput;
 import io.harness.utils.IdentifierRefHelper;
-import io.harness.walktree.visitor.SimpleVisitorFactory;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.inject.Inject;
@@ -97,15 +95,13 @@ import java.util.Optional;
 import java.util.Set;
 
 @OwnedBy(CDC)
-public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure> {
+public class InfrastructureStep implements SyncExecutableWithRbac<InfraConfigStepParameter> {
   public static final StepType STEP_TYPE = StepType.newBuilder()
                                                .setType(ExecutionNodeType.INFRASTRUCTURE.getName())
                                                .setStepCategory(StepCategory.STEP)
                                                .build();
 
-  @Inject private EnvironmentService environmentService;
   @Inject private InfrastructureStepHelper infrastructureStepHelper;
-  @Inject private SimpleVisitorFactory simpleVisitorFactory;
   @Inject @Named("PRIVILEGED") private AccessControlClient accessControlClient;
   @Inject private EntityReferenceExtractorUtils entityReferenceExtractorUtils;
   @Inject private PipelineRbacHelper pipelineRbacHelper;
@@ -115,8 +111,8 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
   @Inject ExecutionSweepingOutputService executionSweepingOutputService;
 
   @Override
-  public Class<Infrastructure> getStepParametersClass() {
-    return Infrastructure.class;
+  public Class<InfraConfigStepParameter> getStepParametersClass() {
+    return InfraConfigStepParameter.class;
   }
 
   InfraMapping createInfraMappingObject(Infrastructure infrastructureSpec) {
@@ -124,8 +120,12 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
   }
 
   @Override
-  public StepResponse executeSyncAfterRbac(Ambiance ambiance, Infrastructure infrastructure,
+  public StepResponse executeSyncAfterRbac(Ambiance ambiance, InfraConfigStepParameter infraConfigStep,
       StepInputPackage inputPackage, PassThroughData passThroughData) {
+    Infrastructure infrastructure = infraConfigStep.getSpec();
+    String infraId = infraConfigStep.getInfraIdentifier();
+    String infraName = infraConfigStep.getInfraName();
+
     long startTime = System.currentTimeMillis();
 
     NGLogCallback logCallback = infrastructureStepHelper.getInfrastructureLogCallback(ambiance, true);
@@ -141,7 +141,7 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
     ServiceStepOutcome serviceOutcome = (ServiceStepOutcome) outcomeService.resolve(
         ambiance, RefObjectUtils.getOutcomeRefObject(OutcomeExpressionConstants.SERVICE));
     InfrastructureOutcome infrastructureOutcome =
-        InfrastructureMapper.toOutcome(infrastructure, environmentOutcome, serviceOutcome);
+        InfrastructureMapper.toOutcome(infrastructure, environmentOutcome, serviceOutcome, infraId, infraName);
 
     if (environmentOutcome != null) {
       if (EmptyPredicate.isNotEmpty(environmentOutcome.getName())) {
@@ -240,12 +240,6 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
         throw new InvalidRequestException(format("Invalid connector type [%s] for identifier: [%s], expected [%s]",
             connectorInfo.getConnectorType().name(), infrastructure.getConnectorReference().getValue(),
             ConnectorType.AWS.name()));
-      }
-
-      AwsConnectorDTO awsConnector = (AwsConnectorDTO) connectorInfo.getConnectorConfig();
-      if (AwsCredentialType.MANUAL_CREDENTIALS != awsConnector.getCredential().getAwsCredentialType()) {
-        throw new InvalidRequestException(
-            "Deployment using AWS infrastructure with manual credentials is only supported.");
       }
     }
 
@@ -420,7 +414,8 @@ public class InfrastructureStep implements SyncExecutableWithRbac<Infrastructure
   }
 
   @Override
-  public void validateResources(Ambiance ambiance, Infrastructure infrastructure) {
+  public void validateResources(Ambiance ambiance, InfraConfigStepParameter infraConfigStep) {
+    Infrastructure infrastructure = infraConfigStep.getSpec();
     ExecutionPrincipalInfo executionPrincipalInfo = ambiance.getMetadata().getPrincipalInfo();
     String principal = executionPrincipalInfo.getPrincipal();
     if (EmptyPredicate.isEmpty(principal)) {
