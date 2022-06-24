@@ -10,7 +10,6 @@ package software.wings.app;
 import static io.harness.annotations.dev.HarnessTeam.PL;
 
 import static javax.cache.expiry.Duration.THIRTY_MINUTES;
-import static javax.cache.expiry.Duration.TWENTY_MINUTES;
 
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.cache.HarnessCacheManager;

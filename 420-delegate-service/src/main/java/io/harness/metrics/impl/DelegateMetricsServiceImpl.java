@@ -105,14 +105,7 @@ public class DelegateMetricsServiceImpl implements DelegateMetricsService {
   }
 
   @Override
-  public void recordDelegateJWTCacheMetrics(String accountId, String metricName) {
-    try (DelegateAccountMetricContext ignore = new DelegateAccountMetricContext(accountId)) {
-      metricService.incCounter(metricName);
-    }
-  }
-
-  @Override
-  public void recordSecretsCacheMetric(String accountId, String metricName) {
+  public void recordDelegateMetricsPerAccount(String accountId, String metricName) {
     try (DelegateAccountMetricContext ignore = new DelegateAccountMetricContext(accountId)) {
       metricService.incCounter(metricName);
     }

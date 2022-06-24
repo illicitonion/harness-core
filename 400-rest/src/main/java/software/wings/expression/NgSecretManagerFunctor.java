@@ -62,21 +62,21 @@ import lombok.Value;
 @Builder
 @TargetModule(HarnessModule._950_NG_CORE)
 public class NgSecretManagerFunctor implements ExpressionFunctor, NgSecretManagerFunctorInterface {
-  private int expressionFunctorToken;
-  private final String accountId;
-  private final String orgId;
-  private final String projectId;
-  private final SecretManager secretManager;
-  private final Cache<String, EncryptedDataDetails> secretsCache;
-  private final SecretManagerClientService ngSecretService;
-  private SecretManagerMode mode;
+  int expressionFunctorToken;
+  String accountId;
+  String orgId;
+  String projectId;
+  SecretManager secretManager;
+  Cache<String, EncryptedDataDetails> secretsCache;
+  SecretManagerClientService ngSecretService;
+  SecretManagerMode mode;
 
-  @Builder.Default private Map<String, String> evaluatedSecrets = new HashMap<>();
-  @Builder.Default private Map<String, String> evaluatedDelegateSecrets = new HashMap<>();
-  @Builder.Default private Map<String, EncryptionConfig> encryptionConfigs = new HashMap<>();
-  @Builder.Default private Map<String, SecretDetail> secretDetails = new HashMap<>();
+  @Builder.Default Map<String, String> evaluatedSecrets = new HashMap<>();
+  @Builder.Default Map<String, String> evaluatedDelegateSecrets = new HashMap<>();
+  @Builder.Default Map<String, EncryptionConfig> encryptionConfigs = new HashMap<>();
+  @Builder.Default Map<String, SecretDetail> secretDetails = new HashMap<>();
 
-  @Inject private DelegateMetricsService delegateMetricsService;
+  DelegateMetricsService delegateMetricsService;
 
   @Override
   public Object obtain(String secretIdentifier, int token) {
@@ -128,11 +128,11 @@ public class NgSecretManagerFunctor implements ExpressionFunctor, NgSecretManage
 
     List<EncryptedDataDetail> encryptedDataDetails = null;
     if (secretsCache != null) {
-      delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_LOOKUPS);
+      delegateMetricsService.recordDelegateMetricsPerAccount(accountId, SECRETS_CACHE_LOOKUPS);
       EncryptedDataDetails cachedValue = secretsCache.get(String.valueOf(keyHash));
       if (cachedValue != null) {
         // Cache hit.
-        delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_HITS);
+        delegateMetricsService.recordDelegateMetricsPerAccount(accountId, SECRETS_CACHE_HITS);
         encryptedDataDetails = cachedValue.getEncryptedDataDetailList();
       }
     }
@@ -149,7 +149,7 @@ public class NgSecretManagerFunctor implements ExpressionFunctor, NgSecretManage
       EncryptedDataDetails objectToCache =
           EncryptedDataDetails.builder().encryptedDataDetailList(encryptedDataDetails).build();
       secretsCache.put(String.valueOf(keyHash), objectToCache);
-      delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_INSERTS);
+      delegateMetricsService.recordDelegateMetricsPerAccount(accountId, SECRETS_CACHE_INSERTS);
     }
 
     List<EncryptedDataDetail> localEncryptedDetails =

@@ -33,6 +33,7 @@ import io.harness.exception.FunctorException;
 import io.harness.exception.InvalidRequestException;
 import io.harness.expression.ExpressionFunctor;
 import io.harness.ff.FeatureFlagService;
+import io.harness.metrics.intfc.DelegateMetricsService;
 import io.harness.security.encryption.EncryptedDataDetail;
 import io.harness.security.encryption.EncryptedRecordData;
 import io.harness.security.encryption.EncryptionConfig;
@@ -76,7 +77,7 @@ public class SecretManagerFunctor implements ExpressionFunctor, SecretManagerFun
   @Default private Map<String, EncryptionConfig> encryptionConfigs = new HashMap<>();
   @Default private Map<String, SecretDetail> secretDetails = new HashMap<>();
 
-  @Inject private io.harness.metrics.intfc.DelegateMetricsService delegateMetricsService;
+  DelegateMetricsService delegateMetricsService;
 
   @Override
   public Object obtain(String secretName, int token) {
@@ -171,11 +172,11 @@ public class SecretManagerFunctor implements ExpressionFunctor, SecretManagerFun
     List<EncryptedDataDetail> encryptedDataDetails = null;
 
     if (secretsCache != null) {
-      delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_LOOKUPS);
+      delegateMetricsService.recordDelegateMetricsPerAccount(accountId, SECRETS_CACHE_LOOKUPS);
       EncryptedDataDetails cachedValue = secretsCache.get(encryptedData.getUuid());
       if (cachedValue != null) {
         // Cache hit.
-        delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_HITS);
+        delegateMetricsService.recordDelegateMetricsPerAccount(accountId, SECRETS_CACHE_HITS);
         encryptedDataDetails = cachedValue.getEncryptedDataDetailList();
       }
     }
@@ -190,7 +191,7 @@ public class SecretManagerFunctor implements ExpressionFunctor, SecretManagerFun
       EncryptedDataDetails objectToCache =
           EncryptedDataDetails.builder().encryptedDataDetailList(encryptedDataDetails).build();
       secretsCache.put(encryptedData.getUuid(), objectToCache);
-      delegateMetricsService.recordSecretsCacheMetric(accountId, SECRETS_CACHE_INSERTS);
+      delegateMetricsService.recordDelegateMetricsPerAccount(accountId, SECRETS_CACHE_INSERTS);
     }
 
     boolean enabled = featureFlagService.isEnabled(FeatureName.THREE_PHASE_SECRET_DECRYPTION, accountId);
