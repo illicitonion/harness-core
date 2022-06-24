@@ -47,22 +47,9 @@ public abstract class AbstractStepPlanCreator<T extends AbstractStepNode> implem
 
   protected void addStrategyFieldDependencyIfPresent(PlanCreationContext ctx, AbstractStepNode field,
       Map<String, YamlField> dependenciesNodeMap, Map<String, ByteString> metadataMap) {
-    YamlField strategyField = ctx.getCurrentField().getNode().getField(YAMLFieldNameConstants.STRATEGY);
-    if (strategyField != null) {
-      dependenciesNodeMap.put(field.getUuid(), strategyField);
-      // This is mandatory because it is the parent's responsibility to pass the nodeId and the childNodeId to the
-      // strategy node
-      metadataMap.put(StrategyConstants.STRATEGY_METADATA + strategyField.getNode().getUuid(),
-          ByteString.copyFrom(kryoSerializer.asDeflatedBytes(
-              StrategyMetadata.builder()
-                  .strategyNodeId(field.getUuid())
-                  .adviserObtainments(
-                      StageStrategyUtils.getAdviserObtainmentFromMetaDataForStep(kryoSerializer, ctx.getCurrentField()))
-                  .childNodeId(strategyField.getNode().getUuid())
-                  .strategyNodeIdentifier(field.getIdentifier())
-                  .strategyNodeName(field.getName())
-                  .build())));
-    }
+    StageStrategyUtils.addStrategyFieldDependencyIfPresent(kryoSerializer, ctx, field.getUuid(), field.getIdentifier(),
+        field.getName(), dependenciesNodeMap, metadataMap,
+        StageStrategyUtils.getAdviserObtainmentFromMetaDataForStep(kryoSerializer, ctx.getCurrentField()));
   }
 
   @Override public abstract PlanCreationResponse createPlanForField(PlanCreationContext ctx, T stepElement);

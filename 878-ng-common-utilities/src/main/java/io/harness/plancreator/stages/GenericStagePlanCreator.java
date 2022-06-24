@@ -85,7 +85,7 @@ public abstract class GenericStagePlanCreator extends ChildrenPlanCreator<StageE
         Preconditions.checkNotNull(ctx.getCurrentField().getNode().getField(YAMLFieldNameConstants.SPEC));
     stageParameters.specConfig(getSpecParameters(specField.getNode().getUuid(), ctx, stageElementConfig));
     return PlanNode.builder()
-        .uuid(StageStrategyUtils.getSwappedPlanNodeId(ctx, stageElementConfig))
+        .uuid(StageStrategyUtils.getSwappedPlanNodeId(ctx, stageElementConfig.getUuid()))
         .name(stageElementConfig.getName())
         .identifier(stageElementConfig.getIdentifier())
         .group(StepOutcomeGroup.STAGE.name())
@@ -112,29 +112,9 @@ public abstract class GenericStagePlanCreator extends ChildrenPlanCreator<StageE
    */
   protected void addStrategyFieldDependencyIfPresent(PlanCreationContext ctx, StageElementConfig field,
       LinkedHashMap<String, PlanCreationResponse> planCreationResponseMap, Map<String, ByteString> metadataMap) {
-    YamlField strategyField = ctx.getCurrentField().getNode().getField(YAMLFieldNameConstants.STRATEGY);
-    if (strategyField != null) {
-      // This is mandatory because it is the parent's responsibility to pass the nodeId and the childNodeId to the
-      // strategy node
-      metadataMap.put(StrategyConstants.STRATEGY_METADATA + strategyField.getNode().getUuid(),
-          ByteString.copyFrom(
-              kryoSerializer.asDeflatedBytes(StrategyMetadata.builder()
-                                                 .strategyNodeId(field.getUuid())
-                                                 .adviserObtainments(StageStrategyUtils.getAdviserObtainments(
-                                                     ctx.getCurrentField(), kryoSerializer, false))
-                                                 .childNodeId(strategyField.getNode().getUuid())
-                      .strategyNodeName(field.getName())
-                      .strategyNodeIdentifier(field.getIdentifier())
-                      .build())));
-      planCreationResponseMap.put(field.getUuid(),
-          PlanCreationResponse.builder()
-              .dependencies(DependenciesUtils.toDependenciesProto(ImmutableMap.of(field.getUuid(), strategyField))
-                                .toBuilder()
-                                .putDependencyMetadata(
-                                    field.getUuid(), Dependency.newBuilder().putAllMetadata(metadataMap).build())
-                                .build())
-              .build());
-    }
+    StageStrategyUtils.addStrategyFieldDependencyIfPresent(kryoSerializer, ctx, field.getUuid(), field.getIdentifier(),
+        field.getName(), planCreationResponseMap, metadataMap,
+        StageStrategyUtils.getAdviserObtainments(ctx.getCurrentField(), kryoSerializer, false));
   }
 
   @Override
