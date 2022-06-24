@@ -32,11 +32,11 @@ public class PipelineExecutionSummaryEntityCDCEntity implements CDCEntity<Pipeli
       planExecutionSummaryCdChangeServiceInfraChangeDataHandlerNew;
   @Override
   public ChangeHandler getChangeHandler(String handlerClass) {
-    boolean ff = cfClient.boolVariation("DEBEZIUM_ENABLED", Target.builder().build(), false);
+    boolean debezium_enabled = cfClient.boolVariation("DEBEZIUM_ENABLED", Target.builder().build(), false);
     if (handlerClass.contentEquals("PipelineExecutionSummaryEntity")) {
       return planExecutionSummaryChangeDataHandler;
     } else if (handlerClass.contentEquals("PipelineExecutionSummaryEntityCD")) {
-      if (!ff) {
+      if (!debezium_enabled) {
         return planExecutionSummaryCdChangeDataHandler;
       } else {
         log.info("FF DEBEZIUM_ENABLED is true.");

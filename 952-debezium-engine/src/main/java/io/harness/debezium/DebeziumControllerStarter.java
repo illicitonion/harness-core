@@ -12,7 +12,6 @@
 package io.harness.debezium;
 
 import io.harness.cf.client.api.CfClient;
-import io.harness.cf.client.dto.Target;
 import io.harness.lock.PersistentLocker;
 import io.harness.redis.RedisConfig;
 
@@ -33,23 +32,18 @@ public class DebeziumControllerStarter {
   @SuppressWarnings({"rawtypes", "unchecked"})
   public void startDebeziumController(DebeziumConfig debeziumConfig, ChangeConsumerConfig changeConsumerConfig,
       PersistentLocker locker, RedisConfig redisLockConfig) {
-    boolean ff = cfClient.boolVariation("DEBEZIUM_ENABLED", Target.builder().build(), false);
-    if (ff) {
-      List<String> collections = debeziumConfig.getMonitoredCollections();
-      for (String monitoredCollection : collections) {
-        try {
-          MongoCollectionChangeConsumer changeConsumer = consumerFactory.get(monitoredCollection, changeConsumerConfig);
-          DebeziumController debeziumController = new DebeziumController(
-              DebeziumConfiguration.getDebeziumProperties(debeziumConfig, redisLockConfig, monitoredCollection),
-              changeConsumer, locker, debeziumExecutorService);
-          debeziumExecutorService.submit(debeziumController);
-          log.info("Starting Debezium Controller for Collection {} ...", monitoredCollection);
-        } catch (Exception e) {
-          log.error("Cannot Start Debezium Controller for Collection {}", monitoredCollection, e);
-        }
+    List<String> collections = debeziumConfig.getMonitoredCollections();
+    for (String monitoredCollection : collections) {
+      try {
+        MongoCollectionChangeConsumer changeConsumer = consumerFactory.get(monitoredCollection, changeConsumerConfig);
+        DebeziumController debeziumController = new DebeziumController(
+            DebeziumConfiguration.getDebeziumProperties(debeziumConfig, redisLockConfig, monitoredCollection),
+            changeConsumer, locker, debeziumExecutorService, cfClient);
+        debeziumExecutorService.submit(debeziumController);
+        log.info("Starting Debezium Controller for Collection {} ...", monitoredCollection);
+      } catch (Exception e) {
+        log.error("Cannot Start Debezium Controller for Collection {}", monitoredCollection, e);
       }
-    } else {
-      log.info("FF DEBEZIUM_ENABLED is false");
     }
   }
 }
