@@ -55,7 +55,6 @@ public class ConnectorInfoDTO {
   @NotNull
   @JsonProperty(CONNECTOR_TYPES)
   @Schema(description = ConnectorConstants.CONNECTOR_TYPE)
-  @JsonTypeId
   io.harness.delegate.beans.connector.ConnectorType type;
 
   @JsonProperty("spec")
