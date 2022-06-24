@@ -268,13 +268,17 @@ public class PMSYamlSchemaServiceImpl implements PMSYamlSchemaService {
   @SuppressWarnings("unchecked")
   private List<ModuleType> obtainEnabledModules(String accountIdentifier) {
     List<ModuleType> modules = new ArrayList<>();
-    AccountLicenseDTO accountLicense =
-        NGRestUtils.getResponse(ngLicenseHttpClient.getAccountLicensesDTO(accountIdentifier));
-    accountLicense.getAllModuleLicenses().forEach((moduleType, value) -> {
-      if (EmptyPredicate.isNotEmpty(value)) {
-        modules.add(moduleType);
-      }
-    });
+
+    //TODO: Ideally it should be received from accountLicenses but there were some issues observed this part.
+//    AccountLicenseDTO accountLicense =
+//        NGRestUtils.getResponse(ngLicenseHttpClient.getAccountLicensesDTO(accountIdentifier));
+//    accountLicense.getAllModuleLicenses().forEach((moduleType, value) -> {
+//      if (EmptyPredicate.isNotEmpty(value)) {
+//        modules.add(moduleType);
+//      }
+//    });
+
+    modules = ModuleType.getModules().stream().filter(moduleType -> !moduleType.isInternal()).collect(Collectors.toList());
 
     List<ModuleType> instanceModuleTypes = pmsSdkInstanceService.getActiveInstanceNames()
                                                .stream()

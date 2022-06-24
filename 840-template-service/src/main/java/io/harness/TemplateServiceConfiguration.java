@@ -90,6 +90,7 @@ public class TemplateServiceConfiguration extends Configuration {
   @JsonProperty("pmsGrpcClientConfig") GrpcClientConfig pmsGrpcClientConfig;
   @JsonProperty("pipelineServiceClientConfig") private ServiceHttpClientConfig pipelineServiceClientConfig;
   @JsonProperty("pipelineServiceSecret") private String pipelineServiceSecret;
+  @JsonProperty("allowedParallelStages") private int allowedParallelStages;
 
   private boolean shouldDeployWithGitSync;
   private GitSdkConfiguration gitSdkConfiguration;

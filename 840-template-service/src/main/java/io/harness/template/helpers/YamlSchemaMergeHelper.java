@@ -11,8 +11,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.harness.EntityType;
+import io.harness.account.AccountClient;
+import io.harness.beans.FeatureName;
 import io.harness.jackson.JsonNodeUtils;
 import io.harness.ng.core.template.TemplateEntityType;
+import io.harness.remote.client.RestClientUtils;
 
 import java.util.*;
 
@@ -64,5 +67,10 @@ public class YamlSchemaMergeHelper {
                 return new HashSet<>(Arrays.asList("name", "identifier", "description", "type", "tags", "orgIdentifier", "projectIdentifier", "template"));
         }
         return new HashSet<>();
+    }
+
+    public static boolean isFeatureFlagEnabled(FeatureName dontRestrictParallelStageCount, String accountIdentifier, AccountClient accountClient) {
+        return RestClientUtils.getResponse(
+                accountClient.isFeatureFlagEnabled(dontRestrictParallelStageCount.name(), accountIdentifier));
     }
 }

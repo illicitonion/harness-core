@@ -12,6 +12,7 @@ import io.harness.EntityType;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.encryption.Scope;
 import io.harness.ng.core.template.TemplateEntityType;
+import io.harness.template.entity.TemplateEntity;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
@@ -19,4 +20,6 @@ import static io.harness.annotations.dev.HarnessTeam.CDC;
 public interface NGTemplateSchemaService {
 
     JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, EntityType entityType, TemplateEntityType templateEntityType);
+
+    void validateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, TemplateEntity templateEntity, String templateYaml);
 }

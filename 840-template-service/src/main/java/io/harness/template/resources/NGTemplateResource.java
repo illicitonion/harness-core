@@ -60,6 +60,7 @@ import io.harness.template.helpers.TemplateReferenceHelper;
 import io.harness.template.helpers.TemplateYamlConversionHelper;
 import io.harness.template.helpers.YamlVariablesUtils;
 import io.harness.template.mappers.NGTemplateDtoMapper;
+import io.harness.template.services.NGTemplateSchemaService;
 import io.harness.template.services.NGTemplateService;
 import io.harness.template.services.NGTemplateServiceHelper;
 import io.harness.utils.PageUtils;
@@ -151,6 +152,8 @@ public class NGTemplateResource {
   private final TemplateYamlConversionHelper templateYamlConversionHelper;
   private final TemplateReferenceHelper templateReferenceHelper;
 
+  private final NGTemplateSchemaService ngTemplateSchemaService;
+
   public static final String TEMPLATE_PARAM_MESSAGE = "Template Identifier for the entity";
 
   @GET
@@ -225,7 +228,7 @@ public class NGTemplateResource {
     log.info(String.format("Creating Template with identifier %s with label %s in project %s, org %s, account %s",
         templateEntity.getIdentifier(), templateEntity.getVersionLabel(), projectId, orgId, accountId));
 
-    // TODO(archit): Add schema validations
+    ngTemplateSchemaService.validateYamlSchemaInternal(accountId, projectId, orgId, null, templateEntity, templateYaml);
     TemplateEntity createdTemplate = templateService.create(templateEntity, setDefaultTemplate, comments);
     TemplateWrapperResponseDTO templateWrapperResponseDTO =
         TemplateWrapperResponseDTO.builder()
@@ -305,7 +308,7 @@ public class NGTemplateResource {
             templateEntity.getIdentifier(), templateEntity.getVersionLabel(), projectId, orgId, accountId));
     templateEntity = templateEntity.withVersion(isNumeric(ifMatch) ? parseLong(ifMatch) : null);
 
-    // TODO(archit): Add schema validations
+    ngTemplateSchemaService.validateYamlSchemaInternal(accountId, projectId, orgId, null, templateEntity, templateYaml);
     TemplateEntity createdTemplate =
         templateService.updateTemplateEntity(templateEntity, ChangeType.MODIFY, setDefaultTemplate, comments);
     TemplateWrapperResponseDTO templateWrapperResponseDTO =

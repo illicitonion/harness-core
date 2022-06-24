@@ -10,17 +10,32 @@ package io.harness.template.services;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.google.inject.name.Named;
 import io.harness.EntityType;
+import io.harness.account.AccountClient;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
+import io.harness.beans.FeatureName;
 import io.harness.encryption.Scope;
+import io.harness.exception.InvalidRequestException;
 import io.harness.exception.JsonSchemaException;
+import io.harness.exception.ngexception.beans.yamlschema.YamlSchemaErrorDTO;
+import io.harness.exception.ngexception.beans.yamlschema.YamlSchemaErrorWrapperDTO;
 import io.harness.ng.core.template.TemplateEntityType;
 import io.harness.pipeline.yamlschema.YamlSchemaServiceClient;
+import io.harness.pms.yaml.YamlUtils;
 import io.harness.remote.client.NGRestUtils;
+import io.harness.template.entity.TemplateEntity;
 import io.harness.template.helpers.YamlSchemaMergeHelper;
+import io.harness.template.mappers.TemplateChildEntityTypeToEntityTypeMapper;
 import io.harness.yaml.schema.YamlSchemaProvider;
+import io.harness.yaml.utils.JsonPipelineUtils;
+import io.harness.yaml.validator.YamlSchemaValidator;
 import lombok.extern.slf4j.Slf4j;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.NoSuchElementException;
 
 import static io.harness.annotations.dev.HarnessTeam.CDC;
 
@@ -28,8 +43,22 @@ import static io.harness.annotations.dev.HarnessTeam.CDC;
 @Slf4j
 @OwnedBy(CDC)
 public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
-    @Inject private YamlSchemaServiceClient yamlSchemaServiceClient;
-    @Inject private YamlSchemaProvider yamlSchemaProvider;
+    private YamlSchemaServiceClient yamlSchemaServiceClient;
+    private YamlSchemaProvider yamlSchemaProvider;
+    private YamlSchemaValidator yamlSchemaValidator;
+    private AccountClient accountClient;
+    Integer allowedParallelStages;
+
+    @Inject
+    public NGTemplateSchemaServiceImpl(YamlSchemaServiceClient yamlSchemaServiceClient, YamlSchemaProvider yamlSchemaProvider,
+                                       YamlSchemaValidator yamlSchemaValidator, AccountClient accountClient, @Named("allowedParallelStages") Integer allowedParallelStages){
+        this.yamlSchemaServiceClient = yamlSchemaServiceClient;
+        this.yamlSchemaProvider = yamlSchemaProvider;
+        this .yamlSchemaValidator = yamlSchemaValidator;
+        this.accountClient = accountClient;
+        this.allowedParallelStages = allowedParallelStages;
+
+    }
 
     @Override
     public JsonNode getTemplateSchema(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, EntityType entityType, TemplateEntityType templateEntityType) {
@@ -84,6 +113,35 @@ public class NGTemplateSchemaServiceImpl implements NGTemplateSchemaService {
                 return true;
             default:
                 return false;
+        }
+    }
+
+    public void validateYamlSchemaInternal(String accountIdentifier, String projectIdentifier, String orgIdentifier, Scope scope, TemplateEntity templateEntity, String templateYaml) {
+        long start = System.currentTimeMillis();
+        try {
+            EntityType entityType = TemplateChildEntityTypeToEntityTypeMapper.getInstance().getEntityType(templateEntity.getChildType());
+            if(entityType == null){
+                throw new UnsupportedOperationException("TemplateEntityChildType " + templateEntity.getChildType() + " not supported");
+            }
+            if(scope == null){
+                scope = projectIdentifier != null ? Scope.PROJECT : orgIdentifier != null ? Scope.ORG : Scope.ACCOUNT;
+            }
+            JsonNode schema = getTemplateSchema(accountIdentifier, projectIdentifier, orgIdentifier, scope, entityType, templateEntity.getTemplateEntityType());
+            String schemaString = JsonPipelineUtils.writeJsonString(schema);
+            yamlSchemaValidator.validate(templateYaml, schemaString,
+                    YamlSchemaMergeHelper.isFeatureFlagEnabled(FeatureName.DONT_RESTRICT_PARALLEL_STAGE_COUNT, accountIdentifier, accountClient),
+                    allowedParallelStages);
+        } catch (io.harness.yaml.validator.InvalidYamlException e) {
+            log.info("[PMS_SCHEMA] Schema validation took total time {}ms", System.currentTimeMillis() - start);
+            throw e;
+        } catch (Exception ex) {
+            log.error(ex.getMessage(), ex);
+            YamlSchemaErrorWrapperDTO errorWrapperDTO =
+                    YamlSchemaErrorWrapperDTO.builder()
+                            .schemaErrors(Collections.singletonList(
+                                    YamlSchemaErrorDTO.builder().message(ex.getMessage()).fqn("$.pipeline").build()))
+                            .build();
+            throw new io.harness.yaml.validator.InvalidYamlException(ex.getMessage(), ex, errorWrapperDTO);
         }
     }
 }
