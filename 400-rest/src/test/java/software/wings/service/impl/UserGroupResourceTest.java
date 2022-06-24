@@ -49,7 +49,7 @@ public class UserGroupResourceTest extends WingsBaseTest {
   public void shouldSearchUsers() {
     when(userGroupService.list(anyString(), any(), anyBoolean(), any(), any())).thenReturn(aPageResponse().build());
     userGroupResource.list(aPageRequest().build(), UUIDGenerator.generateUuid(), "xyz", false, null);
-    verify(userGroupService).list(anyString(), any(), anyBoolean(), null, null);
+    verify(userGroupService).list(anyString(), any(), anyBoolean(), any(), any());
   }
 
   @Test

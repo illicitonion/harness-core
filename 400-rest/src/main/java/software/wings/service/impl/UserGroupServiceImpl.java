@@ -283,7 +283,7 @@ public class UserGroupServiceImpl implements UserGroupService {
 
   private Set<String> getApplicationsMatchingTheSearchTerm(String accountId, String searchTerm) {
     PageResponse<Application> applicationList = getAllApplicationsStartingWithSearchTerm(accountId, searchTerm);
-    if (applicationList == null || applicationList.isEmpty()) {
+    if (isEmpty(applicationList)) {
       return Collections.emptySet();
     }
     return applicationList.stream().map(Base::getUuid).collect(Collectors.toSet());
