@@ -103,8 +103,10 @@ public abstract class BaseACLRepositoryImpl implements ACLRepository {
   @Override
   public long deleteByRoleAssignmentIdAndResourceSelectors(
       String roleAssignmentId, Set<ResourceSelector> resourceSelectorsToDelete) {
+    if (isEmpty(resourceSelectorsToDelete)) {
+      return 0;
+    }
     Criteria criteria = Criteria.where(ACLKeys.roleAssignmentId).is(roleAssignmentId);
-
     Criteria[] resourceSelectorCriteria = resourceSelectorsToDelete.stream()
                                               .map(resourceSelector
                                                   -> Criteria.where(ACLKeys.resourceSelector)
