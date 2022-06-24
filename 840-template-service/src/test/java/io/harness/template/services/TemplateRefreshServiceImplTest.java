@@ -8,6 +8,7 @@
 package io.harness.template.services;
 
 import static io.harness.rule.OwnerRule.INDER;
+import static io.harness.template.resources.NGTemplateResource.TEMPLATE;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -19,13 +20,18 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.harness.TemplateServiceTestBase;
+import io.harness.accesscontrol.acl.api.Resource;
+import io.harness.accesscontrol.acl.api.ResourceScope;
 import io.harness.accesscontrol.clients.AccessControlClient;
 import io.harness.annotations.dev.HarnessTeam;
 import io.harness.annotations.dev.OwnedBy;
 import io.harness.category.element.UnitTests;
 import io.harness.exception.InvalidRequestException;
 import io.harness.git.model.ChangeType;
+import io.harness.ng.core.template.TemplateEntityType;
 import io.harness.rule.Owner;
+import io.harness.template.beans.PermissionTypes;
+import io.harness.template.beans.TemplateResponseDTO;
 import io.harness.template.beans.refresh.ErrorNodeSummary;
 import io.harness.template.beans.refresh.NodeInfo;
 import io.harness.template.beans.refresh.TemplateInfo;
@@ -210,6 +216,8 @@ public class TemplateRefreshServiceImplTest extends TemplateServiceTestBase {
   @Owner(developers = INDER)
   @Category(UnitTests.class)
   public void testRecursivelyRefreshTemplatesForInValidYaml() {
+    TemplateResponseDTO.TemplateResponseDTOBuilder templateResponseDTOBuilder =
+        TemplateResponseDTO.builder().accountId(ACCOUNT_ID).orgIdentifier(ORG_ID).projectIdentifier(PROJECT_ID);
     String pipelineYaml = "pipeline yaml";
     String updatedPipelineTemplateYaml = readFile("refresh/validate/pipeline-template-with-incorrect-input.yaml");
     String stageYaml = "stage yaml";
@@ -222,12 +230,22 @@ public class TemplateRefreshServiceImplTest extends TemplateServiceTestBase {
         ErrorNodeSummary.builder()
             .nodeInfo(NodeInfo.builder().identifier(stageTemplateIdentifier).build())
             .templateInfo(TemplateInfo.builder().templateIdentifier(stageTemplateIdentifier).versionLabel("1").build())
+            .templateResponse(templateResponseDTOBuilder.identifier(stageTemplateIdentifier)
+                                  .name(stageTemplateIdentifier)
+                                  .versionLabel("1")
+                                  .yaml(stageYaml)
+                                  .build())
             .build();
     ErrorNodeSummary pipelineTemplateErrorNodeSummary =
         ErrorNodeSummary.builder()
             .nodeInfo(NodeInfo.builder().identifier(pipelineTemplateIdentifier).build())
             .templateInfo(
                 TemplateInfo.builder().templateIdentifier(pipelineTemplateIdentifier).versionLabel("1").build())
+            .templateResponse(templateResponseDTOBuilder.identifier(pipelineTemplateIdentifier)
+                                  .name(pipelineTemplateIdentifier)
+                                  .versionLabel("1")
+                                  .yaml(pipelineYaml)
+                                  .build())
             .childrenErrorNodes(Arrays.asList(
                 stageTemplateErrorNodeSummary, stageTemplateErrorNodeSummary, stageTemplateErrorNodeSummary))
             .build();
@@ -263,6 +281,8 @@ public class TemplateRefreshServiceImplTest extends TemplateServiceTestBase {
   @Owner(developers = INDER)
   @Category(UnitTests.class)
   public void testRecursivelyRefreshTemplatesForYaml_InValidYaml() {
+    TemplateResponseDTO.TemplateResponseDTOBuilder templateResponseDTOBuilder =
+        TemplateResponseDTO.builder().accountId(ACCOUNT_ID).orgIdentifier(ORG_ID).projectIdentifier(PROJECT_ID);
     String pipelineYaml = "pipeline yaml";
     String refreshedPipelineYaml = "Refreshed yaml";
     String pipelineTemplateYaml = "pipeline template yaml";
@@ -277,12 +297,23 @@ public class TemplateRefreshServiceImplTest extends TemplateServiceTestBase {
         ErrorNodeSummary.builder()
             .nodeInfo(NodeInfo.builder().identifier(stageTemplateIdentifier).build())
             .templateInfo(TemplateInfo.builder().templateIdentifier(stageTemplateIdentifier).versionLabel("1").build())
+            .templateResponse(templateResponseDTOBuilder.identifier(stageTemplateIdentifier)
+                                  .name(stageTemplateIdentifier)
+                                  .versionLabel("1")
+                                  .yaml(stageYaml)
+                                  .build())
             .build();
     ErrorNodeSummary pipelineTemplateErrorNodeSummary =
         ErrorNodeSummary.builder()
             .nodeInfo(NodeInfo.builder().identifier(pipelineTemplateIdentifier).build())
             .templateInfo(
                 TemplateInfo.builder().templateIdentifier(pipelineTemplateIdentifier).versionLabel("1").build())
+            .templateResponse(templateResponseDTOBuilder.identifier(pipelineTemplateIdentifier)
+                                  .versionLabel("1")
+                                  .templateEntityType(TemplateEntityType.PIPELINE_TEMPLATE)
+                                  .name(pipelineTemplateIdentifier)
+                                  .yaml(pipelineTemplateYaml)
+                                  .build())
             .childrenErrorNodes(Arrays.asList(
                 stageTemplateErrorNodeSummary, stageTemplateErrorNodeSummary, stageTemplateErrorNodeSummary))
             .build();
@@ -318,6 +349,12 @@ public class TemplateRefreshServiceImplTest extends TemplateServiceTestBase {
         .refreshTemplates(ACCOUNT_ID, ORG_ID, PROJECT_ID, pipelineTemplateYaml);
     inOrder.verify(templateInputsRefreshHelper, times(1))
         .refreshTemplates(ACCOUNT_ID, ORG_ID, PROJECT_ID, pipelineYaml);
+    verify(accessControlClient)
+        .checkForAccessOrThrow(ResourceScope.of(ACCOUNT_ID, ORG_ID, PROJECT_ID),
+            Resource.of(TEMPLATE, stageTemplateIdentifier), PermissionTypes.TEMPLATE_EDIT_PERMISSION);
+    verify(accessControlClient)
+        .checkForAccessOrThrow(ResourceScope.of(ACCOUNT_ID, ORG_ID, PROJECT_ID),
+            Resource.of(TEMPLATE, pipelineTemplateIdentifier), PermissionTypes.TEMPLATE_EDIT_PERMISSION);
 
     assertThat(refreshResponse.isShouldRefreshYaml()).isTrue();
     assertThat(refreshResponse.getRefreshedYaml()).isEqualTo(refreshedPipelineYaml);
