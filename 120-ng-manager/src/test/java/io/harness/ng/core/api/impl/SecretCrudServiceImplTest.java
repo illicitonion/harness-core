@@ -9,6 +9,7 @@ package io.harness.ng.core.api.impl;
 
 import static io.harness.annotations.dev.HarnessTeam.PL;
 import static io.harness.rule.OwnerRule.MEENAKSHI;
+import static io.harness.rule.OwnerRule.NAMANG;
 import static io.harness.rule.OwnerRule.NISHANT;
 import static io.harness.rule.OwnerRule.PHOENIKX;
 import static io.harness.rule.OwnerRule.VIKAS_M;
@@ -451,10 +452,23 @@ public class SecretCrudServiceImplTest extends CategoryTest {
     when(ngSecretServiceV2.listPermitted(any(), anyInt(), anyInt()))
         .thenReturn(new PageImpl<>(Lists.newArrayList(Secret.builder().build()), PageRequest.of(0, 10), 1));
     Page<SecretResponseWrapper> secretPage = secretCrudService.list("account", "org", "proj", Collections.emptyList(),
-        singletonList(SecretType.SSHKey), false, "abc", 0, 100, null);
+        singletonList(SecretType.SSHKey), false, "abc", 0, 100, null, true);
     assertThat(secretPage.getContent()).isNotEmpty();
     assertThat(secretPage.getContent().size()).isEqualTo(1);
     verify(ngSecretServiceV2).listPermitted(any(), anyInt(), anyInt());
+  }
+
+  @Test
+  @Owner(developers = NAMANG)
+  @Category(UnitTests.class)
+  public void testListWhenListPermittedFalse() {
+    when(ngSecretServiceV2.list(any(), anyInt(), anyInt()))
+        .thenReturn(new PageImpl<>(Lists.newArrayList(Secret.builder().build()), PageRequest.of(0, 10), 1));
+    Page<SecretResponseWrapper> secretPage = secretCrudService.list("account", "org", "proj", Collections.emptyList(),
+        singletonList(SecretType.SSHKey), false, "abc", 0, 100, null, false);
+    assertThat(secretPage.getContent()).isNotEmpty();
+    assertThat(secretPage.getContent().size()).isEqualTo(1);
+    verify(ngSecretServiceV2).list(any(), anyInt(), anyInt());
   }
 
   @Test

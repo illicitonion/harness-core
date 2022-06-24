@@ -181,6 +181,17 @@ public class NGSecretServiceV2ImplTest extends CategoryTest {
   }
 
   @Test
+  @Owner(developers = PHOENIKX)
+  @Category(UnitTests.class)
+  public void testList() {
+    when(secretRepository.findAll(any(), any())).thenReturn(Page.empty());
+    Page<Secret> secretPage = secretServiceV2Spy.list(Criteria.where("a").is("b"), 0, 100);
+    assertThat(secretPage).isNotNull();
+    assertThat(secretPage.toList()).isEmpty();
+    verify(secretRepository).findAll(any(), any());
+  }
+
+  @Test
   @Owner(developers = NAMANG)
   @Category(UnitTests.class)
   public void testListPermitted() {

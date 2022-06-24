@@ -22,6 +22,7 @@ import static io.harness.utils.PageUtils.getNGPageResponse;
 import io.harness.NGCommonEntityConstants;
 import io.harness.NGResourceFilterConstants;
 import io.harness.accesscontrol.AccountIdentifier;
+import io.harness.accesscontrol.NGAccessDeniedException;
 import io.harness.accesscontrol.acl.api.Resource;
 import io.harness.accesscontrol.acl.api.ResourceScope;
 import io.harness.annotations.dev.OwnedBy;
@@ -283,9 +284,18 @@ public class NGSecretResourceV2 {
     if (secretType != null) {
       secretTypes.add(secretType);
     }
-    return ResponseDTO.newResponse(
-        getNGPageResponse(ngSecretService.list(accountIdentifier, orgIdentifier, projectIdentifier, identifiers,
-            secretTypes, includeSecretsFromEverySubScope, searchTerm, page, size, sourceCategory)));
+    try {
+      secretPermissionValidator.checkForAccessOrThrow(
+          ResourceScope.of(accountIdentifier, orgIdentifier, projectIdentifier),
+          Resource.of(SECRET_RESOURCE_TYPE, null), SECRET_VIEW_PERMISSION, null);
+      return ResponseDTO.newResponse(
+          getNGPageResponse(ngSecretService.list(accountIdentifier, orgIdentifier, projectIdentifier, identifiers,
+              secretTypes, includeSecretsFromEverySubScope, searchTerm, page, size, sourceCategory, false)));
+    } catch (NGAccessDeniedException ex) {
+      return ResponseDTO.newResponse(
+          getNGPageResponse(ngSecretService.list(accountIdentifier, orgIdentifier, projectIdentifier, identifiers,
+              secretTypes, includeSecretsFromEverySubScope, searchTerm, page, size, sourceCategory, true)));
+    }
   }
 
   @POST
@@ -314,7 +324,7 @@ public class NGSecretResourceV2 {
     return ResponseDTO.newResponse(getNGPageResponse(ngSecretService.list(accountIdentifier, orgIdentifier,
         projectIdentifier, secretResourceFilterDTO.getIdentifiers(), secretResourceFilterDTO.getSecretTypes(),
         secretResourceFilterDTO.isIncludeSecretsFromEverySubScope(), secretResourceFilterDTO.getSearchTerm(), page,
-        size, secretResourceFilterDTO.getSourceCategory())));
+        size, secretResourceFilterDTO.getSourceCategory(), false)));
   }
 
   @GET

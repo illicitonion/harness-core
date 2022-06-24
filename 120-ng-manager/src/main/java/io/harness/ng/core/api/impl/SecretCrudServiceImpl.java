@@ -232,7 +232,7 @@ public class SecretCrudServiceImpl implements SecretCrudService {
   @Override
   public Page<SecretResponseWrapper> list(String accountIdentifier, String orgIdentifier, String projectIdentifier,
       List<String> identifiers, List<SecretType> secretTypes, boolean includeSecretsFromEverySubScope,
-      String searchTerm, int page, int size, ConnectorCategory sourceCategory) {
+      String searchTerm, int page, int size, ConnectorCategory sourceCategory, boolean listPermitted) {
     Criteria criteria = Criteria.where(SecretKeys.accountIdentifier).is(accountIdentifier);
     if (!includeSecretsFromEverySubScope) {
       criteria.and(SecretKeys.orgIdentifier).is(orgIdentifier).and(SecretKeys.projectIdentifier).is(projectIdentifier);
@@ -264,7 +264,8 @@ public class SecretCrudServiceImpl implements SecretCrudService {
       criteria.and(SecretKeys.identifier).in(identifiers);
     }
 
-    Page<Secret> secrets = ngSecretService.listPermitted(criteria, page, size);
+    Page<Secret> secrets = listPermitted ? ngSecretService.listPermitted(criteria, page, size)
+                                         : ngSecretService.list(criteria, page, size);
     return secrets.map(this::getResponseWrapper);
   }
 

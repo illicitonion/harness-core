@@ -350,6 +350,12 @@ public class NGSecretServiceV2Impl implements NGSecretServiceV2 {
         PageUtils.getPageRequest(page, size, Collections.singletonList(SecretKeys.createdAt + ",desc")));
   }
 
+  @Override
+  public Page<Secret> list(Criteria criteria, int page, int size) {
+    return secretRepository.findAll(
+        criteria, PageUtils.getPageRequest(page, size, Collections.singletonList(SecretKeys.createdAt + ",desc")));
+  }
+
   private List<Criteria> checkAccess(List<ResourceScopeAndIdentifierDTO> secrets) {
     // owner of secret is null, so skipping checks in secretPermissionValidator
     List<PermissionCheckDTO> permissionChecks =
