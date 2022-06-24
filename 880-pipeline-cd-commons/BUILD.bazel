@@ -43,8 +43,8 @@ java_library(
     deps = [
         "module",
         "//:lombok",
-        "//954-pms-contracts:module",
         "//950-delegate-tasks-beans:module",
+        "//954-pms-contracts:module",
         "//970-ng-commons:module",
         "//980-commons:module",
         "//990-commons-test:module",
@@ -56,7 +56,7 @@ java_library(
         "@maven//:junit_junit",
         "@maven//:org_assertj_assertj_core",
         "@maven//:org_jooq_jooq",
-        "@maven//:org_mockito_mockito_core"
+        "@maven//:org_mockito_mockito_core",
     ],
 )
 
