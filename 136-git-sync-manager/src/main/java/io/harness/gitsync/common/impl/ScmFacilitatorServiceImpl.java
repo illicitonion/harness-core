@@ -352,7 +352,7 @@ public class ScmFacilitatorServiceImpl implements ScmFacilitatorService {
     GitRepositoryDTO gitRepository = scmConnector.getGitRepositoryDetails();
     if (isNotEmpty(gitRepository.getName())) {
       return Collections.singletonList(GitRepositoryResponseDTO.builder().name(gitRepository.getName()).build());
-    } else if (isNotEmpty(gitRepository.getOrg())) {
+    } else if (isNotEmpty(gitRepository.getOrg()) && isNamespaceNotEmpty(response)) {
       return emptyIfNull(response.getReposList())
           .stream()
           .filter(repository -> repository.getNamespace().equals(gitRepository.getOrg()))
@@ -388,5 +388,9 @@ public class ScmFacilitatorServiceImpl implements ScmFacilitatorService {
           UserRepoResponse.builder().namespace(userRepo.getNamespace()).name(userRepo.getName()).build());
     }
     return userRepoResponses;
+  }
+
+  private boolean isNamespaceNotEmpty(GetUserReposResponse response) {
+    return isNotEmpty(response.getReposList()) && isNotEmpty(response.getRepos(0).getNamespace());
   }
 }
